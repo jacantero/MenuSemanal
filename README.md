@@ -2,49 +2,32 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+This is the standard anatomy of any professional React Native app using Expo:
 
-1. Install dependencies
+    📁 node_modules/ 
 
-   ```bash
-   npm install
-   ```
+        This is the heaviest folder. It contains thousands of files with third-party code that makes React Native and Expo work under the hood.
 
-2. Start the app
+        Golden rule of programming: Never modify anything inside this folder. It is generated automatically.
 
-   ```bash
-   npx expo start
-   ```
+    📁 assets/
 
-In the output, you'll find options to open the app in a
+        This is where we will store static files. For example, the SVG icons you exported from Figma, generic images for recipes, your logo, or custom fonts.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+    📄 App.js 
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+        (Note: Depending on the exact template, sometimes it can be an index.js or index.tsx file inside a folder called app/tabs/).
 
-## Get a fresh project
+        It is the main entry point. It's where the screens of the application draw when the user opens it. All the code we write will branch out from here.
 
-When you're ready, run:
+    📄 package.json
 
-```bash
-npm run reset-project
-```
+        It is a text file in JSON format. It contains the "identity" of your app: its name, its current version (e.g., 1.0.0), and, most importantly, an exact list of the "dependencies" (external packages) that your app needs to work.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+    📄 app.json
 
-## Learn more
+        Here we configure how the app behaves at the operating system level. In this file, you can define what the app's icon will be on the mobile screen, the color of the loading screen (splash screen), or if you want to lock the screen so it's only viewed in portrait mode and doesn't rotate.
 
-To learn more about developing your project with Expo, look at the following resources:
+    📄 .gitignore
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+       When you upload your code to the internet (for example, to GitHub to keep backups), this file contains a list of things that should not be uploaded. For example, it tells the system to ignore the heavy node_modules folder.

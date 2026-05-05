@@ -1,18 +1,14 @@
-// Tab for Menu
-
-//1. Import necessary packages. 
+//Tab for Shopping list
 import { View, Text, StyleSheet } from 'react-native';
 
-//2. Screen definition. export default means the file is delivered to the rest of the app
 export default function MenuScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Menú Semanal</Text>
+      <Text style={styles.text}>Lista de la compra</Text>
     </View>
   );
 }
 
-//3. Style design. Note we have previously assgined a style to each element in the screen
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e6f7ff' },
   text: { fontSize: 20, fontWeight: 'bold' },
