@@ -29,3 +29,21 @@ export let MOCK_RECIPES = [
 export const addRecipe = (newRecipe) => {
   MOCK_RECIPES.push(newRecipe);
 };
+
+// Empezamos la semana con todos los huecos vacíos (null)
+export let weeklyMenu = {
+  Lunes: { lunch: null, dinner: null },
+  Martes: { lunch: null, dinner: null },
+  Miércoles: { lunch: null, dinner: null },
+  Jueves: { lunch: null, dinner: null },
+  Viernes: { lunch: null, dinner: null },
+  Sábado: { lunch: null, dinner: null },
+  Domingo: { lunch: null, dinner: null },
+};
+
+// Función para guardar una receta en un día y comida específicos
+export const assignRecipeToMenu = (day, mealType, recipeId) => {
+  if (weeklyMenu[day]) {
+    weeklyMenu[day][mealType] = recipeId;
+  }
+};
