@@ -1,7 +1,9 @@
-import {useState} from 'react'; // 1. Importamos useState para la memoria
+import {useState, useCallback} from 'react'; // 1. Importamos useState para la memoria
+import Fuse from 'fuse.js'; // Para mejorar la barra de búsqueda
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput} from 'react-native';
-import {router} from 'expo-router'; //Importamos el enrutador
+import {router, useFocusEffect} from 'expo-router'; //Importamos el enrutador
 import {MOCK_RECIPES} from '../mockData'; //Importamos nuestros datos
+import { FontAwesome } from '@expo/vector-icons';
 // 1. NUESTROS DATOS FALSOS (Mock Data)
 // Aquí preparamos toda la información que luego vendrá de tu base de datos.
 // Fíjate que ya he incluido los ingredientes y las porciones base para tu futura calculadora.
@@ -11,9 +13,25 @@ export default function RecipesScreen() {
   //Filtrado de recetas
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredRecipes = MOCK_RECIPES.filter(recipe => 
-    recipe.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const [recipes, setRecipes] = useState(MOCK_RECIPES);
+
+  useFocusEffect(
+    useCallback(() => {
+      setRecipes([...MOCK_RECIPES]); // Recarga la lista al entrar en la pantalla
+    }, [])
   );
+
+ const fuse = new Fuse(recipes, {
+    keys: ['name'], // Le decimos que busque dentro del título de la receta
+    threshold: 0.4, // El nivel de "perdón" (0 es exacto, 1 perdona todo). 0.4 es el estándar.
+  });
+
+  // 2. Filtramos la lista
+  // Si hay algo escrito en el buscador, usa Fuse. Si está vacío, muestra la lista normal.
+  const filteredRecipes = searchQuery 
+    ? fuse.search(searchQuery).map(result => result.item) // Fuse devuelve un formato especial, lo adaptamos
+    : recipes;
+  //
 
   // 2. EL MOLDE DE LA TARJETA
   // Esta función le dice a la lista cómo dibujar CADA UNA de las recetas.
@@ -57,8 +75,17 @@ export default function RecipesScreen() {
         keyExtractor={(item) => item.id} // Cómo identifica cada elemento para no confundirse
         renderItem={renderRecipeCard} // Qué molde usa para dibujarlos
         contentContainerStyle={styles.listContainer} // Estilos del contenedor de la lista
+        //Si no existe la receta, damos la opción de añadirla
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No se han encontrado recetas.</Text>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No hemos encontrado "{searchQuery}"</Text>
+            <TouchableOpacity 
+              style={styles.createButton} 
+              onPress={() => router.push('/recipe/new_recipe')}
+            >
+              <Text style={styles.createButtonText}>+ Añadir nueva receta</Text>
+            </TouchableOpacity>
+          </View>
         }
       />
     </View>
@@ -94,7 +121,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingBottom: 80,
   },
   card: {
     backgroundColor: '#fff',
@@ -120,4 +147,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderColor: '#000', // Borde negro separador entre texto y foto
   },
-});
+  emptyContainer: { alignItems: 'center', marginTop: 40 },
+  createButton: { backgroundColor: '#2f95dc', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, marginTop: 15 },
+  createButtonText: { color: '#fff', fontWeight: 'bold' }});

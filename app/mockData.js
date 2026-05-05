@@ -1,4 +1,4 @@
-export const MOCK_RECIPES = [
+export let MOCK_RECIPES = [
   {
     id: '1',
     name: 'Espaguetis a la carbonara',
@@ -24,3 +24,8 @@ export const MOCK_RECIPES = [
     instructions: ['Picar finamente las verduras.', 'Hacer un sofrito a fuego lento.', 'Añadir las lentejas, el chorizo entero y cubrir con agua fría.', 'Cocer a fuego medio durante 40-45 minutos.']
   },
 ];
+
+// 2. Añade esta función al final del todo el archivo
+export const addRecipe = (newRecipe) => {
+  MOCK_RECIPES.push(newRecipe);
+};
