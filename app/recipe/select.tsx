@@ -1,4 +1,4 @@
-//PAntalla de selección de comidas dentro de la página de menú semanal
+//Pantalla de selección de comidas dentro de la página de menú semanal
 
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
 import { router, useLocalSearchParams, Stack } from 'expo-router';

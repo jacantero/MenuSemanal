@@ -30,6 +30,20 @@ export const addRecipe = (newRecipe) => {
   MOCK_RECIPES.push(newRecipe);
 };
 
+export const deleteRecipe = (id) => {
+  const index = MOCK_RECIPES.findIndex(r => String(r.id) === String(id));
+  if (index !== -1) MOCK_RECIPES.splice(index, 1);
+};
+
+export const updateRecipe = (id, updatedData) => {
+  const index = MOCK_RECIPES.findIndex(r => String(r.id) === String(id));
+  if (index !== -1) {
+    MOCK_RECIPES[index] = { ...updatedData, id }; // Mantenemos el mismo ID
+  }
+};
+
+/*Funciones para el menu semanal*/
+
 // Empezamos la semana con todos los huecos vacíos (null)
 export let weeklyMenu = {
   Lunes: { lunch: null, dinner: null },
@@ -48,17 +62,7 @@ export const assignRecipeToMenu = (day, mealType, recipeId) => {
   }
 };
 
-export let EXTRA_SHOPPING_ITEMS = [];
-
-export const addExtraItem = (name, amount, unit) => {
-  EXTRA_SHOPPING_ITEMS.push({
-    id: Date.now().toString(),
-    name,
-    amount: parseFloat(amount) || 1,
-    unit: unit || 'ud'
-  });
-};
-
+/*Funciones para la lista de la compra*/
 // --- BASE DE DATOS DE SUPERMERCADO ---
 export const COMMON_INGREDIENTS = [
   { name: 'Leche', unit: 'L' },
@@ -75,3 +79,14 @@ export const COMMON_INGREDIENTS = [
   { name: 'Azúcar', unit: 'kg' },
   { name: 'Café molido', unit: 'paquete' }
 ];
+
+export let EXTRA_SHOPPING_ITEMS = [];
+
+export const addExtraItem = (name, amount, unit) => {
+  EXTRA_SHOPPING_ITEMS.push({
+    id: Date.now().toString(),
+    name,
+    amount: parseFloat(amount) || 1,
+    unit: unit || 'ud'
+  });
+};

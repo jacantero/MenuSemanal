@@ -1,23 +1,55 @@
+//Pantalla de detalle de la receta
+import { Alert } from 'react-native';
+import { deleteRecipe } from '../mockData';
 import { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { router, useLocalSearchParams, Stack } from 'expo-router';
 import { MOCK_RECIPES } from '../mockData';
+import { FontAwesome } from '@expo/vector-icons';
 
 export default function RecipeDetailScreen() {
   // 1. Obtenemos el 'id' de la receta que hemos tocado
   const { id } = useLocalSearchParams();
   //console.log("ID recibido de la URL:", id, "| Tipo:", typeof id);
+  
   // 2. Buscamos esa receta en nuestros datos falsos
-// 2. Buscamos esa receta y hacemos un log de cada paso
   const recipe = MOCK_RECIPES.find((r) => {
     //console.log(`Comparando -> ID de receta (${r.name}):`, r.id, "| Tipo:", typeof r.id);
     
     // Comparamos forzando que ambos sean texto por si acaso
     return String(r.id) === String(id);
   });
+
   // 3. ESTADO (Memoria de React): Aquí guardamos el número de comensales elegidos.
   // Empieza con el número base que tenga la receta (ej. 2 para la carbonara).
   const [diners, setDiners] = useState(recipe?.baseDiners || 1);
+
+  const handleDelete = () => {
+    Alert.alert(
+      "¿Borrar receta?",
+      "Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar esta receta de tu libro personal?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Borrar", 
+          style: "destructive", 
+          onPress: () => {
+            deleteRecipe(recipe.id);
+            router.back();
+          } 
+        }
+      ]
+    );
+  };
+
+  // --- FUNCIÓN DE EDICIÓN ---
+  const handleEdit = () => {
+    // Navegamos a la pantalla de nueva receta pero pasando el ID para que sepa que es edición
+    router.push({
+      pathname: './new_recipe',
+      params: { editId: recipe.id }
+    });
+  };
 
   // Si por algún error no encuentra la receta, mostramos esto
   if (!recipe) return <Text style={{ padding: 20 }}>Receta no encontrada</Text>;
@@ -30,6 +62,22 @@ export default function RecipeDetailScreen() {
   return (
     // Usamos ScrollView en lugar de View para poder deslizar si la receta es muy larga
     <ScrollView style={styles.container}>
+      {/* Botones de acción en la cabecera */}
+      <Stack.Screen 
+        options={{ 
+          title: 'Detalle',
+          headerRight: () => (
+            <View style={{ flexDirection: 'row', marginRight: 10 }}>
+              <TouchableOpacity onPress={handleEdit} style={{ marginRight: 20 }}>
+                <FontAwesome name="pencil" size={22} color="#2f95dc" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleDelete}>
+                <FontAwesome name="trash" size={22} color="#ff5252" />
+              </TouchableOpacity>
+            </View>
+          )
+        }} 
+      />
       
       {/* Esto cambia el título de la cabecera superior por el nombre de la receta */}
       <Stack.Screen options={{ title: recipe.name }} />
