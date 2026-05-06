@@ -47,3 +47,31 @@ export const assignRecipeToMenu = (day, mealType, recipeId) => {
     weeklyMenu[day][mealType] = recipeId;
   }
 };
+
+export let EXTRA_SHOPPING_ITEMS = [];
+
+export const addExtraItem = (name, amount, unit) => {
+  EXTRA_SHOPPING_ITEMS.push({
+    id: Date.now().toString(),
+    name,
+    amount: parseFloat(amount) || 1,
+    unit: unit || 'ud'
+  });
+};
+
+// --- BASE DE DATOS DE SUPERMERCADO ---
+export const COMMON_INGREDIENTS = [
+  { name: 'Leche', unit: 'L' },
+  { name: 'Huevos', unit: 'ud' },
+  { name: 'Pan de molde', unit: 'paquete' },
+  { name: 'Aceite de Oliva', unit: 'L' },
+  { name: 'Papel higiénico', unit: 'pack' },
+  { name: 'Manzanas', unit: 'kg' },
+  { name: 'Plátanos', unit: 'kg' },
+  { name: 'Tomate frito', unit: 'bote' },
+  { name: 'Agua mineral', unit: 'garrafa' },
+  { name: 'Cerveza', unit: 'lata' },
+  { name: 'Sal gruesa', unit: 'kg' },
+  { name: 'Azúcar', unit: 'kg' },
+  { name: 'Café molido', unit: 'paquete' }
+];
