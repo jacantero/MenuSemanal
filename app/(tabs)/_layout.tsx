@@ -16,13 +16,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="recipes"
-        options={{
-          title: 'Recetas',
-          tabBarIcon: ({ color }) => <FontAwesome name="book" size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="buy_list"
         options={{
           title: 'Compra',

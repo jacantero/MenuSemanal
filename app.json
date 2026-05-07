@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.susjelem.MenuSemanal"
     },
     "web": {
       "output": "static",
@@ -43,6 +44,19 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fe2a7979-d4f6-4b28-a5cf-e0c460eb444a"
+      }
+    },
+    "owner": "susjelem",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/fe2a7979-d4f6-4b28-a5cf-e0c460eb444a"
     }
   }
 }

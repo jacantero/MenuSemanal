@@ -6,39 +6,53 @@ import { weeklyMenu, MOCK_RECIPES } from '../mockData';
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 export default function MenuScreen() {
-  // Estado para forzar la recarga cuando volvemos de elegir receta
   const [menuData, setMenuData] = useState(weeklyMenu);
 
   useFocusEffect(
     useCallback(() => {
-      setMenuData({ ...weeklyMenu }); // Refrescamos la vista
+      setMenuData({ ...weeklyMenu }); 
     }, [])
   );
 
-  // Pequeña función para buscar el nombre de la receta por su ID
   const getRecipeName = (recipeId) => {
     if (!recipeId) return null;
-    if (recipeId === 'eat_out') return 'Comer fuera'; // <- Interceptamos el ID especial
-    const recipe = MOCK_RECIPES.find(r => r.id === recipeId);
+    if (recipeId === 'eat_out') return 'Comer fuera'; 
+    const recipe = MOCK_RECIPES.find(r => String(r.id) === String(recipeId));
     return recipe ? recipe.name : 'Receta borrada';
   };
 
   const renderMealSlot = (day, mealType, title, isLast) => {
-    const assignedRecipeId = menuData[day][mealType];
+    // Leemos el nuevo formato de objeto { recipeId, diners } o el string antiguo
+    const assignment = menuData[day][mealType];
+    const assignedRecipeId = assignment?.recipeId || (typeof assignment === 'string' ? assignment : null);
+    const plannedDiners = assignment?.diners || null;
+    
     const recipeName = getRecipeName(assignedRecipeId);
 
     return (
       <View style={[styles.mealSection, isLast && { marginBottom: 0 }]}>
         <Text style={styles.mealTitle}>{title}</Text>
         
-        {/* Si hay receta, mostramos la tarjeta verde. Si no, el botón de asignar */}
         {recipeName ? (
-<TouchableOpacity 
+          <TouchableOpacity 
             style={styles.filledSlot} 
-            onPress={() => router.push({ pathname: '/recipe/select', params: { day, meal: mealType } })}
+            onPress={() => {
+              if (assignedRecipeId === 'eat_out') {
+                // Si es comer fuera, permitimos reasignar directamente
+                router.push({ pathname: '/recipe/select', params: { day, meal: mealType } });
+              } else {
+                // Si es una receta normal, vamos a SU PANTALLA DE DETALLE, pasándole el día y los comensales
+                router.push({ 
+                  pathname: `/recipe/${assignedRecipeId}`, 
+                  params: { day, meal: mealType, plannedDiners: plannedDiners } 
+                });
+              }
+            }}
           >
             <Text style={styles.filledSlotText}>
               {assignedRecipeId === 'eat_out' ? '🍽️' : '🍲'} {recipeName}
+              {/* Añadimos el chivato visual de los comensales si es una receta */}
+              {assignedRecipeId !== 'eat_out' && plannedDiners && ` (👥 ${plannedDiners})`}
             </Text>
           </TouchableOpacity>
         ) : (
@@ -79,8 +93,6 @@ const styles = StyleSheet.create({
   mealTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#555' },
   emptySlot: { backgroundColor: '#f0f8ff', borderWidth: 1, borderColor: '#2f95dc', borderStyle: 'dashed', borderRadius: 8, padding: 12, alignItems: 'center' },
   emptySlotText: { color: '#2f95dc', fontWeight: 'bold' },
-  
-  // Nuevo estilo para cuando ya hay una receta asignada
   filledSlot: { backgroundColor: '#e8f5e9', borderWidth: 1, borderColor: '#4caf50', borderRadius: 8, padding: 12 },
   filledSlotText: { color: '#2e7d32', fontWeight: 'bold', fontSize: 16 }
 });

@@ -55,10 +55,25 @@ export let weeklyMenu = {
   Domingo: { lunch: null, dinner: null },
 };
 
-// Función para guardar una receta en un día y comida específicos
-export const assignRecipeToMenu = (day, mealType, recipeId) => {
+// app/mockData.js
+
+export const assignRecipeToMenu = (day, mealType, recipeId, diners = null) => {
   if (weeklyMenu[day]) {
-    weeklyMenu[day][mealType] = recipeId;
+    // Si no hay recipeId (o es null), limpiamos el hueco
+    if (!recipeId) {
+      weeklyMenu[day][mealType] = null;
+    } 
+    // Si es "comer fuera", guardamos el ID especial
+    else if (recipeId === 'eat_out') {
+      weeklyMenu[day][mealType] = { recipeId: 'eat_out', diners: 1 };
+    } 
+    // Si es una receta normal, guardamos ID + Comensales
+    else {
+      weeklyMenu[day][mealType] = {
+        recipeId: recipeId,
+        diners: diners || 2 // Si no nos pasan comensales, ponemos 2 por defecto
+      };
+    }
   }
 };
 

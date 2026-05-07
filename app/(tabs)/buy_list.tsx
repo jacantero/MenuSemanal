@@ -5,7 +5,6 @@ import { FontAwesome } from '@expo/vector-icons';
 import { weeklyMenu, MOCK_RECIPES, EXTRA_SHOPPING_ITEMS, addExtraItem, COMMON_INGREDIENTS } from '../mockData';
 
 // --- MEMORIA DE SESIÓN GLOBAL ---
-// Esto sobrevive aunque cambies de pestaña, guardando lo que tachas o borras.
 const checkedItemsMemory = new Set();
 const deletedItemsMemory = new Set();
 
@@ -93,22 +92,37 @@ export default function ShoppingScreen() {
     Object.keys(weeklyMenu).forEach(day => {
       const meals = weeklyMenu[day];
       ['lunch', 'dinner'].forEach(mealType => {
-        const recipeId = meals[mealType];
-        if (recipeId && recipeId !== 'eat_out') {
-          const recipe = MOCK_RECIPES.find(r => r.id === recipeId);
+        // --- AQUÍ ESTÁ EL ARREGLO PRINCIPAL ---
+        const assignment = meals[mealType];
+        
+        // Extraemos el ID y los comensales (soportando tanto el formato nuevo como el viejo por si acaso)
+        const actualRecipeId = assignment?.recipeId || (typeof assignment === 'string' ? assignment : null);
+        const plannedDiners = assignment?.diners || null;
+
+        if (actualRecipeId && actualRecipeId !== 'eat_out') {
+          const recipe = MOCK_RECIPES.find(r => String(r.id) === String(actualRecipeId));
+          
           if (recipe) {
             const shortName = recipe.name.length > 12 ? recipe.name.substring(0, 12) + '...' : recipe.name;
             const recipeLabel = `${day} (${mealType === 'lunch' ? 'Com' : 'Cen'}) - ${shortName}`;
 
+            // Calculamos cuántos comensales son en realidad (los planificados, o los de la receta por defecto)
+            const currentDiners = plannedDiners || recipe.baseDiners || 1;
+
             recipe.ingredients.forEach(ing => {
               const nameLower = ing.name.toLowerCase();
-              const itemId = `menu-${nameLower}`; // <-- ID DETERMINISTA
+              const itemId = `menu-${nameLower}`; 
 
-              // Si el usuario lo borró de la lista, lo ignoramos
               if (deletedItemsMemory.has(itemId)) return; 
 
+              // --- REGLA DE TRES MATEMÁTICA PARA LA LISTA ---
+              // (Cantidad original / Personas originales) * Personas actuales
+              let adjustedAmount = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
+              // Redondeamos a 2 decimales para que no salgan números como 3.33333
+              adjustedAmount = Math.round(adjustedAmount * 100) / 100;
+
               if (ingredientMap[nameLower]) {
-                ingredientMap[nameLower].amount += ing.amount;
+                ingredientMap[nameLower].amount += adjustedAmount; // Sumamos la cantidad ajustada
                 if (!ingredientMap[nameLower].recipeLabels.includes(recipeLabel)) {
                   ingredientMap[nameLower].recipeLabels.push(recipeLabel);
                 }
@@ -116,10 +130,10 @@ export default function ShoppingScreen() {
                 ingredientMap[nameLower] = {
                   id: itemId,
                   name: ing.name, 
-                  amount: ing.amount,
+                  amount: adjustedAmount, // Guardamos la cantidad ajustada
                   unit: ing.unit,
                   recipeLabels: [recipeLabel],
-                  checked: checkedItemsMemory.has(itemId), // <-- RECUPERAMOS EL ESTADO
+                  checked: checkedItemsMemory.has(itemId), 
                   isExtra: false
                 };
               }
@@ -173,7 +187,6 @@ export default function ShoppingScreen() {
     if (newItemName.trim() && newItemAmount.trim()) {
       const finalAmount = parseFloat(newItemAmount) || 1; 
       
-      // Si antes lo habíamos borrado, le quitamos la "amnesia"
       const itemId = `extra-${newItemName.trim().toLowerCase()}`;
       deletedItemsMemory.delete(itemId);
 
@@ -195,14 +208,12 @@ export default function ShoppingScreen() {
   };
 
   const toggleCheck = (itemId, sectionTitle) => {
-    // 1. Guardamos en la memoria global
     if (checkedItemsMemory.has(itemId)) {
       checkedItemsMemory.delete(itemId);
     } else {
       checkedItemsMemory.add(itemId);
     }
 
-    // 2. Actualizamos la vista local
     setSections(currentSections => 
       currentSections.map(section => {
         if (section.title === sectionTitle) {
@@ -215,7 +226,6 @@ export default function ShoppingScreen() {
   };
 
   const handleDeleteItem = (itemToDelete, sectionTitle) => {
-    // 1. Guardamos en la memoria de borrados
     deletedItemsMemory.add(itemToDelete.id);
 
     if (itemToDelete.isExtra) {
@@ -223,7 +233,6 @@ export default function ShoppingScreen() {
       if (index > -1) EXTRA_SHOPPING_ITEMS.splice(index, 1);
     }
     
-    // 2. Actualizamos la vista local
     setSections(currentSections => {
       return currentSections.map(section => {
         if (section.title === sectionTitle) {
@@ -239,7 +248,7 @@ export default function ShoppingScreen() {
     sections.forEach(section => {
       section.data[0].forEach(item => {
         if (item.checked) {
-          deletedItemsMemory.add(item.id); // Guardamos en memoria todo lo borrado
+          deletedItemsMemory.add(item.id); 
           
           if (item.isExtra) {
             const index = EXTRA_SHOPPING_ITEMS.findIndex(ext => ext.name === item.name);
