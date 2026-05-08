@@ -90,22 +90,25 @@ export default function ShoppingScreen() {
     const ingredientMap = {};
 
     Object.keys(weeklyMenu).forEach(day => {
-      const meals = weeklyMenu[day];
-      ['lunch', 'dinner'].forEach(mealType => {
-        // --- AQUÍ ESTÁ EL ARREGLO PRINCIPAL ---
-        const assignment = meals[mealType];
+      // 1. Extraemos la lista dinámica del día (en lugar de un objeto)
+      const dayMealsList = weeklyMenu[day] || [];
+      
+      // 2. Recorremos CADA comida que haya en ese día
+      dayMealsList.forEach(assignment => {
         
-        // Extraemos el ID y los comensales (soportando tanto el formato nuevo como el viejo por si acaso)
-        const actualRecipeId = assignment?.recipeId || (typeof assignment === 'string' ? assignment : null);
-        const plannedDiners = assignment?.diners || null;
+        // Extraemos el ID de la receta y los comensales directamente del objeto
+        const actualRecipeId = assignment?.recipeId;
+        const plannedDiners = assignment?.diners;
 
         if (actualRecipeId && actualRecipeId !== 'eat_out') {
-          const recipe = MOCK_RECIPES.find(r => String(r.id) === String(actualRecipeId));
+          // Buscamos la receta protegiéndonos de los nulos
+          const recipe = MOCK_RECIPES.find(r => r && String(r.id) === String(actualRecipeId));
           
           if (recipe) {
             const shortName = recipe.name.length > 12 ? recipe.name.substring(0, 12) + '...' : recipe.name;
-            const recipeLabel = `${day} (${mealType === 'lunch' ? 'Com' : 'Cen'}) - ${shortName}`;
-
+            
+            // 3. NUEVO: Usamos el título real de la comida (ej: "☕ Desayuno") para la etiqueta
+            const recipeLabel = `${day} (${assignment.title}) - ${shortName}`;
             // Calculamos cuántos comensales son en realidad (los planificados, o los de la receta por defecto)
             const currentDiners = plannedDiners || recipe.baseDiners || 1;
 
