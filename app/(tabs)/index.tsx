@@ -75,6 +75,39 @@ export default function MenuScreen() {
     ]);
   };
 
+  const bulkAssign = () => {
+    // Convierte la lista ['Lunes|custom_1', 'Martes|custom_2'] en un texto separado por comas
+    router.push({
+      pathname: '/recipe/select',
+      params: { bulkMeals: selectedMeals.join(',') }
+    });
+    setSelectedMeals([]); // Limpiamos la selección
+  };
+
+  // --- NUEVA FUNCIÓN: QUITAR RECETAS EN BLOQUE ---
+  const bulkUnassignRecipes = () => {
+    Alert.alert(
+      "Desasignar recetas",
+      `¿Quieres borrar las recetas de los ${selectedMeals.length} momentos seleccionados?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Quitar todas", 
+          style: "destructive", 
+          onPress: () => {
+            selectedMeals.forEach(key => {
+              const [d, mId] = key.split('|');
+              // Llamamos a la función de mockData pasando null para limpiar la receta
+              assignRecipeToMenu(d, mId, null);
+            });
+            setMenuData({ ...weeklyMenu });
+            setSelectedMeals([]); // Cerramos la selección al terminar
+          } 
+        }
+      ]
+    );
+  };
+
   useFocusEffect(
     useCallback(() => {
       setMenuData({ ...weeklyMenu }); 
@@ -139,23 +172,35 @@ export default function MenuScreen() {
     );
   };
 
-  const confirmAddMeal = () => {
-    // Si no hay nombre o no han elegido ningún día, no hacemos nada
+// Le añadimos un parámetro para saber si queremos ir a asignar directamente
+const confirmAddMeal = (shouldAssign) => {
     if (newMealName.trim() === '' || selectedDays.length === 0) return;
     
-    // NUEVO: Recorremos cada día seleccionado y le inyectamos la comida
+    const createdTargets = []; 
+    
+    // 1. Creamos los huecos
     selectedDays.forEach((day, index) => {
+      const newId = `custom_${Date.now()}_${index}`;
       const newMeal = {
-        id: `custom_${Date.now()}_${index}`, // ID único para evitar conflictos entre días
+        id: newId,
         title: `🍽️ ${newMealName.trim()}`,
         recipeId: null,
         diners: null
       };
       weeklyMenu[day].push(newMeal);
+      createdTargets.push(`${day}|${newId}`); 
     });
 
     setMenuData({ ...weeklyMenu });
     setAddMealVisible(false);
+
+    // 2. Si el usuario pulsó el botón de asignar, navegamos
+    if (shouldAssign) {
+      router.push({ 
+        pathname: '/recipe/select', 
+        params: { bulkMeals: createdTargets.join(',') } 
+      });
+    }
   };
 
 const renderMealSlot = (day, mealObject, index, totalMeals) => {
@@ -165,46 +210,26 @@ const renderMealSlot = (day, mealObject, index, totalMeals) => {
     const recipeName = getRecipeName(assignedRecipeId);
     const isLast = index === totalMeals - 1;
 
+// 1. Ahora solo navega directamente
     const handlePressFilled = () => {
-      Alert.alert(
-        "Gestionar comida",
-        `¿Qué quieres hacer con "${recipeName}"?`,
-        [
-          { 
-            text: "Ver detalles / Cambiar", 
-            onPress: () => {
-              if (assignedRecipeId === 'eat_out') {
-                router.push({ pathname: '/recipe/select', params: { day, meal: mealObject.id } });
-              } else {
-                router.push({ pathname: `/recipe/${assignedRecipeId}`, params: { day, meal: mealObject.id, plannedDiners } });
-              }
-            } 
-          },
-          { 
-            text: "Quitar receta del menú", 
-            style: "destructive",
-            onPress: () => {
-              assignRecipeToMenu(day, mealObject.id, null);
-              setMenuData({ ...weeklyMenu }); 
-            } 
-          },
-          { text: "Cancelar", style: "cancel" }
-        ]
-      );
+      if (assignedRecipeId === 'eat_out') {
+        router.push({ pathname: '/select', params: { day, meal: mealObject.id } });
+      } else {
+        router.push({ pathname: `/recipe/${assignedRecipeId}`, params: { day, meal: mealObject.id, plannedDiners } });
+      }
     };
 
     return (
       <View key={mealObject.id} style={[styles.mealSection, isLast && { marginBottom: 0 }]}>
         
-    {/* CABECERA: Título (Seleccionable) y Botones de control */}
+        {/* CABECERA: Título y Botones de control (Esto se queda igual) */}
         <View style={styles.mealHeader}>
           <TouchableOpacity 
             style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
             onLongPress={() => handleLongPressTitle(mealObject.title)}
             onPress={() => handlePressTitle(day, mealObject.id)}
-            delayLongPress={300} // Tiempo que tiene que mantener pulsado (300ms)
+            delayLongPress={300}
           >
-            {/* Si estamos en modo selección, mostramos un checkbox */}
             {isMultiSelectMode && (
               <FontAwesome 
                 name={selectedMeals.includes(`${day}|${mealObject.id}`) ? "check-circle" : "circle-o"} 
@@ -216,29 +241,40 @@ const renderMealSlot = (day, mealObject, index, totalMeals) => {
             <Text style={styles.mealTitle} numberOfLines={1}>{mealObject.title}</Text>
           </TouchableOpacity>
           
-          {/* Si NO estamos en modo selección, mostramos los controles individuales de siempre */}
           {!isMultiSelectMode && (
             <View style={styles.controls}>
-              <TouchableOpacity onPress={() => moveMealUp(day, index)} disabled={index === 0} style={[styles.controlBtn, index === 0 && { opacity: 0.2 }]}>
+              <TouchableOpacity onPress={() => moveMealUp(day, index, mealObject.title)} disabled={index === 0} style={[styles.controlBtn, index === 0 && { opacity: 0.2 }]}>
                 <FontAwesome name="chevron-up" size={14} color="#64748b" />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => moveMealDown(day, index)} disabled={index === totalMeals - 1} style={[styles.controlBtn, index === totalMeals - 1 && { opacity: 0.2 }]}>
+              <TouchableOpacity onPress={() => moveMealDown(day, index, mealObject.title)} disabled={index === totalMeals - 1} style={[styles.controlBtn, index === totalMeals - 1 && { opacity: 0.2 }]}>
                 <FontAwesome name="chevron-down" size={14} color="#64748b" />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => deleteMealSlot(day, index)} style={styles.controlBtnTrash}>
+              <TouchableOpacity onPress={() => deleteMealSlot(day, index, mealObject.title)} style={styles.controlBtnTrash}>
                 <FontAwesome name="trash" size={14} color="#ff5252" />
               </TouchableOpacity>
             </View>
           )}
         </View>
         
-        {/* ZONA DE ASIGNACIÓN (Verde o vacía) */}
+        {/* ZONA DE ASIGNACIÓN */}
         {recipeName && recipeName !== 'Receta borrada' ? (
           <TouchableOpacity style={styles.filledSlot} onPress={handlePressFilled}>
-            <Text style={styles.filledSlotText}>
+            {/* Texto de la receta que ocupa el espacio restante */}
+            <Text style={styles.filledSlotText} numberOfLines={1}>
               {assignedRecipeId === 'eat_out' ? '🍽️' : '🍲'} {recipeName}
               {assignedRecipeId !== 'eat_out' && plannedDiners && ` (👥 ${plannedDiners})`}
             </Text>
+            
+            {/* NUEVO: Botón lateral de desasignar (Goma de borrar) */}
+            <TouchableOpacity 
+              style={styles.unassignBtn} 
+              onPress={() => {
+                assignRecipeToMenu(day, mealObject.id, null);
+                setMenuData({ ...weeklyMenu }); 
+              }}
+            >
+              <FontAwesome name="eraser" size={18} color="#ff5252" />
+            </TouchableOpacity>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity 
@@ -299,6 +335,13 @@ return (
             <TouchableOpacity onPress={bulkMoveDown} style={styles.bulkBtnAction}>
               <FontAwesome name="arrow-down" size={18} color="#fff" />
             </TouchableOpacity>
+            <TouchableOpacity onPress={bulkAssign} style={[styles.bulkBtnAction, { backgroundColor: '#2f95dc', borderColor: '#2f95dc' }]}>
+              <FontAwesome name="cutlery" size={18} color="#fff" />
+            </TouchableOpacity>
+            {/* NUEVO BOTÓN 2: QUITAR RECETAS (Goma de borrar) */}
+            <TouchableOpacity onPress={bulkUnassignRecipes} style={[styles.bulkBtnAction, { backgroundColor: '#ff5252', borderColor: '#ff5252' }]}>
+              <FontAwesome name="eraser" size={16} color="#fff" />
+            </TouchableOpacity>
             <TouchableOpacity onPress={bulkDelete} style={[styles.bulkBtnAction, { backgroundColor: '#ff5252', borderColor: '#ff5252' }]}>
               <FontAwesome name="trash" size={18} color="#fff" />
             </TouchableOpacity>
@@ -340,16 +383,29 @@ return (
             </View>
             {/* ---------------------------------------------- */}
 
-            <View style={styles.modalButtons}>
+<View style={styles.modalButtonsColumn}>
+              {/* BOTÓN PRINCIPAL: AÑADIR Y ASIGNAR RECETA */}
+              <TouchableOpacity 
+                style={[styles.modalConfirmBtn, (newMealName.trim() === '' || selectedDays.length === 0) && { opacity: 0.5 }]} 
+                onPress={() => confirmAddMeal(true)}
+                disabled={newMealName.trim() === '' || selectedDays.length === 0}
+              >
+                <FontAwesome name="magic" size={16} color="#fff" style={{marginRight: 10}} />
+                <Text style={styles.modalConfirmText}>Añadir y elegir receta</Text>
+              </TouchableOpacity>
+
+              {/* BOTÓN SECUNDARIO: SOLO AÑADIR HUECOS VACÍOS */}
+              <TouchableOpacity 
+                style={[styles.modalSecondaryBtn, (newMealName.trim() === '' || selectedDays.length === 0) && { opacity: 0.5 }]} 
+                onPress={() => confirmAddMeal(false)}
+                disabled={newMealName.trim() === '' || selectedDays.length === 0}
+              >
+                <Text style={styles.modalSecondaryBtnText}>Solo añadir huecos vacíos</Text>
+              </TouchableOpacity>
+
+              {/* BOTÓN CANCELAR */}
               <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setAddMealVisible(false)}>
                 <Text style={styles.modalCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.modalConfirmBtn, newMealName.trim() === '' && { opacity: 0.5 }]} 
-                onPress={confirmAddMeal}
-                disabled={newMealName.trim() === ''}
-              >
-                <Text style={styles.modalConfirmText}>Añadir</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -369,8 +425,25 @@ const styles = StyleSheet.create({
   mealTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#555' },
   emptySlot: { backgroundColor: '#f0f8ff', borderWidth: 1, borderColor: '#2f95dc', borderStyle: 'dashed', borderRadius: 8, padding: 12, alignItems: 'center' },
   emptySlotText: { color: '#2f95dc', fontWeight: 'bold' },
-  filledSlot: { backgroundColor: '#e8f5e9', borderWidth: 1, borderColor: '#4caf50', borderRadius: 8, padding: 12 },
-  filledSlotText: { color: '#2e7d32', fontWeight: 'bold', fontSize: 16 },
+// Actualizamos filledSlot para que sea una fila
+  filledSlot: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    backgroundColor: '#e8f5e9', 
+    borderWidth: 1, 
+    borderColor: '#4caf50', 
+    borderRadius: 8, 
+    padding: 12 
+  },
+  
+  // Hacemos que el texto se encoja si es muy largo, para no empujar el icono fuera
+  filledSlotText: { 
+    flex: 1, 
+    color: '#2e7d32', 
+    fontWeight: 'bold', 
+    fontSize: 16 
+  },
 
   // Estilos de la cabecera dinámica
   mealHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
@@ -388,9 +461,7 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, textAlign: 'center', color: '#333' },
   modalInput: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10, padding: 12, fontSize: 16, marginBottom: 20, backgroundColor: '#f9f9f9' },
   modalButtons: { flexDirection: 'row', gap: 10 },
-  modalConfirmBtn: { flex: 1, backgroundColor: '#2f95dc', padding: 15, borderRadius: 10, alignItems: 'center' },
   modalConfirmText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  modalCancelBtn: { flex: 1, backgroundColor: '#f0f0f0', padding: 15, borderRadius: 10, alignItems: 'center' },
   modalCancelText: { color: '#888', fontWeight: 'bold', fontSize: 16 },
 
   // Estilos de la nueva sección de selección de días en el modal
@@ -400,6 +471,38 @@ const styles = StyleSheet.create({
   dayChipSelected: { backgroundColor: '#e6f7ff', borderColor: '#2f95dc' },
   dayChipText: { color: '#666', fontSize: 13, fontWeight: '600' },
   dayChipTextSelected: { color: '#2f95dc', fontWeight: 'bold' },
+
+  // Nuevo contenedor de botones en columna
+  modalButtonsColumn: {
+    width: '100%',
+    gap: 10,
+  },
+  // Botón de "Añadir y elegir" (Azul fuerte)
+  modalConfirmBtn: {
+    flexDirection: 'row',
+    backgroundColor: '#2f95dc',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  // Botón de "Solo añadir" (Azul flojito / Bordeado)
+  modalSecondaryBtn: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2f95dc',
+  },
+  modalSecondaryBtnText: {
+    color: '#2f95dc',
+    fontWeight: 'bold',
+  },
+  modalCancelBtn: {
+    padding: 10,
+    alignItems: 'center',
+  },
 
   // 2. NUEVO: Contenedor para alinear título y botón
   dayHeader: {
@@ -453,4 +556,12 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#475569', 
     justifyContent: 'center', alignItems: 'center' 
   },
+  // NUEVO: Estilo del botón de desasignar
+  unassignBtn: {
+    paddingLeft: 12,
+    paddingVertical: 5,
+    borderLeftWidth: 1,
+    borderColor: '#a5d6a7', // Una línea sutil para separar el icono del texto
+    marginLeft: 8,
+  }
 });

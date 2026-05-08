@@ -6,11 +6,27 @@ import { FontAwesome } from '@expo/vector-icons';
 import Fuse from "fuse.js";
 
 export default function SelectRecipeScreen() {
-  const { day, meal } = useLocalSearchParams();
+  // 1. Añadimos bulkMeals a los parámetros que recibimos
+  const { day, meal, bulkMeals } = useLocalSearchParams();
 
   // --- ESTADOS ---
   const [searchQuery, setSearchQuery] = useState('');
   const [recipes, setRecipes] = useState(MOCK_RECIPES.filter(r => r !== null));
+
+  // NUEVA FUNCIÓN: Reparte la receta a 1 hueco o a varios de golpe
+  const assignToTargets = (recipeId, dinersAmount) => {
+    if (bulkMeals) {
+      // Si venimos de selección múltiple, separamos los IDs y asignamos a todos
+      const targets = bulkMeals.split(',');
+      targets.forEach(target => {
+        const [tDay, tMeal] = target.split('|');
+        assignRecipeToMenu(tDay, tMeal, recipeId, dinersAmount);
+      });
+    } else {
+      // Funcionamiento normal para un solo hueco
+      assignRecipeToMenu(day, meal, recipeId, dinersAmount);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -32,10 +48,10 @@ export default function SelectRecipeScreen() {
   // --- ACCIONES DE SELECCIÓN ---
   const handleSelectRecipe = (recipe) => {
     if (recipe === 'eat_out') {
-      assignRecipeToMenu(day, meal, 'eat_out', 1);
+      assignToTargets('eat_out', 1);
       router.back();
     } else {
-      assignRecipeToMenu(day, meal, recipe.id, 2);
+      assignToTargets(recipe.id, 2);
       router.back();
     }
   };
