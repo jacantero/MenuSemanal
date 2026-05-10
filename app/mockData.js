@@ -110,3 +110,14 @@ export const addExtraItem = (name, amount, unit) => {
     unit: unit || 'ud'
   });
 };
+
+// --- NUEVA FUNCIÓN PARA GUARDAR GASTOS DE COMER FUERA ---
+export const updateEatOutDetails = (day, mealId, place, cost) => {
+  if (weeklyMenu[day]) {
+    const mealIndex = weeklyMenu[day].findIndex(m => m.id === mealId);
+    if (mealIndex !== -1) {
+      weeklyMenu[day][mealIndex].eatOutPlace = place;
+      weeklyMenu[day][mealIndex].eatOutCost = cost;
+    }
+  }
+};

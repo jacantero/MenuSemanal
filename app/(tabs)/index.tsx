@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { weeklyMenu, MOCK_RECIPES } from '../mockData';
+import { weeklyMenu, MOCK_RECIPES, updateEatOutDetails, assignRecipeToMenu } from '../mockData';
 import { FontAwesome } from '@expo/vector-icons';
 
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -18,6 +18,12 @@ export default function MenuScreen() {
   // --- NUEVO: ESTADOS MODO SELECCIÓN MÚLTIPLE ---
   const [selectedMeals, setSelectedMeals] = useState([]); // Guardará strings como "Lunes|lunch"
   const isMultiSelectMode = selectedMeals.length > 0;
+
+  // --- ESTADOS PARA EL MODAL DE COMER FUERA ---
+  const [eatOutModalVisible, setEatOutModalVisible] = useState(false);
+  const [eatOutTarget, setEatOutTarget] = useState({ day: null, mealId: null });
+  const [eatOutPlace, setEatOutPlace] = useState('');
+  const [eatOutCost, setEatOutCost] = useState('');
 
   // --- FUNCIONES DE SELECCIÓN MÚLTIPLE ---
   const handleLongPressTitle = (title) => {
@@ -155,7 +161,7 @@ export default function MenuScreen() {
     );
   };
 
-  // --- FUNCIONES DEL MODAL ---
+  // --- FUNCIONES DEL MODAL PARA AÑADIR COMIDA---
   const openAddMealModal = (day) => {
     setDayToAdd(day);
     setNewMealName('');
@@ -203,6 +209,22 @@ const confirmAddMeal = (shouldAssign) => {
     }
   };
 
+// --- FUNCIONES PARA DETALLES DE COMER FUERA ---
+const openEatOutModal = (day, mealObject) => {
+  setEatOutTarget({ day, mealId: mealObject.id });
+  setEatOutPlace(mealObject.eatOutPlace || '');
+  setEatOutCost(mealObject.eatOutCost ? String(mealObject.eatOutCost) : '');
+  setEatOutModalVisible(true);
+};
+
+const saveEatOutDetails = () => {
+  // Convertimos la coma en punto por si usan el teclado europeo, y lo pasamos a número
+  const costNumber = parseFloat(eatOutCost.replace(',', '.')) || null;
+  updateEatOutDetails(eatOutTarget.day, eatOutTarget.mealId, eatOutPlace, costNumber);
+  setMenuData({ ...weeklyMenu });
+  setEatOutModalVisible(false);
+};
+
 const renderMealSlot = (day, mealObject, index, totalMeals) => {
     // Sacamos los datos directamente del objeto
     const assignedRecipeId = mealObject.recipeId;
@@ -213,7 +235,7 @@ const renderMealSlot = (day, mealObject, index, totalMeals) => {
 // 1. Ahora solo navega directamente
     const handlePressFilled = () => {
       if (assignedRecipeId === 'eat_out') {
-        router.push({ pathname: '/select', params: { day, meal: mealObject.id } });
+        openEatOutModal(day, mealObject); // Si es comer fuera, abre nuestro nuevo modal
       } else {
         router.push({ pathname: `/recipe/${assignedRecipeId}`, params: { day, meal: mealObject.id, plannedDiners } });
       }
@@ -258,24 +280,46 @@ const renderMealSlot = (day, mealObject, index, totalMeals) => {
         
         {/* ZONA DE ASIGNACIÓN */}
         {recipeName && recipeName !== 'Receta borrada' ? (
-          <TouchableOpacity style={styles.filledSlot} onPress={handlePressFilled}>
-            {/* Texto de la receta que ocupa el espacio restante */}
-            <Text style={styles.filledSlotText} numberOfLines={1}>
-              {assignedRecipeId === 'eat_out' ? '🍽️' : '🍲'} {recipeName}
-              {assignedRecipeId !== 'eat_out' && plannedDiners && ` (👥 ${plannedDiners})`}
-            </Text>
+          <View style={styles.filledSlot}>
             
-            {/* NUEVO: Botón lateral de desasignar (Goma de borrar) */}
-            <TouchableOpacity 
-              style={styles.unassignBtn} 
-              onPress={() => {
-                assignRecipeToMenu(day, mealObject.id, null);
-                setMenuData({ ...weeklyMenu }); 
-              }}
-            >
-              <FontAwesome name="eraser" size={18} color="#ff5252" />
+            {/* Texto principal (Tocar te lleva a la receta o al modal) */}
+            <TouchableOpacity style={{ flex: 1 }} onPress={handlePressFilled}>
+              <Text style={styles.filledSlotText} numberOfLines={1}>
+                {assignedRecipeId === 'eat_out' 
+                  ? `🍽️ ${mealObject.eatOutPlace || 'Comer fuera'} ${mealObject.eatOutCost ? `(${mealObject.eatOutCost}€)` : ''}`
+                  : `🍲 ${recipeName}${plannedDiners ? ` (👥 ${plannedDiners})` : ''}`
+                }
+              </Text>
             </TouchableOpacity>
-          </TouchableOpacity>
+            
+            {/* NUEVO: Contenedor de botones de acción a la derecha */}
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              
+              {/* Botón de Datos (Solo aparece si es Comer Fuera) */}
+              {assignedRecipeId === 'eat_out' && (
+                <TouchableOpacity 
+                  style={styles.editDataBtn} 
+                  onPress={() => openEatOutModal(day, mealObject)}
+                >
+                  <Text style={styles.editDataBtnText}>
+                    {mealObject.eatOutPlace ? '✏️ Editar' : '✏️ Añadir Datos'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Botón lateral de desasignar (Goma de borrar) */}
+              <TouchableOpacity 
+                style={styles.unassignBtn} 
+                onPress={() => {
+                  assignRecipeToMenu(day, mealObject.id, null);
+                  setMenuData({ ...weeklyMenu }); 
+                }}
+              >
+                <FontAwesome name="eraser" size={18} color="#ff5252" />
+              </TouchableOpacity>
+            </View>
+
+          </View>
         ) : (
           <TouchableOpacity 
             style={styles.emptySlot} 
@@ -383,7 +427,7 @@ return (
             </View>
             {/* ---------------------------------------------- */}
 
-<View style={styles.modalButtonsColumn}>
+            <View style={styles.modalButtonsColumn}>
               {/* BOTÓN PRINCIPAL: AÑADIR Y ASIGNAR RECETA */}
               <TouchableOpacity 
                 style={[styles.modalConfirmBtn, (newMealName.trim() === '' || selectedDays.length === 0) && { opacity: 0.5 }]} 
@@ -411,7 +455,55 @@ return (
           </View>
         </View>
       </Modal>
+      {/* --- MODAL PARA DETALLES DE COMER FUERA --- */}
+      <Modal animationType="fade" transparent={true} visible={eatOutModalVisible}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Detalles de Comer Fuera</Text>
+            
+            <Text style={styles.inputLabel}>¿Dónde has comido/cenado?</Text>
+            <TextInput 
+              onChangeText={setEatOutPlace} 
+              placeholder="Ej: Burger King, La Tagliatella..." 
+              style={styles.modalInput} 
+              value={eatOutPlace}
+            />
+
+            <Text style={styles.inputLabel}>¿Cuánto te ha costado? (€)</Text>
+            <TextInput 
+              keyboardType="decimal-pad" 
+              onChangeText={setEatOutCost} 
+              placeholder="Ej: 15.50" 
+              style={styles.modalInput} 
+              value={eatOutCost}
+            />
+
+            <View style={styles.modalButtonsColumn}>
+              <TouchableOpacity onPress={saveEatOutDetails} style={styles.modalConfirmBtn}>
+                <FontAwesome name="save" size={16} color="#fff" style={{ marginRight: 10 }} />
+                <Text style={styles.modalConfirmText}>Guardar detalles</Text>
+              </TouchableOpacity>
+
+              {/* Botón para cambiarlo por una receta normal si se arrepiente */}
+              <TouchableOpacity 
+                style={styles.modalSecondaryBtn}
+                onPress={() => {
+                  setEatOutModalVisible(false);
+                  router.push({ pathname: '/recipe/select', params: { day: eatOutTarget.day, meal: eatOutTarget.mealId } });
+                }} 
+              >
+                <Text style={styles.modalSecondaryBtnText}>Cambiar por una receta</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setEatOutModalVisible(false)}>
+                <Text style={styles.modalCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
+    
   );
 }
 
@@ -425,24 +517,52 @@ const styles = StyleSheet.create({
   mealTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#555' },
   emptySlot: { backgroundColor: '#f0f8ff', borderWidth: 1, borderColor: '#2f95dc', borderStyle: 'dashed', borderRadius: 8, padding: 12, alignItems: 'center' },
   emptySlotText: { color: '#2f95dc', fontWeight: 'bold' },
-// Actualizamos filledSlot para que sea una fila
   filledSlot: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    backgroundColor: '#e8f5e9', 
-    borderWidth: 1, 
-    borderColor: '#4caf50', 
-    borderRadius: 8, 
-    padding: 12 
-  },
-  
-  // Hacemos que el texto se encoja si es muy largo, para no empujar el icono fuera
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      alignItems: 'center', 
+      backgroundColor: '#e8f5e9', 
+      borderWidth: 1, 
+      borderColor: '#4caf50', 
+      borderRadius: 8, 
+      paddingLeft: 12,
+      paddingRight: 8,
+      paddingVertical: 8 
+    },
+    
   filledSlotText: { 
-    flex: 1, 
     color: '#2e7d32', 
     fontWeight: 'bold', 
-    fontSize: 16 
+    fontSize: 16,
+    paddingRight: 10
+  },
+
+  // NUEVO: Estilo del botón de "Datos"
+  editDataBtn: {
+    backgroundColor: '#c8e6c9', // Un verde un poco más oscuro que el fondo
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: '#a5d6a7'
+  },
+  editDataBtnText: {
+    color: '#2e7d32',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+
+  // Modificamos el de la goma para que encaje perfecto
+  unassignBtn: {
+    backgroundColor: '#c8e6c9', // Un verde un poco más oscuro que el fondo
+    borderRadius: 6,
+    borderWidth: 1,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    borderLeftWidth: 1,
+    borderColor: '#a5d6a7',
+    marginLeft: 2,
   },
 
   // Estilos de la cabecera dinámica
@@ -555,13 +675,5 @@ const styles = StyleSheet.create({
     width: 40, height: 40, borderRadius: 20, 
     borderWidth: 1, borderColor: '#475569', 
     justifyContent: 'center', alignItems: 'center' 
-  },
-  // NUEVO: Estilo del botón de desasignar
-  unassignBtn: {
-    paddingLeft: 12,
-    paddingVertical: 5,
-    borderLeftWidth: 1,
-    borderColor: '#a5d6a7', // Una línea sutil para separar el icono del texto
-    marginLeft: 8,
   }
 });
