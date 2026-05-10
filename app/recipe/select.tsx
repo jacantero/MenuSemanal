@@ -13,6 +13,11 @@ export default function SelectRecipeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [recipes, setRecipes] = useState(MOCK_RECIPES.filter(r => r !== null));
 
+  // NUEVO: ESTADOS PARA FILTROS
+  const [showFilters, setShowFilters] = useState(false);
+  const [includeIngredients, setIncludeIngredients] = useState('');
+  const [excludeIngredients, setExcludeIngredients] = useState('');
+
   // NUEVA FUNCIÓN: Reparte la receta a 1 hueco o a varios de golpe
   const assignToTargets = (recipeId, dinersAmount) => {
     if (bulkMeals) {
@@ -41,9 +46,29 @@ export default function SelectRecipeScreen() {
     threshold: 0.4, 
   });
 
-  const filteredRecipes = searchQuery 
+// 1. Búsqueda por nombre (Fuse)
+  const fuseResults = searchQuery 
     ? fuse.search(searchQuery).map(result => result.item) 
     : recipes;
+
+  // 2. Filtro avanzado por ingredientes
+  const filteredRecipes = fuseResults.filter(recipe => {
+    if (!recipe) return false;
+
+    // Filtro de INCLUSIÓN (Debe tener TODOS los separados por coma)
+    const includesList = includeIngredients.split(',').map(i => i.trim().toLowerCase()).filter(i => i);
+    const matchesIncludes = includesList.length === 0 || includesList.every(reqIngredient => 
+      recipe.ingredients?.some(recipeIng => recipeIng.name.toLowerCase().includes(reqIngredient))
+    );
+
+    // Filtro de EXCLUSIÓN (No debe tener NINGUNO de los separados por coma)
+    const excludesList = excludeIngredients.split(',').map(i => i.trim().toLowerCase()).filter(i => i);
+    const matchesExcludes = excludesList.length === 0 || excludesList.every(excIngredient => 
+      !recipe.ingredients?.some(recipeIng => recipeIng.name.toLowerCase().includes(excIngredient))
+    );
+
+    return matchesIncludes && matchesExcludes;
+  });
 
   // --- ACCIONES DE SELECCIÓN ---
   const handleSelectRecipe = (recipe) => {
@@ -112,16 +137,54 @@ export default function SelectRecipeScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ title: `Elegir para ${day}` }} />
       
-      {/* --- BUSCADOR --- */}
-      <View style={styles.searchBar}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="🔍 Buscar receta..."
-          placeholderTextColor="#999"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          clearButtonMode="while-editing"
-        />
+      {/* --- BUSCADOR Y FILTROS --- */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchRow}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="🔍 Buscar receta..."
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            clearButtonMode="while-editing"
+          />
+          <TouchableOpacity 
+            style={[styles.filterBtn, showFilters && styles.filterBtnActive]} 
+            onPress={() => setShowFilters(!showFilters)}
+          >
+            <FontAwesome name="sliders" size={20} color={showFilters ? '#fff' : '#2f95dc'} />
+          </TouchableOpacity>
+        </View>
+
+        {/* PANEL DE FILTROS DESPLEGABLE */}
+        {showFilters && (
+          <View style={styles.filtersPanel}>
+            <Text style={styles.filterLabel}>✅ Debe contener (separar con comas):</Text>
+            <TextInput
+              style={styles.filterInput}
+              placeholder="Ej: pollo, arroz, tomate"
+              value={includeIngredients}
+              onChangeText={setIncludeIngredients}
+            />
+            
+            <Text style={styles.filterLabel}>❌ NO debe contener (alergias/gustos):</Text>
+            <TextInput
+              style={[styles.filterInput, { borderColor: '#ffcdd2' }]}
+              placeholder="Ej: queso, gluten, nueces"
+              value={excludeIngredients}
+              onChangeText={setExcludeIngredients}
+            />
+            
+            {(includeIngredients !== '' || excludeIngredients !== '') && (
+              <TouchableOpacity 
+                style={styles.clearFiltersBtn} 
+                onPress={() => { setIncludeIngredients(''); setExcludeIngredients(''); }}
+              >
+                <Text style={styles.clearFiltersText}>Limpiar filtros</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
 
       {/* --- LISTA DE RECETAS --- */}
@@ -165,9 +228,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#e6f7ff' },
   listContainer: { paddingHorizontal: 16, paddingBottom: 80 },
   
-  // Buscador
-  searchBar: { backgroundColor: '#fff', margin: 16, padding: 12, borderRadius: 20, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, elevation: 2 },
-  searchInput: { fontSize: 16, height: 40 },
+// Buscador y Filtros
+  searchContainer: { margin: 16, marginBottom: 4 }, // Agrupa la barra y el panel
+  searchRow: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 20, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, elevation: 2, padding: 4 },
+  searchInput: { flex: 1, fontSize: 16, height: 40, paddingHorizontal: 12 },
+  
+  filterBtn: { padding: 10, borderRadius: 16, backgroundColor: '#f0f8ff', justifyContent: 'center', alignItems: 'center', width: 44, height: 44 },
+  filterBtnActive: { backgroundColor: '#2f95dc' },
+  
+  filtersPanel: { backgroundColor: '#fff', padding: 15, borderRadius: 16, marginTop: 10, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, elevation: 2 },
+  filterLabel: { fontSize: 13, fontWeight: 'bold', color: '#475569', marginBottom: 5 },
+  filterInput: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 10, marginBottom: 15, fontSize: 14 },
+  
+  clearFiltersBtn: { alignSelf: 'flex-end', paddingVertical: 5 },
+  clearFiltersText: { color: '#ef4444', fontWeight: 'bold', fontSize: 13 },
   
   // Tarjetas (Opciones especiales)
   eatOutCard: { backgroundColor: '#fff3e0', padding: 16, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: '#ff9800', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 },
