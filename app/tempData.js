@@ -1,3 +1,6 @@
+import { saveMenuToStorage, saveRecipesToStorage, saveMetadataToStorage, loadAppData } from './storage';
+
+// --- 1. RECETAS ---
 export let MOCK_RECIPES = [
   {
     id: '1',
@@ -25,33 +28,31 @@ export let MOCK_RECIPES = [
   },
 ];
 
-// 2. Añade esta función al final del todo el archivo
 export const addRecipe = (newRecipe) => {
   MOCK_RECIPES.push(newRecipe);
+  saveRecipesToStorage(MOCK_RECIPES); // Autoguardado
 };
 
 export const deleteRecipe = (id) => {
   const index = MOCK_RECIPES.findIndex(r => String(r.id) === String(id));
-  if (index !== -1) MOCK_RECIPES.splice(index, 1);
+  if (index !== -1) {
+    MOCK_RECIPES.splice(index, 1);
+    saveRecipesToStorage(MOCK_RECIPES); // Autoguardado
+  }
 };
 
 export const updateRecipe = (id, updatedData) => {
   const index = MOCK_RECIPES.findIndex(r => String(r.id) === String(id));
   if (index !== -1) {
-    MOCK_RECIPES[index] = { ...updatedData, id }; // Mantenemos el mismo ID
+    MOCK_RECIPES[index] = { ...updatedData, id }; 
+    saveRecipesToStorage(MOCK_RECIPES); // Autoguardado
   }
 };
 
-/*Funciones para el menu semanal*/
-
-// Empezamos la semana con todos los huecos vacíos (null)
-// En mockData.js
+// --- 2. MENÚ SEMANAL ---
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-
-// Iniciamos el objeto vacío
 export let weeklyMenu = {};
 
-// Lo rellenamos dinámicamente con un bucle
 DAYS_OF_WEEK.forEach(day => {
   weeklyMenu[day] = [
     { id: 'lunch', title: '☀️ Comida', recipeId: null, diners: null },
@@ -59,14 +60,9 @@ DAYS_OF_WEEK.forEach(day => {
   ];
 });
 
-// app/mockData.js
-
-// Sustituye tu assignRecipeToMenu actual por esta:
 export const assignRecipeToMenu = (day, mealId, recipeId, diners = null) => {
   if (weeklyMenu[day]) {
-    // Buscamos la comida exacta dentro de la lista de ese día
     const mealIndex = weeklyMenu[day].findIndex(m => m.id === mealId);
-    
     if (mealIndex !== -1) {
       if (!recipeId) {
         weeklyMenu[day][mealIndex].recipeId = null;
@@ -78,12 +74,46 @@ export const assignRecipeToMenu = (day, mealId, recipeId, diners = null) => {
         weeklyMenu[day][mealIndex].recipeId = recipeId;
         weeklyMenu[day][mealIndex].diners = diners || 2;
       }
+      saveMenuToStorage(weeklyMenu); // Autoguardado
     }
   }
 };
 
-/*Funciones para la lista de la compra*/
-// --- BASE DE DATOS DE SUPERMERCADO ---
+export const updateEatOutDetails = (day, mealId, place, cost) => {
+  if (weeklyMenu[day]) {
+    const mealIndex = weeklyMenu[day].findIndex(m => m.id === mealId);
+    if (mealIndex !== -1) {
+      weeklyMenu[day][mealIndex].eatOutPlace = place;
+      weeklyMenu[day][mealIndex].eatOutCost = cost;
+      saveMenuToStorage(weeklyMenu); // Autoguardado
+    }
+  }
+};
+
+// --- 3. ECONOMÍA (Faltaba esta parte) ---
+export let weeklyMetadata = {
+  supermarketCost: ''
+};
+
+export const updateSupermarketCost = (cost) => {
+  weeklyMetadata.supermarketCost = cost;
+  saveMetadataToStorage(weeklyMetadata); // Autoguardado
+};
+
+export const getTotalEatOutCost = () => {
+  let total = 0;
+  Object.values(weeklyMenu).forEach(dayMeals => {
+    dayMeals.forEach(meal => {
+      if (meal.recipeId === 'eat_out' && meal.eatOutCost) {
+        total += Number(meal.eatOutCost);
+      }
+    });
+  });
+  return total;
+};
+
+
+// --- 4. LISTA DE LA COMPRA ---
 export const COMMON_INGREDIENTS = [
   { name: 'Leche', unit: 'L' },
   { name: 'Huevos', unit: 'ud' },
@@ -111,13 +141,27 @@ export const addExtraItem = (name, amount, unit) => {
   });
 };
 
-// --- NUEVA FUNCIÓN PARA GUARDAR GASTOS DE COMER FUERA ---
-export const updateEatOutDetails = (day, mealId, place, cost) => {
-  if (weeklyMenu[day]) {
-    const mealIndex = weeklyMenu[day].findIndex(m => m.id === mealId);
-    if (mealIndex !== -1) {
-      weeklyMenu[day][mealIndex].eatOutPlace = place;
-      weeklyMenu[day][mealIndex].eatOutCost = cost;
-    }
+// --- 5. INICIALIZACIÓN (EL CEREBRO DEL ARRANQUE) ---
+export const initAppData = async () => {
+  const data = await loadAppData();
+  
+  if (data.menu) {
+    Object.keys(weeklyMenu).forEach(key => delete weeklyMenu[key]);
+    Object.assign(weeklyMenu, data.menu);
+  } else {
+    saveMenuToStorage(weeklyMenu);
+  }
+
+  if (data.recipes) {
+    MOCK_RECIPES.length = 0; 
+    MOCK_RECIPES.push(...data.recipes);
+  } else {
+    saveRecipesToStorage(MOCK_RECIPES);
+  }
+
+  if (data.metadata) {
+    weeklyMetadata.supermarketCost = data.metadata.supermarketCost || '';
+  } else {
+    saveMetadataToStorage(weeklyMetadata);
   }
 };

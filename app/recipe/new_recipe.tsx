@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router'; // Añadimos useLocalSearchParams
 import { FontAwesome } from '@expo/vector-icons';
-import { addRecipe, MOCK_RECIPES, updateRecipe, deleteRecipe } from '../mockData'; // Importamos las nuevas funciones
+import { addRecipe, MOCK_RECIPES, updateRecipe, deleteRecipe } from '../tempData'; // Importamos las nuevas funciones
 
 export default function NewRecipeScreen() {
   // 1. Detectamos si venimos a editar o a crear

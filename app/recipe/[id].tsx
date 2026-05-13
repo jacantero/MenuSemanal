@@ -1,9 +1,9 @@
 import { Alert } from 'react-native';
-import { deleteRecipe, assignRecipeToMenu } from '../mockData';
+import { deleteRecipe, assignRecipeToMenu } from '../tempData';
 import { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams, Stack } from 'expo-router';
-import { MOCK_RECIPES } from '../mockData';
+import { MOCK_RECIPES } from '../tempData';
 import { FontAwesome } from '@expo/vector-icons';
 
 export default function RecipeDetailScreen() {

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
-import { MOCK_RECIPES, assignRecipeToMenu, deleteRecipe } from '../mockData';
+import { MOCK_RECIPES, assignRecipeToMenu, deleteRecipe } from '../tempData';
 import { FontAwesome } from '@expo/vector-icons';
 import Fuse from "fuse.js";
 

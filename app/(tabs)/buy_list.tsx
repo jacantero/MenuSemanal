@@ -1,12 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, SectionList, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { weeklyMenu, MOCK_RECIPES, EXTRA_SHOPPING_ITEMS, addExtraItem, COMMON_INGREDIENTS } from '../mockData';
-
-// --- MEMORIA DE SESIÓN GLOBAL ---
-const checkedItemsMemory = new Set();
-const deletedItemsMemory = new Set();
+import AsyncStorage from '@react-native-async-storage/async-storage';
+// 1. NUEVO: Importamos de mockData (tu nueva base de datos)
+import { weeklyMenu, MOCK_RECIPES, COMMON_INGREDIENTS } from '../tempData';
 
 // --- SISTEMA DE COLORES ---
 const getTagStyle = (tagText) => {
@@ -60,9 +58,15 @@ const getEmojiForIngredient = (name) => {
 const STANDARD_UNITS = ['ud', 'kg', 'g', 'L', 'ml', 'pack', 'bote', 'lata', 'paquete'];
 
 export default function ShoppingScreen() {
+  const [isReady, setIsReady] = useState(false);
   const [sections, setSections] = useState([]);
   const [collapsedSections, setCollapsedSections] = useState(new Set()); 
   
+  // 2. NUEVO: Estados para la memoria en lugar de variables globales
+  const [extraItems, setExtraItems] = useState([]);
+  const [checkedItems, setCheckedItems] = useState(new Set());
+  const [deletedItems, setDeletedItems] = useState(new Set());
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemAmount, setNewItemAmount] = useState('1'); 
@@ -74,58 +78,69 @@ export default function ShoppingScreen() {
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
     : [];
 
+  // --- NUEVO: Cargar memoria al arrancar la pantalla ---
+  useEffect(() => {
+    const loadMemory = async () => {
+      try {
+        const savedExtras = await AsyncStorage.getItem('@shopping_extras');
+        const savedChecked = await AsyncStorage.getItem('@shopping_checked');
+        const savedDeleted = await AsyncStorage.getItem('@shopping_deleted');
+
+        if (savedExtras) setExtraItems(JSON.parse(savedExtras));
+        if (savedChecked) setCheckedItems(new Set(JSON.parse(savedChecked)));
+        if (savedDeleted) setDeletedItems(new Set(JSON.parse(savedDeleted)));
+      } catch (e) {
+        console.error("Error cargando la lista:", e);
+      } finally {
+        setIsReady(true);
+      }
+    };
+    loadMemory();
+  }, []);
+
   const handleSelectSuggestion = (suggestion) => {
     setNewItemName(suggestion.name);
     if (!hasManuallySelectedUnit) setNewItemUnit(suggestion.unit);
     setShowSuggestions(false);
   };
 
+  // Recalculamos la lista si venimos de otra pantalla (ej. hemos cambiado el menú)
   useFocusEffect(
     useCallback(() => {
-      calculateList();
-    }, [])
+      if (isReady) calculateList();
+    }, [isReady, extraItems, checkedItems, deletedItems])
   );
 
   const calculateList = () => {
     const ingredientMap = {};
 
     Object.keys(weeklyMenu).forEach(day => {
-      // 1. Extraemos la lista dinámica del día (en lugar de un objeto)
       const dayMealsList = weeklyMenu[day] || [];
       
-      // 2. Recorremos CADA comida que haya en ese día
       dayMealsList.forEach(assignment => {
-        
-        // Extraemos el ID de la receta y los comensales directamente del objeto
         const actualRecipeId = assignment?.recipeId;
         const plannedDiners = assignment?.diners;
 
         if (actualRecipeId && actualRecipeId !== 'eat_out') {
-          // Buscamos la receta protegiéndonos de los nulos
           const recipe = MOCK_RECIPES.find(r => r && String(r.id) === String(actualRecipeId));
           
           if (recipe) {
             const shortName = recipe.name.length > 12 ? recipe.name.substring(0, 12) + '...' : recipe.name;
-            
-            // 3. NUEVO: Usamos el título real de la comida (ej: "☕ Desayuno") para la etiqueta
             const recipeLabel = `${day} (${assignment.title}) - ${shortName}`;
-            // Calculamos cuántos comensales son en realidad (los planificados, o los de la receta por defecto)
             const currentDiners = plannedDiners || recipe.baseDiners || 1;
 
             recipe.ingredients.forEach(ing => {
               const nameLower = ing.name.toLowerCase();
               const itemId = `menu-${nameLower}`; 
 
-              if (deletedItemsMemory.has(itemId)) return; 
+              // Usamos el Set del estado
+              if (deletedItems.has(itemId)) return; 
 
-              // --- REGLA DE TRES MATEMÁTICA PARA LA LISTA ---
-              // (Cantidad original / Personas originales) * Personas actuales
               let adjustedAmount = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
-              // Redondeamos a 2 decimales para que no salgan números como 3.33333
               adjustedAmount = Math.round(adjustedAmount * 100) / 100;
 
               if (ingredientMap[nameLower]) {
-                ingredientMap[nameLower].amount += adjustedAmount; // Sumamos la cantidad ajustada
+                ingredientMap[nameLower].amount += adjustedAmount; 
                 if (!ingredientMap[nameLower].recipeLabels.includes(recipeLabel)) {
                   ingredientMap[nameLower].recipeLabels.push(recipeLabel);
                 }
@@ -133,10 +148,10 @@ export default function ShoppingScreen() {
                 ingredientMap[nameLower] = {
                   id: itemId,
                   name: ing.name, 
-                  amount: adjustedAmount, // Guardamos la cantidad ajustada
+                  amount: adjustedAmount,
                   unit: ing.unit,
                   recipeLabels: [recipeLabel],
-                  checked: checkedItemsMemory.has(itemId), 
+                  checked: checkedItems.has(itemId), 
                   isExtra: false
                 };
               }
@@ -162,22 +177,16 @@ export default function ShoppingScreen() {
 
     Object.values(sectionsGroups).forEach(group => {
       let title = group.labels.length === 1 ? `🍽️ ${group.labels[0]}` : `🔄 ${group.labels.join(' + ')}`;
-      newSections.push({
-        title: title,
-        data: [group.data] 
-      });
+      newSections.push({ title: title, data: [group.data] });
     });
 
-    const extrasList = EXTRA_SHOPPING_ITEMS.map(item => {
-      const itemId = `extra-${item.name.toLowerCase()}`;
-      return { 
-        ...item, 
-        id: itemId,
-        checked: checkedItemsMemory.has(itemId), 
-        isExtra: true, 
-        recipeLabels: [] 
-      };
-    }).filter(item => !deletedItemsMemory.has(item.id));
+    // Añadimos los EXTRAS desde nuestro estado
+    const extrasList = extraItems.map(item => ({ 
+      ...item, 
+      checked: checkedItems.has(item.id), 
+      isExtra: true, 
+      recipeLabels: [] 
+    })).filter(item => !deletedItems.has(item.id));
 
     if (extrasList.length > 0) {
       newSections.push({ title: '🛒 Cosas Extra', data: [extrasList] });
@@ -186,18 +195,73 @@ export default function ShoppingScreen() {
     setSections(newSections);
   };
 
-  const handleAddManual = () => {
+  // --- NUEVO: FUNCIONES CON AUTOGUARDADO EN DISCO DURO ---
+  const handleAddManual = async () => {
     if (newItemName.trim() && newItemAmount.trim()) {
       const finalAmount = parseFloat(newItemAmount) || 1; 
-      
       const itemId = `extra-${newItemName.trim().toLowerCase()}`;
-      deletedItemsMemory.delete(itemId);
-
-      addExtraItem(newItemName.trim(), finalAmount, newItemUnit); 
-      calculateList(); 
       
+      const newItem = { id: itemId, name: newItemName.trim(), amount: finalAmount, unit: newItemUnit };
+      const updatedExtras = [...extraItems, newItem];
+      
+      setExtraItems(updatedExtras);
+      await AsyncStorage.setItem('@shopping_extras', JSON.stringify(updatedExtras));
+
+      if (deletedItems.has(itemId)) {
+        const newDeleted = new Set(deletedItems);
+        newDeleted.delete(itemId);
+        setDeletedItems(newDeleted);
+        await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(newDeleted)));
+      }
+
       setNewItemName(''); setNewItemAmount('1'); setNewItemUnit('ud');
       setHasManuallySelectedUnit(false); setShowSuggestions(false); setIsModalVisible(false);
+    }
+  };
+
+  const toggleCheck = async (itemId, sectionTitle) => {
+    const newChecked = new Set(checkedItems);
+    if (newChecked.has(itemId)) newChecked.delete(itemId);
+    else newChecked.add(itemId);
+    
+    setCheckedItems(newChecked);
+    await AsyncStorage.setItem('@shopping_checked', JSON.stringify(Array.from(newChecked)));
+  };
+
+  const handleDeleteItem = async (itemToDelete, sectionTitle) => {
+    const newDeleted = new Set(deletedItems);
+    newDeleted.add(itemToDelete.id);
+    
+    setDeletedItems(newDeleted);
+    await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(newDeleted)));
+
+    if (itemToDelete.isExtra) {
+      const updatedExtras = extraItems.filter(ext => ext.id !== itemToDelete.id);
+      setExtraItems(updatedExtras);
+      await AsyncStorage.setItem('@shopping_extras', JSON.stringify(updatedExtras));
+    }
+  };
+
+  const handleClearChecked = async () => {
+    const newDeleted = new Set(deletedItems);
+    const extrasToRemove = new Set();
+
+    sections.forEach(section => {
+      section.data[0].forEach(item => {
+        if (item.checked) {
+          newDeleted.add(item.id); 
+          if (item.isExtra) extrasToRemove.add(item.id);
+        }
+      });
+    });
+
+    setDeletedItems(newDeleted);
+    await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(newDeleted)));
+
+    if (extrasToRemove.size > 0) {
+      const updatedExtras = extraItems.filter(ext => !extrasToRemove.has(ext.id));
+      setExtraItems(updatedExtras);
+      await AsyncStorage.setItem('@shopping_extras', JSON.stringify(updatedExtras));
     }
   };
 
@@ -210,65 +274,7 @@ export default function ShoppingScreen() {
     });
   };
 
-  const toggleCheck = (itemId, sectionTitle) => {
-    if (checkedItemsMemory.has(itemId)) {
-      checkedItemsMemory.delete(itemId);
-    } else {
-      checkedItemsMemory.add(itemId);
-    }
-
-    setSections(currentSections => 
-      currentSections.map(section => {
-        if (section.title === sectionTitle) {
-          const updatedIngredients = section.data[0].map(item => item.id === itemId ? { ...item, checked: !item.checked } : item);
-          return { ...section, data: [updatedIngredients] };
-        }
-        return section;
-      })
-    );
-  };
-
-  const handleDeleteItem = (itemToDelete, sectionTitle) => {
-    deletedItemsMemory.add(itemToDelete.id);
-
-    if (itemToDelete.isExtra) {
-      const index = EXTRA_SHOPPING_ITEMS.findIndex(ext => ext.name === itemToDelete.name);
-      if (index > -1) EXTRA_SHOPPING_ITEMS.splice(index, 1);
-    }
-    
-    setSections(currentSections => {
-      return currentSections.map(section => {
-        if (section.title === sectionTitle) {
-          const updatedIngredients = section.data[0].filter(i => i.id !== itemToDelete.id);
-          return { ...section, data: [updatedIngredients] };
-        }
-        return section;
-      }).filter(section => section.data[0].length > 0); 
-    });
-  };
-
-  const handleClearChecked = () => {
-    sections.forEach(section => {
-      section.data[0].forEach(item => {
-        if (item.checked) {
-          deletedItemsMemory.add(item.id); 
-          
-          if (item.isExtra) {
-            const index = EXTRA_SHOPPING_ITEMS.findIndex(ext => ext.name === item.name);
-            if (index > -1) EXTRA_SHOPPING_ITEMS.splice(index, 1);
-          }
-        }
-      });
-    });
-
-    setSections(currentSections => {
-      return currentSections.map(section => ({
-        ...section,
-        data: [section.data[0].filter(item => !item.checked)]
-      })).filter(section => section.data[0].length > 0);
-    });
-  };
-
+  // --- RENDERIZADO DE COMPONENTES ---
   const renderSectionHeader = ({ section }) => {
     const isSectionComplete = section.data[0].length > 0 && section.data[0].every(item => item.checked);
 
@@ -293,7 +299,6 @@ export default function ShoppingScreen() {
 
   const renderItem = ({ item: sectionIngredients, section }) => {
     if (collapsedSections.has(section.title)) return null;
-
     const tagColors = getTagStyle(section.title); 
 
     return (
@@ -332,6 +337,14 @@ export default function ShoppingScreen() {
       </View>
     );
   };
+
+  if (!isReady) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ fontSize: 18, color: '#2f95dc', fontWeight: 'bold' }}>Preparando el carrito...</Text>
+      </View>
+    );
+  }
 
   const hasCheckedItems = sections.some(s => s.data[0].some(i => i.checked));
 
