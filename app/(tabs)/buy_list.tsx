@@ -1,68 +1,39 @@
 import { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, SectionList, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// 1. NUEVO: Importamos de mockData (tu nueva base de datos)
-import { weeklyMenu, MOCK_RECIPES, COMMON_INGREDIENTS } from '../tempData';
+import { weeklyMenu, MOCK_RECIPES, INGREDIENTS_DB, COMMON_INGREDIENTS } from '../tempData';
 
-// --- SISTEMA DE COLORES ---
-const getTagStyle = (tagText) => {
-  if (tagText.includes('Extra')) return { backgroundColor: '#fff3e0', borderColor: '#ffe0b2', color: '#e65100' };
-
-  const partes = tagText.split(' - ');
-  const nombreReceta = partes.length > 1 ? partes[1] : tagText;
-
-  let hash = 0;
-  for (let i = 0; i < nombreReceta.length; i++) {
-    hash = nombreReceta.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  const hue = Math.abs(hash) % 360;
-  return {
-    backgroundColor: `hsl(${hue}, 80%, 92%)`,
-    borderColor: `hsl(${hue}, 80%, 82%)`,
-    color: `hsl(${hue}, 80%, 30%)`
-  };
-};
-
-// --- DICCIONARIO DE EMOJIS ESTILO "BRING!" ---
-const getEmojiForIngredient = (name) => {
-  const n = name.toLowerCase();
-  if (n.includes('leche') || n.includes('nata')) return '🥛';
-  if (n.includes('tomate')) return '🍅';
-  if (n.includes('queso') || n.includes('parmesano')) return '🧀';
-  if (n.includes('cebolla')) return '🧅';
-  if (n.includes('ajo')) return '🧄';
-  if (n.includes('huevo')) return '🥚';
-  if (n.includes('pan')) return '🥖';
-  if (n.includes('carne') || n.includes('ternera') || n.includes('cerdo') || n.includes('guanciale')) return '🥩';
-  if (n.includes('pollo') || n.includes('pavo')) return '🍗';
-  if (n.includes('pescado') || n.includes('salmón') || n.includes('atún')) return '🐟';
-  if (n.includes('manzana')) return '🍎';
-  if (n.includes('plátano') || n.includes('banana')) return '🍌';
-  if (n.includes('lechuga') || n.includes('ensalada') || n.includes('espinaca')) return '🥬';
-  if (n.includes('patata')) return '🥔';
-  if (n.includes('zanahoria')) return '🥕';
-  if (n.includes('arroz')) return '🍚';
-  if (n.includes('pasta') || n.includes('espagueti') || n.includes('macarron')) return '🍝';
-  if (n.includes('aceite')) return '🫒';
-  if (n.includes('agua')) return '💧';
-  if (n.includes('cerveza')) return '🍺';
-  if (n.includes('vino')) return '🍷';
-  if (n.includes('papel')) return '🧻';
-  if (n.includes('limpieza') || n.includes('jabón')) return '🧼';
+// --- DICCIONARIO DE EMOJIS (Automático, sin edición) ---
+export const getEmojiForIngredient = (name) => {
+  const n = name.toLowerCase().trim();
+  const foundKey = Object.keys(INGREDIENTS_DB).find(
+    key => n.includes(key) || n.includes(INGREDIENTS_DB[key].name.toLowerCase())
+  );
+  if (foundKey) return INGREDIENTS_DB[foundKey].emoji;
   return '🛒';
 };
 
 const STANDARD_UNITS = ['ud', 'kg', 'g', 'L', 'ml', 'pack', 'bote', 'lata', 'paquete'];
 
+// --- COLORES Y LETRAS PARA LOS DÍAS ---
+const DAY_BADGES = {
+  'Lunes': { text: 'L', color: '#ef4444' }, // Rojo
+  'Martes': { text: 'M', color: '#f97316' }, // Naranja
+  'Miércoles': { text: 'X', color: '#eab308' }, // Amarillo
+  'Jueves': { text: 'J', color: '#22c55e' }, // Verde
+  'Viernes': { text: 'V', color: '#3b82f6' }, // Azul
+  'Sábado': { text: 'S', color: '#8b5cf6' }, // Morado
+  'Domingo': { text: 'D', color: '#d946ef' }, // Rosa
+};
+
 export default function ShoppingScreen() {
   const [isReady, setIsReady] = useState(false);
-  const [sections, setSections] = useState([]);
-  const [collapsedSections, setCollapsedSections] = useState(new Set()); 
   
-  // 2. NUEVO: Estados para la memoria en lugar de variables globales
+  // Lista plana de ingredientes
+  const [shoppingItems, setShoppingItems] = useState([]);
+  
   const [extraItems, setExtraItems] = useState([]);
   const [checkedItems, setCheckedItems] = useState(new Set());
   const [deletedItems, setDeletedItems] = useState(new Set());
@@ -78,7 +49,6 @@ export default function ShoppingScreen() {
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
     : [];
 
-  // --- NUEVO: Cargar memoria al arrancar la pantalla ---
   useEffect(() => {
     const loadMemory = async () => {
       try {
@@ -104,13 +74,13 @@ export default function ShoppingScreen() {
     setShowSuggestions(false);
   };
 
-  // Recalculamos la lista si venimos de otra pantalla (ej. hemos cambiado el menú)
   useFocusEffect(
     useCallback(() => {
       if (isReady) calculateList();
     }, [isReady, extraItems, checkedItems, deletedItems])
   );
 
+  // --- LÓGICA DE CÁLCULO Y SUMA DE CANTIDADES ---
   const calculateList = () => {
     const ingredientMap = {};
 
@@ -125,32 +95,31 @@ export default function ShoppingScreen() {
           const recipe = MOCK_RECIPES.find(r => r && String(r.id) === String(actualRecipeId));
           
           if (recipe) {
-            const shortName = recipe.name.length > 12 ? recipe.name.substring(0, 12) + '...' : recipe.name;
-            const recipeLabel = `${day} (${assignment.title}) - ${shortName}`;
             const currentDiners = plannedDiners || recipe.baseDiners || 1;
 
             recipe.ingredients.forEach(ing => {
-              const nameLower = ing.name.toLowerCase();
+              const nameLower = ing.name.toLowerCase().trim();
               const itemId = `menu-${nameLower}`; 
 
-              // Usamos el Set del estado
               if (deletedItems.has(itemId)) return; 
 
               let adjustedAmount = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
-              adjustedAmount = Math.round(adjustedAmount * 100) / 100;
 
+              // Si el ingrediente ya existe de otra receta, le SUMAMOS la cantidad
               if (ingredientMap[nameLower]) {
                 ingredientMap[nameLower].amount += adjustedAmount; 
-                if (!ingredientMap[nameLower].recipeLabels.includes(recipeLabel)) {
-                  ingredientMap[nameLower].recipeLabels.push(recipeLabel);
-                }
+                // Redondeamos para evitar decimales infinitos de JavaScript (ej. 1.3333333)
+                ingredientMap[nameLower].amount = Math.round(ingredientMap[nameLower].amount * 100) / 100;
+                // Le añadimos la etiqueta de este nuevo día
+                ingredientMap[nameLower].days.add(day); 
               } else {
+                // Si es la primera vez que vemos este ingrediente, lo creamos
                 ingredientMap[nameLower] = {
                   id: itemId,
                   name: ing.name, 
-                  amount: adjustedAmount,
+                  amount: Math.round(adjustedAmount * 100) / 100,
                   unit: ing.unit,
-                  recipeLabels: [recipeLabel],
+                  days: new Set([day]),
                   checked: checkedItems.has(itemId), 
                   isExtra: false
                 };
@@ -161,41 +130,26 @@ export default function ShoppingScreen() {
       });
     });
 
-    const sectionsGroups = {};
+    const menuList = Object.values(ingredientMap).map(ing => ({
+      ...ing,
+      days: Array.from(ing.days) 
+    }));
 
-    Object.values(ingredientMap).forEach(ing => {
-      const sortedLabels = [...ing.recipeLabels].sort();
-      const groupKey = sortedLabels.join('|');
-
-      if (!sectionsGroups[groupKey]) {
-        sectionsGroups[groupKey] = { labels: sortedLabels, data: [] };
-      }
-      sectionsGroups[groupKey].data.push(ing);
-    });
-
-    const newSections = [];
-
-    Object.values(sectionsGroups).forEach(group => {
-      let title = group.labels.length === 1 ? `🍽️ ${group.labels[0]}` : `🔄 ${group.labels.join(' + ')}`;
-      newSections.push({ title: title, data: [group.data] });
-    });
-
-    // Añadimos los EXTRAS desde nuestro estado
     const extrasList = extraItems.map(item => ({ 
       ...item, 
       checked: checkedItems.has(item.id), 
       isExtra: true, 
-      recipeLabels: [] 
+      days: [] 
     })).filter(item => !deletedItems.has(item.id));
 
-    if (extrasList.length > 0) {
-      newSections.push({ title: '🛒 Cosas Extra', data: [extrasList] });
-    }
+    const finalFlatList = [...menuList, ...extrasList].sort((a, b) => {
+      if (a.checked === b.checked) return a.name.localeCompare(b.name);
+      return a.checked ? 1 : -1;
+    });
 
-    setSections(newSections);
+    setShoppingItems(finalFlatList);
   };
 
-  // --- NUEVO: FUNCIONES CON AUTOGUARDADO EN DISCO DURO ---
   const handleAddManual = async () => {
     if (newItemName.trim() && newItemAmount.trim()) {
       const finalAmount = parseFloat(newItemAmount) || 1; 
@@ -219,7 +173,7 @@ export default function ShoppingScreen() {
     }
   };
 
-  const toggleCheck = async (itemId, sectionTitle) => {
+  const toggleCheck = async (itemId) => {
     const newChecked = new Set(checkedItems);
     if (newChecked.has(itemId)) newChecked.delete(itemId);
     else newChecked.add(itemId);
@@ -228,7 +182,7 @@ export default function ShoppingScreen() {
     await AsyncStorage.setItem('@shopping_checked', JSON.stringify(Array.from(newChecked)));
   };
 
-  const handleDeleteItem = async (itemToDelete, sectionTitle) => {
+  const handleDeleteItem = async (itemToDelete) => {
     const newDeleted = new Set(deletedItems);
     newDeleted.add(itemToDelete.id);
     
@@ -246,13 +200,11 @@ export default function ShoppingScreen() {
     const newDeleted = new Set(deletedItems);
     const extrasToRemove = new Set();
 
-    sections.forEach(section => {
-      section.data[0].forEach(item => {
-        if (item.checked) {
-          newDeleted.add(item.id); 
-          if (item.isExtra) extrasToRemove.add(item.id);
-        }
-      });
+    shoppingItems.forEach(item => {
+      if (item.checked) {
+        newDeleted.add(item.id); 
+        if (item.isExtra) extrasToRemove.add(item.id);
+      }
     });
 
     setDeletedItems(newDeleted);
@@ -265,73 +217,21 @@ export default function ShoppingScreen() {
     }
   };
 
-  const toggleSection = (title) => {
-    setCollapsedSections(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(title)) newSet.delete(title);
-      else newSet.add(title);
-      return newSet;
-    });
-  };
+  // --- RENDERIZADO DE LAS MINI ETIQUETAS DE DÍAS ---
+  const renderDayBadges = (daysArray) => {
+    if (!daysArray || daysArray.length === 0) return null;
 
-  // --- RENDERIZADO DE COMPONENTES ---
-  const renderSectionHeader = ({ section }) => {
-    const isSectionComplete = section.data[0].length > 0 && section.data[0].every(item => item.checked);
+    const order = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const sortedDays = [...daysArray].sort((a, b) => order.indexOf(a) - order.indexOf(b));
 
     return (
-      <TouchableOpacity 
-        style={[styles.sectionHeader, isSectionComplete && styles.sectionHeaderComplete]} 
-        onPress={() => toggleSection(section.title)} 
-        activeOpacity={0.8}
-      >
-        <Text style={[styles.sectionTitle, isSectionComplete && styles.textStrikethrough]} numberOfLines={2}>
-          {section.title}
-        </Text>
-        <FontAwesome 
-          name={collapsedSections.has(section.title) ? "chevron-down" : "chevron-up"} 
-          size={16} 
-          color={isSectionComplete ? "#94a3b8" : "#555"} 
-          style={{ marginLeft: 10 }} 
-        />
-      </TouchableOpacity>
-    );
-  };
-
-  const renderItem = ({ item: sectionIngredients, section }) => {
-    if (collapsedSections.has(section.title)) return null;
-    const tagColors = getTagStyle(section.title); 
-
-    return (
-      <View style={styles.gridWrapper}>
-        {sectionIngredients.map(ing => {
-          const emoji = getEmojiForIngredient(ing.name);
-          
+      <View style={styles.daysSidebar}>
+        {sortedDays.map(d => {
+          const badgeInfo = DAY_BADGES[d] || { text: d[0], color: '#ccc' };
           return (
-            <TouchableOpacity 
-              key={ing.id}
-              style={[styles.gridCard, { backgroundColor: tagColors.backgroundColor, borderColor: tagColors.borderColor }, ing.checked && styles.gridCardChecked]} 
-              onPress={() => toggleCheck(ing.id, section.title)}
-              activeOpacity={0.7}
-            >
-              <TouchableOpacity onPress={() => handleDeleteItem(ing, section.title)} style={styles.cardDeleteBtn}>
-                <FontAwesome name="times-circle" size={18} color={tagColors.color} style={{ opacity: 0.5 }} />
-              </TouchableOpacity>
-
-              <Text style={[styles.cardEmoji, ing.checked && { opacity: 0.4 }]}>{emoji}</Text>
-              <Text style={[styles.cardName, { color: tagColors.color }, ing.checked && styles.textStrikethrough]} numberOfLines={2}>
-                {ing.name}
-              </Text>
-              
-              <View style={styles.cardAmountBadge}>
-                <Text style={styles.cardAmountText}>{ing.amount} {ing.unit}</Text>
-              </View>
-
-              {ing.checked && (
-                <View style={styles.checkOverlay}>
-                  <FontAwesome name="check" size={40} color="#fff" />
-                </View>
-              )}
-            </TouchableOpacity>
+            <View key={d} style={[styles.dayBadge, { backgroundColor: badgeInfo.color }]}>
+              <Text style={styles.dayBadgeText}>{badgeInfo.text}</Text>
+            </View>
           );
         })}
       </View>
@@ -346,7 +246,7 @@ export default function ShoppingScreen() {
     );
   }
 
-  const hasCheckedItems = sections.some(s => s.data[0].some(i => i.checked));
+  const hasCheckedItems = shoppingItems.some(i => i.checked);
 
   return (
     <View style={styles.container}>
@@ -405,28 +305,65 @@ export default function ShoppingScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {sections.length === 0 ? (
+      {shoppingItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Tu carrito está vacío.</Text>
           <Text style={styles.emptySubText}>Toca arriba para añadir cosas sueltas o planifica tu Menú.</Text>
         </View>
       ) : (
-        <SectionList
-          sections={sections}
-          keyExtractor={(item, index) => 'section-' + index}
-          renderItem={renderItem}
-          renderSectionHeader={renderSectionHeader}
-          contentContainerStyle={styles.listContainer}
-          stickySectionHeadersEnabled={false}
-          ListFooterComponent={
-            hasCheckedItems ? (
-              <TouchableOpacity style={styles.clearAllButton} onPress={handleClearChecked}>
-                <FontAwesome name="trash" size={18} color="#ff5252" style={{ marginRight: 8 }} />
-                <Text style={styles.clearAllText}>Borrar todo lo tachado</Text>
-              </TouchableOpacity>
-            ) : null
-          }
-        />
+        <ScrollView contentContainerStyle={styles.listContainer}>
+          <View style={styles.gridWrapper}>
+            {shoppingItems.map(ing => {
+              const emoji = getEmojiForIngredient(ing.name);
+              
+              return (
+                <View 
+                  key={ing.id}
+                  style={[styles.gridCard, ing.checked && styles.gridCardChecked]} 
+                >
+                  {/* Mini-labels laterales */}
+                  {renderDayBadges(ing.days)}
+
+                  <TouchableOpacity onPress={() => handleDeleteItem(ing)} style={styles.cardDeleteBtn}>
+                    <FontAwesome name="times-circle" size={18} color="#94a3b8" style={{ opacity: 0.5 }} />
+                  </TouchableOpacity>
+
+                  <Text style={[styles.cardEmoji, ing.checked && { opacity: 0.4 }]}>
+                    {emoji}
+                  </Text>
+
+                  <Text style={[styles.cardName, ing.checked && styles.textStrikethrough]} numberOfLines={2}>
+                    {ing.name}
+                  </Text>
+                  
+                  <View style={styles.cardAmountBadge}>
+                    <Text style={styles.cardAmountText}>{ing.amount} {ing.unit}</Text>
+                  </View>
+
+                  {/* Capa para tachar la tarjeta */}
+                  <TouchableOpacity 
+                    style={styles.absoluteTouchOverlay}
+                    onPress={() => toggleCheck(ing.id)}
+                    activeOpacity={0.7}
+                  />
+
+                  {ing.checked && (
+                    <View style={styles.checkOverlay} pointerEvents="none">
+                      <FontAwesome name="check" size={40} color="#fff" />
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+          
+          {hasCheckedItems && (
+            <TouchableOpacity style={styles.clearAllButton} onPress={handleClearChecked}>
+              <FontAwesome name="trash" size={18} color="#ff5252" style={{ marginRight: 8 }} />
+              <Text style={styles.clearAllText}>Borrar todo lo tachado</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
       )}
     </View>
   );
@@ -435,19 +372,17 @@ export default function ShoppingScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f7fa', padding: 12 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 15, textAlign: 'center', color: '#333', marginTop: 10 },
-  listContainer: { paddingBottom: 80 },
+  listContainer: { paddingBottom: 80, paddingTop: 10 },
   
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#e2e8f0', padding: 12, borderRadius: 10, marginTop: 15, marginBottom: 10 },
-  sectionHeaderComplete: { backgroundColor: '#f1f5f9', opacity: 0.6 },
-  sectionTitle: { flex: 1, fontSize: 15, fontWeight: 'bold', color: '#334155' },
-  
-  gridWrapper: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', gap: '3%' },
+  gridWrapper: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: '3%', marginLeft:5 },
   
   gridCard: {
     width: '31%', 
     aspectRatio: 1, 
     borderRadius: 16,
     borderWidth: 1,
+    borderColor: '#e2e8f0', 
+    backgroundColor: '#ffffff', 
     padding: 8,
     marginBottom: 10,
     alignItems: 'center',
@@ -458,19 +393,49 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-  gridCardChecked: { opacity: 0.4, transform: [{ scale: 0.95 }] },
+  gridCardChecked: { opacity: 0.5, transform: [{ scale: 0.95 }], backgroundColor: '#f1f5f9' },
   
+  // ESTILOS DE LOS LABELS LATERALES
+  daysSidebar: {
+    position: 'absolute',
+    top: 6,
+    left: -6, 
+    flexDirection: 'column', 
+    flexWrap: 'wrap', 
+    height: '80%', 
+    gap: 4,
+    zIndex: 20
+  },
+  dayBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    elevation: 2,
+  },
+  dayBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: 'bold'
+  },
+
   cardEmoji: { fontSize: 32, marginBottom: 4 },
-  cardName: { fontSize: 11, fontWeight: '700', textAlign: 'center', lineHeight: 14 },
+  cardName: { fontSize: 11, fontWeight: '700', textAlign: 'center', lineHeight: 14, color: '#334155' },
   textStrikethrough: { textDecorationLine: 'line-through', color: '#94a3b8' },
   
-  cardAmountBadge: { backgroundColor: 'rgba(255,255,255,0.7)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, marginTop: 4 },
-  cardAmountText: { fontSize: 10, fontWeight: 'bold', color: '#555' },
+  cardAmountBadge: { backgroundColor: '#f1f5f9', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, marginTop: 4 },
+  cardAmountText: { fontSize: 10, fontWeight: 'bold', color: '#475569' },
   
-  cardDeleteBtn: { position: 'absolute', top: 4, right: 4, padding: 4, zIndex: 10 },
-  checkOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  cardDeleteBtn: { position: 'absolute', top: 4, right: 4, padding: 4, zIndex: 30 },
+  
+  absoluteTouchOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, zIndex: 10 },
+  checkOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 16, justifyContent: 'center', alignItems: 'center', zIndex: 40 },
 
-  fakeSearchInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 5, shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 5, elevation: 1 },
+  fakeSearchInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 5, elevation: 1 },
   fakeSearchText: { fontSize: 16, color: '#94a3b8', flex: 1 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.4)', justifyContent: 'flex-end' },

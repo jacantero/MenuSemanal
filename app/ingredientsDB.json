@@ -1,0 +1,688 @@
+{
+  "arroz": {
+    "name": "Arroz base",
+    "unit": "kg",
+    "emoji": "🍚",
+    "macros": { "kcals": 349.0, "protein": 6.8, "carbs": 77.0, "fats": 0.6, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "espaguetis": {
+    "name": "Espaguetis",
+    "unit": "g",
+    "emoji": "🍝",
+    "macros": { "kcals": 359.0, "protein": 12.0, "carbs": 70.2, "fats": 1.6, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "macarrones": {
+    "name": "Macarrones",
+    "unit": "g",
+    "emoji": "🍝",
+    "macros": { "kcals": 359.0, "protein": 12.0, "carbs": 70.2, "fats": 1.6, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "bacon": {
+    "name": "Bacon / Panceta",
+    "unit": "g",
+    "emoji": "🥓",
+    "macros": { "kcals": 382.0, "protein": 15.2, "carbs": 0.5, "fats": 36.0, "salt": 2.2 },
+    "source": "BEDCA"
+  },
+  "cebolla": {
+    "name": "Cebolla",
+    "unit": "ud",
+    "emoji": "🧅",
+    "macros": { "kcals": 32.0, "protein": 1.2, "carbs": 6.0, "fats": 0.2, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "cebolleta": {
+    "name": "Cebolleta",
+    "unit": "ud",
+    "emoji": "🧅",
+    "macros": { "kcals": 32.0, "protein": 1.2, "carbs": 6.0, "fats": 0.2, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "pimienta": {
+    "name": "Pimienta negra / blanca",
+    "unit": "cuch.",
+    "emoji": "🧂",
+    "macros": { "kcals": 251.0, "protein": 10.4, "carbs": 38.3, "fats": 3.3, "salt": 0.05 },
+    "source": "BEDCA"
+  },
+  "queso": {
+    "name": "Queso rallado / Grana Padano",
+    "unit": "g",
+    "emoji": "🧀",
+    "macros": { "kcals": 392.0, "protein": 33.0, "carbs": 0.0, "fats": 29.0, "salt": 1.6 },
+    "source": "BEDCA"
+  },
+  "huevo": {
+    "name": "Huevo de gallina",
+    "unit": "ud",
+    "emoji": "🥚",
+    "macros": { "kcals": 162.0, "protein": 12.7, "carbs": 0.68, "fats": 12.1, "salt": 0.36 },
+    "source": "BEDCA"
+  },
+  "lentejas": {
+    "name": "Lentejas",
+    "unit": "g",
+    "emoji": "🫘",
+    "macros": { "kcals": 314.0, "protein": 23.8, "carbs": 54.0, "fats": 1.8, "salt": 0.03 },
+    "source": "BEDCA"
+  },
+  "zanahoria": {
+    "name": "Zanahoria",
+    "unit": "ud",
+    "emoji": "🥕",
+    "macros": { "kcals": 37.0, "protein": 0.9, "carbs": 6.9, "fats": 0.2, "salt": 0.06 },
+    "source": "BEDCA"
+  },
+  "patata": {
+    "name": "Patata",
+    "unit": "ud",
+    "emoji": "🥔",
+    "macros": { "kcals": 74.0, "protein": 2.2, "carbs": 15.4, "fats": 0.1, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "chorizo": {
+    "name": "Chorizo",
+    "unit": "ud",
+    "emoji": "🥩",
+    "macros": { "kcals": 356.0, "protein": 21.0, "carbs": 1.5, "fats": 29.3, "salt": 3.2 },
+    "source": "BEDCA"
+  },
+  "pollo": {
+    "name": "Pollo (Muslo / Pechuga)",
+    "unit": "g",
+    "emoji": "🍗",
+    "macros": { "kcals": 113.0, "protein": 22.2, "carbs": 0.0, "fats": 2.6, "salt": 0.11 },
+    "source": "BEDCA"
+  },
+  "soja": {
+    "name": "Salsa de soja",
+    "unit": "cuch.",
+    "emoji": "🍶",
+    "macros": { "kcals": 61.0, "protein": 5.7, "carbs": 5.5, "fats": 0.1, "salt": 14.5 },
+    "source": "BEDCA"
+  },
+  "sake": {
+    "name": "Sake / Vino blanco",
+    "unit": "cuch.",
+    "emoji": "🍾",
+    "macros": { "kcals": 73.0, "protein": 0.1, "carbs": 2.6, "fats": 0.0, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "sesamo": {
+    "name": "Aceite de sésamo",
+    "unit": "cuch.",
+    "emoji": "🫒",
+    "macros": { "kcals": 899.0, "protein": 0.0, "carbs": 0.0, "fats": 99.9, "salt": 0.0 },
+    "source": "BEDCA"
+  },
+  "ajo": {
+    "name": "Ajo",
+    "unit": "ud",
+    "emoji": "🧄",
+    "macros": { "kcals": 119.0, "protein": 6.1, "carbs": 23.0, "fats": 0.2, "salt": 0.02 },
+    "source": "BEDCA"
+  },
+  "jengibre": {
+    "name": "Jengibre",
+    "unit": "ud",
+    "emoji": "🫚",
+    "macros": { "kcals": 67.0, "protein": 1.8, "carbs": 12.0, "fats": 0.7, "salt": 0.03 },
+    "source": "BEDCA"
+  },
+  "maizena": {
+    "name": "Maizena / Almidón",
+    "unit": "cuch.",
+    "emoji": "🌾",
+    "macros": { "kcals": 341.0, "protein": 0.3, "carbs": 85.0, "fats": 0.1, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "sal": {
+    "name": "Sal común",
+    "unit": "g",
+    "emoji": "🧂",
+    "macros": { "kcals": 0.0, "protein": 0.0, "carbs": 0.0, "fats": 0.0, "salt": 97.5 },
+    "source": "BEDCA"
+  },
+  "garbanzos": {
+    "name": "Garbanzos",
+    "unit": "g",
+    "emoji": "🫘",
+    "macros": { "kcals": 341.0, "protein": 20.4, "carbs": 44.3, "fats": 5.0, "salt": 0.04 },
+    "source": "BEDCA"
+  },
+  "espinacas": {
+    "name": "Espinacas",
+    "unit": "g",
+    "emoji": "🌿",
+    "macros": { "kcals": 22.0, "protein": 2.6, "carbs": 1.2, "fats": 0.3, "salt": 0.12 },
+    "source": "BEDCA"
+  },
+  "bacalao": {
+    "name": "Bacalao desalado",
+    "unit": "g",
+    "emoji": "🐟",
+    "macros": { "kcals": 78.0, "protein": 17.5, "carbs": 0.0, "fats": 0.4, "salt": 1.5 },
+    "source": "BEDCA"
+  },
+  "puerro": {
+    "name": "Puerro",
+    "unit": "ud",
+    "emoji": "🧅",
+    "macros": { "kcals": 38.0, "protein": 2.0, "carbs": 6.0, "fats": 0.3, "salt": 0.03 },
+    "source": "BEDCA"
+  },
+  "tomate": {
+    "name": "Tomate / Concentrado",
+    "unit": "ud",
+    "emoji": "🍅",
+    "macros": { "kcals": 19.0, "protein": 1.0, "carbs": 3.5, "fats": 0.2, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "pan": {
+    "name": "Pan frito",
+    "unit": "ud",
+    "emoji": "🥖",
+    "macros": { "kcals": 261.0, "protein": 8.4, "carbs": 51.5, "fats": 1.6, "salt": 1.1 },
+    "source": "BEDCA"
+  },
+  "almendra": {
+    "name": "Almendras",
+    "unit": "g",
+    "emoji": "🥜",
+    "macros": { "kcals": 610.0, "protein": 20.0, "carbs": 6.9, "fats": 54.0, "salt": 0.5 },
+    "source": "BEDCA"
+  },
+  "aceite": {
+    "name": "Aceite de Oliva",
+    "unit": "ud",
+    "emoji": "🫒",
+    "macros": { "kcals": 899.0, "protein": 0.0, "carbs": 0.0, "fats": 99.9, "salt": 0.0 },
+    "source": "BEDCA"
+  },
+  "perejil": {
+    "name": "Perejil fresco",
+    "unit": "ud",
+    "emoji": "🌿",
+    "macros": { "kcals": 46.0, "protein": 3.0, "carbs": 6.2, "fats": 0.6, "salt": 0.06 },
+    "source": "BEDCA"
+  },
+  "pate": {
+    "name": "Paté de trufa",
+    "unit": "g",
+    "emoji": "🥫",
+    "macros": { "kcals": 265.0, "protein": 11.5, "carbs": 2.5, "fats": 23.0, "salt": 1.6 },
+    "source": "BEDCA"
+  },
+  "leche": {
+    "name": "Leche entera",
+    "unit": "ml",
+    "emoji": "🥛",
+    "macros": { "kcals": 65.0, "protein": 3.1, "carbs": 4.7, "fats": 3.8, "salt": 0.12 },
+    "source": "BEDCA"
+  },
+  "mantequilla": {
+    "name": "Mantequilla",
+    "unit": "g",
+    "emoji": "🧈",
+    "macros": { "kcals": 749.0, "protein": 0.7, "carbs": 0.7, "fats": 83.0, "salt": 0.11 },
+    "source": "BEDCA"
+  },
+  "harina": {
+    "name": "Harina de trigo",
+    "unit": "g",
+    "emoji": "🌾",
+    "macros": { "kcals": 341.0, "protein": 9.9, "carbs": 70.6, "fats": 1.2, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "nuez moscada": {
+    "name": "Nuez moscada",
+    "unit": "ud",
+    "emoji": "🌰",
+    "macros": { "kcals": 525.0, "protein": 6.0, "carbs": 49.0, "fats": 36.3, "salt": 0.04 },
+    "source": "BEDCA"
+  },
+  "salmon": {
+    "name": "Salmón fresco",
+    "unit": "g",
+    "emoji": "🐟",
+    "macros": { "kcals": 182.0, "protein": 18.4, "carbs": 0.0, "fats": 12.0, "salt": 0.1 },
+    "source": "BEDCA"
+  },
+  "yogur": {
+    "name": "Yogur natural",
+    "unit": "g",
+    "emoji": "🥣",
+    "macros": { "kcals": 61.0, "protein": 3.3, "carbs": 4.0, "fats": 3.5, "salt": 0.11 },
+    "source": "BEDCA"
+  },
+  "cayena": {
+    "name": "Cayena en polvo",
+    "unit": "cuch.",
+    "emoji": "🌶️",
+    "macros": { "kcals": 318.0, "protein": 12.0, "carbs": 32.0, "fats": 17.0, "salt": 0.08 },
+    "source": "BEDCA"
+  },
+  "frutos secos": {
+    "name": "Frutos secos variados",
+    "unit": "g",
+    "emoji": "🥜",
+    "macros": { "kcals": 613.0, "protein": 18.0, "carbs": 11.0, "fats": 56.0, "salt": 0.2 },
+    "source": "BEDCA"
+  },
+  "limon": {
+    "name": "Limón",
+    "unit": "l",
+    "emoji": "🍋",
+    "macros": { "kcals": 29.0, "protein": 0.7, "carbs": 3.2, "fats": 0.2, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "menta": {
+    "name": "Hojas de menta",
+    "unit": "ud",
+    "emoji": "🌿",
+    "macros": { "kcals": 44.0, "protein": 3.8, "carbs": 5.0, "fats": 0.7, "salt": 0.03 },
+    "source": "BEDCA"
+  },
+  "albahaca": {
+    "name": "Hojas de albahaca",
+    "unit": "ud",
+    "emoji": "🌿",
+    "macros": { "kcals": 23.0, "protein": 3.2, "carbs": 1.1, "fats": 0.6, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "quinoa": {
+    "name": "Quinoa",
+    "unit": "ud",
+    "emoji": "🍚",
+    "macros": { "kcals": 354.0, "protein": 13.0, "carbs": 53.0, "fats": 6.1, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "champiñones": {
+    "name": "Champiñones",
+    "unit": "ud",
+    "emoji": "🍄",
+    "macros": { "kcals": 26.0, "protein": 2.5, "carbs": 1.0, "fats": 0.3, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "setas": {
+    "name": "Setas Shiitake",
+    "unit": "ud",
+    "emoji": "🍄",
+    "macros": { "kcals": 34.0, "protein": 2.2, "carbs": 6.8, "fats": 0.5, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "sriacaha": {
+    "name": "Salsa Sriracha (Mapeo Errata)",
+    "unit": "ud",
+    "emoji": "🌶️",
+    "macros": { "kcals": 93.0, "protein": 1.5, "carbs": 19.0, "fats": 0.5, "salt": 5.8 },
+    "source": "OpenFoodFacts"
+  },
+  "sriracha": {
+    "name": "Salsa Sriracha",
+    "unit": "ud",
+    "emoji": "🌶️",
+    "macros": { "kcals": 93.0, "protein": 1.5, "carbs": 19.0, "fats": 0.5, "salt": 5.8 },
+    "source": "OpenFoodFacts"
+  },
+  "mirin": {
+    "name": "Vinagre de Mirin",
+    "unit": "ud",
+    "emoji": "🍶",
+    "macros": { "kcals": 242.0, "protein": 0.2, "carbs": 52.0, "fats": 0.0, "salt": 0.2 },
+    "source": "OpenFoodFacts"
+  },
+  "azucar": {
+    "name": "Azúcar blanco",
+    "unit": "ud",
+    "emoji": "🧂",
+    "macros": { "kcals": 399.0, "protein": 0.0, "carbs": 99.8, "fats": 0.0, "salt": 0.0 },
+    "source": "BEDCA"
+  },
+  "edadame": {
+    "name": "Edamame (Mapeo Errata)",
+    "unit": "ud",
+    "emoji": "🫛",
+    "macros": { "kcals": 122.0, "protein": 11.0, "carbs": 8.9, "fats": 5.0, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "pepino": {
+    "name": "Pepino",
+    "unit": "ud",
+    "emoji": "🥒",
+    "macros": { "kcals": 12.0, "protein": 0.7, "carbs": 1.9, "fats": 0.1, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "calamares": {
+    "name": "Calamares",
+    "unit": "ud",
+    "emoji": "🦑",
+    "macros": { "kcals": 80.0, "protein": 16.2, "carbs": 0.7, "fats": 1.4, "salt": 0.3 },
+    "source": "BEDCA"
+  },
+  "calamar": {
+    "name": "Calamar",
+    "unit": "ud",
+    "emoji": "🦑",
+    "macros": { "kcals": 80.0, "protein": 16.2, "carbs": 0.7, "fats": 1.4, "salt": 0.3 },
+    "source": "BEDCA"
+  },
+  "sepia": {
+    "name": "Sepia",
+    "unit": "ud",
+    "emoji": "🦑",
+    "macros": { "kcals": 79.0, "protein": 16.1, "carbs": 0.7, "fats": 0.9, "salt": 0.35 },
+    "source": "BEDCA"
+  },
+  "pimiento": {
+    "name": "Pimiento",
+    "unit": "ud",
+    "emoji": "🫑",
+    "macros": { "kcals": 20.0, "protein": 0.9, "carbs": 3.7, "fats": 0.2, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "pimenton": {
+    "name": "Pimentón dulce/picante",
+    "unit": "ud",
+    "emoji": "🌶️",
+    "macros": { "kcals": 282.0, "protein": 14.1, "carbs": 34.0, "fats": 13.0, "salt": 0.08 },
+    "source": "BEDCA"
+  },
+  "azafran": {
+    "name": "Azafrán",
+    "unit": "ud",
+    "emoji": "🌾",
+    "macros": { "kcals": 310.0, "protein": 11.4, "carbs": 65.4, "fats": 5.9, "salt": 0.08 },
+    "source": "BEDCA"
+  },
+  "chirlas": {
+    "name": "Chirlas / Almejas",
+    "unit": "ud",
+    "emoji": "🦪",
+    "macros": { "kcals": 76.0, "protein": 11.8, "carbs": 2.0, "fats": 1.9, "salt": 1.1 },
+    "source": "BEDCA"
+  },
+  "gambas": {
+    "name": "Gambas",
+    "unit": "ud",
+    "emoji": "🦐",
+    "macros": { "kcals": 92.0, "protein": 20.1, "carbs": 0.0, "fats": 1.2, "salt": 0.35 },
+    "source": "BEDCA"
+  },
+  "mejillones": {
+    "name": "Mejillones",
+    "unit": "ud",
+    "emoji": "🦪",
+    "macros": { "kcals": 86.0, "protein": 11.9, "carbs": 3.4, "fats": 2.7, "salt": 0.95 },
+    "source": "BEDCA"
+  },
+  "alcachofas": {
+    "name": "Alcachofas",
+    "unit": "ud",
+    "emoji": "🌿",
+    "macros": { "kcals": 44.0, "protein": 2.4, "carbs": 5.1, "fats": 0.1, "salt": 0.04 },
+    "source": "BEDCA"
+  },
+  "caldo": {
+    "name": "Caldo base (Pollo/Verdura/Carne)",
+    "unit": "ud",
+    "emoji": "🍲",
+    "macros": { "kcals": 8.0, "protein": 0.6, "carbs": 0.8, "fats": 0.2, "salt": 0.85 },
+    "source": "BEDCA"
+  },
+  "fumet": {
+    "name": "Fumet de pescado",
+    "unit": "l",
+    "emoji": "🍲",
+    "macros": { "kcals": 12.0, "protein": 1.1, "carbs": 0.5, "fats": 0.4, "salt": 0.75 },
+    "source": "BEDCA"
+  },
+  "secreto": {
+    "name": "Secreto ibérico",
+    "unit": "ud",
+    "emoji": "🥩",
+    "macros": { "kcals": 198.0, "protein": 18.5, "carbs": 0.0, "fats": 13.8, "salt": 0.1 },
+    "source": "BEDCA"
+  },
+  "guisantes": {
+    "name": "Guisantes",
+    "unit": "ud",
+    "emoji": "🫛",
+    "macros": { "kcals": 78.0, "protein": 5.3, "carbs": 9.4, "fats": 0.4, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "jamon": {
+    "name": "Jamón York",
+    "unit": "ud",
+    "emoji": "🥩",
+    "macros": { "kcals": 115.0, "protein": 18.0, "carbs": 0.5, "fats": 4.5, "salt": 2.1 },
+    "source": "BEDCA"
+  },
+  "conejo": {
+    "name": "Conejo",
+    "unit": "ud",
+    "emoji": "🥩",
+    "macros": { "kcals": 133.0, "protein": 22.0, "carbs": 0.0, "fats": 4.8, "salt": 0.12 },
+    "source": "BEDCA"
+  },
+  "judias": {
+    "name": "Judías verdes",
+    "unit": "ud",
+    "emoji": "🫛",
+    "macros": { "kcals": 31.0, "protein": 1.9, "carbs": 4.2, "fats": 0.2, "salt": 0.02 },
+    "source": "BEDCA"
+  },
+  "garrofon": {
+    "name": "Garrofón",
+    "unit": "ud",
+    "emoji": "🫘",
+    "macros": { "kcals": 114.0, "protein": 7.2, "carbs": 17.5, "fats": 0.6, "salt": 0.02 },
+    "source": "BEDCA"
+  },
+  "romero": {
+    "name": "Romero",
+    "unit": "ud",
+    "emoji": "🌿",
+    "macros": { "kcals": 131.0, "protein": 3.3, "carbs": 20.7, "fats": 5.9, "salt": 0.05 },
+    "source": "BEDCA"
+  },
+  "laurel": {
+    "name": "Hoja de laurel",
+    "unit": "ud",
+    "emoji": "🍃",
+    "macros": { "kcals": 313.0, "protein": 7.6, "carbs": 48.6, "fats": 8.4, "salt": 0.06 },
+    "source": "BEDCA"
+  },
+  "apio": {
+    "name": "Apio",
+    "unit": "ud",
+    "emoji": "🌿",
+    "macros": { "kcals": 16.0, "protein": 0.7, "carbs": 2.2, "fats": 0.1, "salt": 0.11 },
+    "source": "BEDCA"
+  },
+  "morralla": {
+    "name": "Morralla / Raspas",
+    "unit": "kg",
+    "emoji": "🐟",
+    "macros": { "kcals": 72.0, "protein": 15.8, "carbs": 0.0, "fats": 0.9, "salt": 0.21 },
+    "source": "BEDCA"
+  },
+  "agua": {
+    "name": "Agua",
+    "unit": "ud",
+    "emoji": "💧",
+    "macros": { "kcals": 0.0, "protein": 0.0, "carbs": 0.0, "fats": 0.0, "salt": 0.0 },
+    "source": "BEDCA"
+  },
+  "arandanos": {
+    "name": "Arándanos",
+    "unit": "g",
+    "emoji": "🫐",
+    "macros": { "kcals": 41.0, "protein": 0.6, "carbs": 6.1, "fats": 0.6, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "platano": {
+    "name": "Plátano",
+    "unit": "ud",
+    "emoji": "🍌",
+    "macros": { "kcals": 91.0, "protein": 1.2, "carbs": 20.0, "fats": 0.3, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "fajitas": {
+    "name": "Tortillas para fajitas (Trigo)",
+    "unit": "ud",
+    "emoji": "🌮",
+    "macros": { "kcals": 299.0, "protein": 8.2, "carbs": 50.0, "fats": 7.3, "salt": 1.4 },
+    "source": "OpenFoodFacts"
+  },
+  "pan molde": {
+    "name": "Pan de molde",
+    "unit": "ud",
+    "emoji": "🍞",
+    "macros": { "kcals": 259.0, "protein": 8.5, "carbs": 48.0, "fats": 3.3, "salt": 1.1 },
+    "source": "BEDCA"
+  },
+  "queso semicurado": {
+    "name": "Queso semicurado",
+    "unit": "g",
+    "emoji": "🧀",
+    "macros": { "kcals": 357.0, "protein": 24.0, "carbs": 1.5, "fats": 29.0, "salt": 1.5 },
+    "source": "BEDCA"
+  },
+  "hamburguesa pollo": {
+    "name": "Hamburguesa de pollo",
+    "unit": "ud",
+    "emoji": "🍔",
+    "macros": { "kcals": 149.0, "protein": 16.0, "carbs": 4.5, "fats": 7.5, "salt": 1.2 },
+    "source": "OpenFoodFacts"
+  },
+  "merluza": {
+    "name": "Merluza",
+    "unit": "g",
+    "emoji": "🐟",
+    "macros": { "kcals": 79.0, "protein": 15.9, "carbs": 0.0, "fats": 1.8, "salt": 0.1 },
+    "source": "BEDCA"
+  },
+  "cereales espelta": {
+    "name": "Cereales de espelta",
+    "unit": "g",
+    "emoji": "🥣",
+    "macros": { "kcals": 368.0, "protein": 14.0, "carbs": 66.0, "fats": 3.0, "salt": 0.02 },
+    "source": "OpenFoodFacts"
+  },
+  "cacao": {
+    "name": "Cacao puro en polvo",
+    "unit": "cuch.",
+    "emoji": "🍫",
+    "macros": { "kcals": 305.0, "protein": 23.0, "carbs": 16.0, "fats": 21.0, "salt": 0.05 },
+    "source": "BEDCA"
+  },
+  "anguriñas": {
+    "name": "Anguriñas / Gulas",
+    "unit": "g",
+    "emoji": "🥢",
+    "macros": { "kcals": 185.0, "protein": 10.0, "carbs": 11.0, "fats": 11.0, "salt": 1.6 },
+    "source": "OpenFoodFacts"
+  },
+  "nueces": {
+    "name": "Nueces",
+    "unit": "g",
+    "emoji": "🥜",
+    "macros": { "kcals": 673.0, "protein": 14.3, "carbs": 3.3, "fats": 65.2, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "kiwi": {
+    "name": "Kiwi",
+    "unit": "ud",
+    "emoji": "🥝",
+    "macros": { "kcals": 53.0, "protein": 1.0, "carbs": 10.6, "fats": 0.5, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "sandia": {
+    "name": "Sandía",
+    "unit": "kg",
+    "emoji": "🍉",
+    "macros": { "kcals": 20.0, "protein": 0.4, "carbs": 4.5, "fats": 0.1, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "melon": {
+    "name": "Melón",
+    "unit": "kg",
+    "emoji": "🍈",
+    "macros": { "kcals": 28.0, "protein": 0.6, "carbs": 6.0, "fats": 0.1, "salt": 0.04 },
+    "source": "BEDCA"
+  },
+  "naranja": {
+    "name": "Naranja",
+    "unit": "ud",
+    "emoji": "🍊",
+    "macros": { "kcals": 42.0, "protein": 0.8, "carbs": 8.6, "fats": 0.1, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "fresas": {
+    "name": "Fresas",
+    "unit": "g",
+    "emoji": "🍓",
+    "macros": { "kcals": 40.0, "protein": 0.7, "carbs": 7.0, "fats": 0.5, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "uvas": {
+    "name": "Uvas",
+    "unit": "g",
+    "emoji": "🍇",
+    "macros": { "kcals": 69.0, "protein": 0.6, "carbs": 16.1, "fats": 0.4, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "calabacin": {
+    "name": "Calabacín",
+    "unit": "ud",
+    "emoji": "🥒",
+    "macros": { "kcals": 17.0, "protein": 1.2, "carbs": 2.0, "fats": 0.2, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "brocoli": {
+    "name": "Brócoli",
+    "unit": "ud",
+    "emoji": "🥦",
+    "macros": { "kcals": 32.0, "protein": 3.3, "carbs": 3.1, "fats": 0.2, "salt": 0.03 },
+    "source": "BEDCA"
+  },
+  "berenjena": {
+    "name": "Berenjena",
+    "unit": "ud",
+    "emoji": "🍆",
+    "macros": { "kcals": 21.0, "protein": 1.2, "carbs": 2.8, "fats": 0.2, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "nispero": {
+    "name": "Níspero",
+    "unit": "ud",
+    "emoji": "🍑",
+    "macros": { "kcals": 43.0, "protein": 0.4, "carbs": 10.6, "fats": 0.2, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "avellanas": {
+    "name": "Avellanas",
+    "unit": "g",
+    "emoji": "🌰",
+    "macros": { "kcals": 628.0, "protein": 15.0, "carbs": 16.7, "fats": 60.7, "salt": 0.01 },
+    "source": "BEDCA"
+  },
+  "pipas calabaza": {
+    "name": "Pipas de calabaza",
+    "unit": "g",
+    "emoji": "🎃",
+    "macros": { "kcals": 446.0, "protein": 19.0, "carbs": 15.0, "fats": 19.0, "salt": 0.05 },
+    "source": "BEDCA"
+  },
+  "calabaza": {
+    "name": "Calabaza",
+    "unit": "g",
+    "emoji": "🎃",
+    "macros": { "kcals": 28.0, "protein": 1.1, "carbs": 5.6, "fats": 0.1, "salt": 0.01 },
+    "source": "BEDCA"
+  }
+}

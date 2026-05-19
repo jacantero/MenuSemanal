@@ -1,32 +1,8 @@
 import { saveMenuToStorage, saveRecipesToStorage, saveMetadataToStorage, loadAppData } from './storage';
+import ingredientsData from './ingredientsDB.json'
+import recipesData from './recipesDB.json'
 
-// --- 1. RECETAS ---
-export let MOCK_RECIPES = [
-  {
-    id: '1',
-    name: 'Espaguetis a la carbonara',
-    imageUrl: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&w=400&q=80',
-    baseDiners: 2,
-    ingredients: [
-      { name: 'Espaguetis', amount: 200, unit: 'g' },
-      { name: 'Guanciale', amount: 100, unit: 'g' },
-      { name: 'Yemas de huevo', amount: 3, unit: 'ud' },
-    ],
-    instructions: ['Hervir la pasta en agua con mucha sal.', 'Dorar el guanciale en una sartén sin aceite extra.', 'Mezclar las yemas con el queso pecorino y un poco de agua de cocción.', 'Unir todo fuera del fuego para que el huevo no se cuaje.']
-  },
-  {
-    id: '2',
-    name: 'Lentejas estofadas',
-    imageUrl: 'https://images.unsplash.com/photo-1538220856186-0be0e085984d?auto=format&fit=crop&w=400&q=80',
-    baseDiners: 4,
-    ingredients: [
-      { name: 'Lentejas pardinas', amount: 400, unit: 'g' },
-      { name: 'Zanahoria', amount: 2, unit: 'ud' },
-      { name: 'Chorizo', amount: 1, unit: 'ud' },
-    ],
-    instructions: ['Picar finamente las verduras.', 'Hacer un sofrito a fuego lento.', 'Añadir las lentejas, el chorizo entero y cubrir con agua fría.', 'Cocer a fuego medio durante 40-45 minutos.']
-  },
-];
+export let MOCK_RECIPES = [...recipesData];
 
 export const addRecipe = (newRecipe) => {
   MOCK_RECIPES.push(newRecipe);
@@ -114,21 +90,18 @@ export const getTotalEatOutCost = () => {
 
 
 // --- 4. LISTA DE LA COMPRA ---
-export const COMMON_INGREDIENTS = [
-  { name: 'Leche', unit: 'L' },
-  { name: 'Huevos', unit: 'ud' },
-  { name: 'Pan de molde', unit: 'paquete' },
-  { name: 'Aceite de Oliva', unit: 'L' },
-  { name: 'Papel higiénico', unit: 'pack' },
-  { name: 'Manzanas', unit: 'kg' },
-  { name: 'Plátanos', unit: 'kg' },
-  { name: 'Tomate frito', unit: 'bote' },
-  { name: 'Agua mineral', unit: 'garrafa' },
-  { name: 'Cerveza', unit: 'lata' },
-  { name: 'Sal gruesa', unit: 'kg' },
-  { name: 'Azúcar', unit: 'kg' },
-  { name: 'Café molido', unit: 'paquete' }
-];
+// 1. Exportamos la base de datos completa. 
+// Esto lo usaremos en el futuro para buscar las calorías rápidamente: INGREDIENTS_DB["pollo"].macros
+export const INGREDIENTS_DB = ingredientsData;
+
+// 2. Adaptamos los datos para tu lista de la compra y buscador de recetas.
+// Object.values() coge todos los ingredientes del JSON y los convierte en un Array normal.
+export const COMMON_INGREDIENTS = Object.values(ingredientsData)
+  .map(item => ({
+    name: item.name,
+    unit: item.unit
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name)); // Y de paso, te los ordeno alfabéticamente para que quede profesional
 
 export let EXTRA_SHOPPING_ITEMS = [];
 
@@ -143,8 +116,18 @@ export const addExtraItem = (name, amount, unit) => {
 
 // --- 5. INICIALIZACIÓN (EL CEREBRO DEL ARRANQUE) ---
 export const initAppData = async () => {
+  // NUEVO: Leer los emojis personalizados guardados
+  try {
+    const savedEmojis = await AsyncStorage.getItem('customEmojis');
+    if (savedEmojis) {
+      USER_CUSTOM_EMOJIS = JSON.parse(savedEmojis);
+    }
+  } catch (e) {
+    console.log("No hay emojis personalizados guardados");
+  }
   const data = await loadAppData();
   
+  // 1. Menú (Se queda igual que antes)
   if (data.menu) {
     Object.keys(weeklyMenu).forEach(key => delete weeklyMenu[key]);
     Object.assign(weeklyMenu, data.menu);
@@ -152,13 +135,29 @@ export const initAppData = async () => {
     saveMenuToStorage(weeklyMenu);
   }
 
+  // 2. RECETAS (¡Aquí está la magia de la fusión!)
   if (data.recipes) {
-    MOCK_RECIPES.length = 0; 
-    MOCK_RECIPES.push(...data.recipes);
+    const localRecipes = [...data.recipes];
+
+    // Buscamos las recetas del JSON que NO están guardadas en el móvil
+    const newRecipesFromUpdate = recipesData.filter(jsonRec => 
+      !localRecipes.some(localRec => String(localRec.id) === String(jsonRec.id))
+    );
+
+    // Si hay recetas nuevas, las inyectamos y guardamos
+    if (newRecipesFromUpdate.length > 0) {
+      localRecipes.push(...newRecipesFromUpdate);
+      await saveRecipesToStorage(localRecipes);
+      console.log(`✨ ¡Sincronizadas ${newRecipesFromUpdate.length} recetas nuevas!`);
+    }
+
+    MOCK_RECIPES.length = 0;
+    MOCK_RECIPES.push(...localRecipes);
   } else {
     saveRecipesToStorage(MOCK_RECIPES);
   }
 
+  // 3. Gastos y Metadatos (Se queda igual que antes)
   if (data.metadata) {
     weeklyMetadata.supermarketCost = data.metadata.supermarketCost || '';
   } else {

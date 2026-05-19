@@ -1,0 +1,1206 @@
+[
+  {
+    "id": "1",
+    "name": "Espaguetis a la carbonara",
+    "imageUrl": "https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&w=400&q=80",
+    "baseDiners": 2,
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 250.0,
+        "unit": "g"
+      },
+      {
+        "name": "Bacon",
+        "amount": 125.0,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1.0,
+        "unit": "cuch."
+      },
+      {
+        "name": "Queso Grana Padano",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": [
+      "Hervir la pasta en agua con mucha sal.",
+      "Dorar el bacon y la cebolla en una sartén.",
+      "Unir todo fuera del fuego, echar el huevo y remover constantemente para que el huevo no se cuaje.",
+      "Servir y espolvorear queso rallado al gusto"
+    ]
+  },
+  {
+    "id": "2",
+    "name": "Lentejas estofadas",
+    "imageUrl": "https://img.freepik.com/fotos-premium/estofado-lentejas-chorizo-cerdo-aislado_58460-1853.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Lentejas",
+        "amount": 400.0,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 2.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Patata",
+        "amount": 2.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": [
+      "Picar finamente las verduras.",
+      "Hacer un sofrito a fuego lento.",
+      "Añadir el chorizo para que suelte jugo. Después las lentejas y cubrir con agua.",
+      "Cocer a fuego medio durante 10-15 minutos."
+    ]
+  },
+  {
+    "id": "27a0ecb5",
+    "name": "Tori no Karaage (pollo frito japonés)",
+    "imageUrl": "https://img-global.cpcdn.com/recipes/f866408129702dba/1200x630cq80/photo.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      {
+        "name": "Muslo de pollo",
+        "amount": 300.0,
+        "unit": "g"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 2.0,
+        "unit": "cuch."
+      },
+      {
+        "name": "Sake (o vino blanco)",
+        "amount": 2.0,
+        "unit": "cuch."
+      },
+      {
+        "name": "Aceite de sésamo",
+        "amount": 1.0,
+        "unit": "cuch."
+      },
+      {
+        "name": "Cucharilla ajo rallado",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Cucharilla jengibre rallado",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Maizena",
+        "amount": 1.0,
+        "unit": "cuch."
+      },
+      {
+        "name": "Sal y pimienta",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": [
+      "Cortar el pollo en trozos de bocado y sazónelo con la sal y la pimienta.",
+      "Introduzca el pollo en la mezcla de los condimietos durante 30 minutos como mínimo.",
+      "Añade el huevo y mezclalo.",
+      "Calentar el aceite a 170 grados y fría el pollo durante 5 minutos aproximadamente para que quede crujiente.",
+      "Al retirarlo de la sartén, se deja sobre papel de cocina para eliminar el exceso de aceite y se sirve."
+    ]
+  },
+  {
+    "id": "ab59ebc9",
+    "name": "Garbanzos con bacalao, el guiso tradicional de Karlos Arguiñano",
+    "imageUrl": "https://static.bainet.es/clip/47cf3413-4bf6-4d93-8a0d-03d92a51e2ac_source-aspect-ratio_1600w_0.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Garbanzos",
+        "amount": 300.0,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas",
+        "amount": 200.0,
+        "unit": "g"
+      },
+      {
+        "name": "Bacalao desalado",
+        "amount": 300.0,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Puerro",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomates en rama",
+        "amount": 2.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Huevos",
+        "amount": 2.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Ajo frito",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Rebanada de pan frito",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Almendra frita",
+        "amount": 20.0,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta",
+        "amount": 1,
+        "unit": "cuch."
+      },
+      {
+        "name": "Perejil",
+        "amount": 1.0,
+        "unit": "cuch."
+      }
+    ],
+    "instructions": [
+      "Pon los garbanzos a remojo de víspera. Calienta abundante agua en la olla rápida. Cuando empiece a hervir, escurre los garbanzos e incorpóralos. Agrega los granos de pimienta, la parte blanca del puerro entera y la zanahoria pelada entera. Sazona, tapa la olla y cocina durante 10-12 minutos a partir de que suba la válvula de seguridad.",
+      "Mientras se cuecen los garbanzos, pon abundante agua a hervir en un cazo pequeño. Introduce los huevos y deja que se cocinen durante 10 minutos. Escurre, pela, ábrelos por la mitad y resérvalos.",
+      "Abre la olla. Pasa el puerro, la zanahoria y un puñadito de garbanzos al vaso de la batidora. Añade parte del caldo y tritura. Cuela el resto de garbanzos y reserva la legumbre y el caldo por separado.",
+      "Pon 2-3 cucharadas de aceite en una tartera (cazuela amplia y baja). Pela y pica finamente la cebolla y agrégala a la cazuela. Sazona y cocínala a fuego moderado durante 8 minutos aproximadamente, hasta que se vuelva trasparente.  Ralla los tomates y agrégalos a la cazuela. Cocina durante 5-6 minutos más, hasta que se evapore todo el líquido.  Añade un par de cucharones del caldo de cocción de los garbanzos e introduce las espinacas. Cuando reduzcan un poco el volumen, agrega las hortalizas trituradas e incorpora los garbanzos y el caldo (más o menos cantidad, según la consistencia que te guste). Tapa y cocina durante 4-5 minutos.",
+      "Maja el diente de ajo frito, la rebanada de pan y las almendras en el mortero. Incorpora el majado a la cazuela de los garbanzos y dale un meneo para que se mezcle todo.",
+      "Corta el bacalao (con la piel) en tacos de bocado e incorpóralos a la cazuela. Tapa y cocina durante 3 minutos más. Rectifica de sal.",
+      "Sirve los garbanzos con espinacas y bacalao en platos hondos. Acompaña cada ración con medio huevo cocido y decora con una hojita de perejil."
+    ]
+  },
+  {
+    "id": "746a5938",
+    "name": "Macarrones con chorizo gratinados, receta de Joseba Arguiñano",
+    "imageUrl": "https://static.bainet.es/clip/fcb5dbc2-ea6b-4b0b-900b-fd1274e975c5_source-aspect-ratio_1600w_0.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Macarrones",
+        "amount": 400.0,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo curado",
+        "amount": 250.0,
+        "unit": "g"
+      },
+      {
+        "name": "Paté de trufa",
+        "amount": 50.0,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 600.0,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 55.0,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 55.0,
+        "unit": "g"
+      },
+      {
+        "name": "Pizca de nuez moscada",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 300.0,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": [
+      "Para hacer la bechamel, funde la mantequilla en una cazuela amplia. Incorpora la harina y rehógala un poco.  Vierte la leche poco a poco mientras remueves enérgicamente. Sazona y cocina la bechamel a fuego suave durante 10-12 minutos, hasta conseguir la textura deseada.  Incorpora el paté y la nuez moscada y remueve para que se integren bien. Reserva.",
+      "Pon abundante agua con una pizca de sal en una cazuela grande. Cuando empiece a hervir, introduce la pasta y deja que se cocine durante el tiempo que indique en el paquete.  Escurre y resérvala.",
+      "Corta el chorizo en trozos pequeños y sofríelo en una sartén sin aceite. Introduce los macarrones y mezcla bien.  Pon los macarrones con chorizo en una fuente apta para el horno. Cubre con la bechamel y espolvorea el queso rallado por encima.  Gratina (con el horno precalentado) durante 5 minutos aproximadamente, hasta que se dore.",
+      "Saca del horno, deja atemperar unos minutos y sirve los macarrones con chorizo gratinados."
+    ]
+  },
+  {
+    "id": "d39b22cd",
+    "name": "Salmón con labneh de hierbas, receta de Joseba Arguiñano",
+    "imageUrl": "https://static.bainet.es/clip/a71ebe58-d134-42c9-aa07-0a1ce5d0c667_source-aspect-ratio_1600w_0.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Salmón fresco",
+        "amount": 600.0,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimienta",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 650.0,
+        "unit": "g"
+      },
+      {
+        "name": "Cayena en polvo",
+        "amount": 1.0,
+        "unit": "cuch."
+      },
+      {
+        "name": "Frutos secos (variados)",
+        "amount": 40.0,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1.0,
+        "unit": "l"
+      },
+      {
+        "name": "Sal",
+        "amount": 3.0,
+        "unit": "g"
+      },
+      {
+        "name": "Hojas de menta",
+        "amount": 10.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Hojas de albahaca",
+        "amount": 12.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Hojas de perejil",
+        "amount": 12.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": [
+      "Para el labneh, mezcla el yogur con la sal. Prepara un bol, un colador y una estameña o paño fino.  Vierte el yogur sobre el colador con el paño, envuélvelo y deja que repose en el frigorífico durante 12-24 horas (si quieres, puedes alargarlo hasta las 48 horas.  Cuanto más tiempo esté más líquido perderá lo que hará que intensifique el sabor). Descarta el suero, retira el paño y pon el labneh en un bol.",
+      "Pica las hojas de menta, de albahaca y de perejil. Mezcla las hierbas con el labneh.  Añade ralladura de limón (al gusto) y la cayena.  Añade un chorro de aceite de oliva y mezcla bien.",
+      "Tuesta los frutos secos en una sartén sin aceite, pícalos finamente y agrégalos al labneh.  Mezcla bien y haz 12 quenelles (3 por ración).",
+      "Para hacer el salmón, calienta 2-3 cucharadas de aceite de una sartén.  Corta el lomo en 4 rectángulos largos.  Salpimienta y cocínalos en la sartén durante 2 minutos por cada lado aproximadamente.",
+      "Sirve un trozo de salmón en cada plato y acompaña con 3 quenelles de labneh de hierbas.  Decora con perejil."
+    ]
+  },
+  {
+    "id": "1181025b",
+    "name": "Poke de quinoa y arroz. Receta sana y casera",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2026/05/poke-de-quinoa-y-arroz.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Quinoa",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Arroz",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de sesamo",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sriacaha",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "a0b999a7",
+    "name": "Poke de salmón. Receta sana, fácil y casera",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2026/04/poke-de-salmon.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Vinagre de mirin",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Azucar",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Salmon",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Salsa ponzu",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sriracha",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Edadame",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pepino",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Soja",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "27ee06ae",
+    "name": "Paella de marisco. Una clásica receta de mi abuela",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2026/02/paella-de-marisco.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Calamares",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Azafran",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Chirlas",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Gambas",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Mejillones",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "d95a3e66",
+    "name": "Arroz con setas shiitake y alcachofa. Receta sana y fácil",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2025/10/arroz-con-setas-y-alcachofas.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Setas shittake",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Alcachofas",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Ajo",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimenton",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "d5092edd",
+    "name": "Arroz con secreto ibérico. Receta casera y fácil",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2025/09/arroz-con-secreto-iberico.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Secreto iberico",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Arroz",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Puerro",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Azafran",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "e74b7733",
+    "name": "Arroz caldoso de pollo, receta de Karlos Arguiñano",
+    "imageUrl": "https://static.bainet.es/clip/a5dd1acd-a01d-4407-a3e8-3c5ea9ac92a5_source-aspect-ratio_1600w_0.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 300.0,
+        "unit": "g"
+      },
+      {
+        "name": "Muslos de pollo (deshuesados)",
+        "amount": 2.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Puerro",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Alcachofas",
+        "amount": 3.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 8.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Ajo",
+        "amount": 2.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate concentrado",
+        "amount": 1.0,
+        "unit": "cuch."
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 100.0,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 1.2,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimienta",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 1.0,
+        "unit": "cuch."
+      },
+      {
+        "name": "Perejil",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "d283eea3",
+    "name": "Arroz tres delicias. Receta casera de los restaurantes chinos",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2025/02/arroz-tres-delicias.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Arroz blanco",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Huevos",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Jamon york",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "eb55de73",
+    "name": "Arroz meloso de marisco, receta fácil y casera",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2024/06/arroz-meloso-de-marisco.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Gambas",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Calamares",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Chirlas",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Azafran",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimenton",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "47de0d9c",
+    "name": "Risotto de verduras, receta fácil y casera",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2024/01/risotto-de-verduras.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Puerro",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "e915286a",
+    "name": "Arroz del senyoret, receta valenciana",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2023/06/arroz-del-senyoret.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sepia",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Gambas",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Calamar",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Ajo",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Azafran",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "f80c38d1",
+    "name": "Paella valenciana, receta fácil y tradicional",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2023/03/paella-valenciana-receta-tradicional.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pollo",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Conejo",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Judias verdes",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Garrofon",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Azafrán",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Agua",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimenton",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Romero",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "70b561f1",
+    "name": "Risotto de champiñones, receta italiana",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2022/01/IMG_20200328_152411.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      {
+        "name": "",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+    "id": "dd31a299",
+    "name": "Arroz al horno, una receta tradicional valenciana",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2020/03/arroz-al-horno-valenciano.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      {
+        "name": "",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+  "id": "e8b4a7c2",
+  "name": "Arroz a banda, receta tradicional valenciana",
+  "imageUrl": "https://images.unsplash.com/photo-1534080564583-6be75777b70a?auto=format&fit=crop&w=800&q=80",
+  "baseDiners": 4,
+  "ingredients": [
+    {
+      "name": "Arroz bomba",
+      "amount": 380.0,
+      "unit": "g"
+    },
+    {
+      "name": "Sepia grande",
+      "amount": 1.0,
+      "unit": "ud"
+    },
+    {
+      "name": "Gambas arroceras",
+      "amount": 400.0,
+      "unit": "g"
+    },
+    {
+      "name": "Cebolla",
+      "amount": 1.0,
+      "unit": "ud"
+    },
+    {
+      "name": "Tomates medianos",
+      "amount": 2.0,
+      "unit": "ud"
+    },
+    {
+      "name": "Fumet de pescado",
+      "amount": 1.2,
+      "unit": "l"
+    },
+    {
+      "name": "Morralla, raspas de rape o merluza",
+      "amount": 1.0,
+      "unit": "kg"
+    },
+    {
+      "name": "Puerro",
+      "amount": 2.0,
+      "unit": "ud"
+    },
+    {
+      "name": "Apio",
+      "amount": 1.0,
+      "unit": "ud"
+    },
+    {
+      "name": "Cabezas de carabineros",
+      "amount": 6.0,
+      "unit": "ud"
+    },
+    {
+      "name": "Azafrán o colorante",
+      "amount": 1.0,
+      "unit": "pizca"
+    },
+    {
+      "name": "Hoja de laurel",
+      "amount": 1.0,
+      "unit": "ud"
+    },
+    {
+      "name": "Sal",
+      "amount": 1.0,
+      "unit": "pizca"
+    }
+  ],
+  "instructions": [
+    "Comenzamos haciendo el fumet para el arroz, es lo más importante. Ponemos a cocer las raspas o la morralla con las verduras durante unos 25 minutos a fuego medio. De agua que lo cubra bien. Pasado ese tiempo colamos el fumet.",
+    "Si tenemos cabezas de carabineros, las incorporamos al caldo colado y cocemos unos 8 minutos. Pasado ese tiempo trituramos todo, colamos y reservamos. Esto hace que salga un fumet con un sabor espectacular.",
+    "En una paellera, pochamos la cebolla a fuego lento durante unos 10 minutos.",
+    "Pasado ese tiempo agregamos el tomate pelado, sin pepitas y en dados. Rehogamos durante otros 15 minutos a fuego lento, que se haga bien.",
+    "Incorporamos la sepia limpia cortada en dados y las gambas peladas. Cocinamos unos minutos. Ponemos un poco de sal, pero un toque, porque ya el fumet lo lleva.",
+    "Agregamos el arroz y rehogamos con todo el conjunto unos 3 minutos.",
+    "Cubrimos con el caldo de pescado y carabineros, agregamos el azafrán o el colorante y dejamos cocinar 18 minutos. Los primeros 5 minutos a fuego fuerte y lo demás a fuego suave. Servimos en la mesa con alioli casero."
+  ]
+  },
+  {
+    "id": "f328910b",
+    "name": "Arroz negro con calamares, receta fácil y casera",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2017/08/arroz-negro-receta.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Calamares",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Fumet de pescado",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1.0,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 1.0,
+        "unit": "ud"
+      }
+    ],
+    "instructions": []
+  },
+  {
+  "id": "f5e6d7c8",
+  "name": "Tortilla de patatas tradicional",
+  "imageUrl": "https://t4.ftcdn.net/jpg/03/29/46/69/360_F_329466927_kmuuVgBQXwvKqMt2L5wdbqNCRk70WQg7.jpg",
+  "baseDiners": 4,
+  "ingredients": [
+    {
+      "name": "Patatas",
+      "amount": 800.0,
+      "unit": "g"
+    },
+    {
+      "name": "Huevos",
+      "amount": 6.0,
+      "unit": "ud"
+    },
+    {
+      "name": "Cebolla",
+      "amount": 1.0,
+      "unit": "ud"
+    },
+    {
+      "name": "Aceite de oliva virgen",
+      "amount": 500.0,
+      "unit": "ml"
+    },
+    {
+      "name": "Sal",
+      "amount": 10.0,
+      "unit": "g"
+    }
+  ],
+  "instructions": [
+    "Pelar, lavar y secar las patatas. Cortarlas en láminas finas o dados pequeños. Picar la cebolla finamente.",
+    "Poner a calentar abundante aceite de oliva en una sartén grande. Añadir la patata y la cebolla, y freír a fuego medio-bajo durante unos 15-20 minutos hasta que estén muy tiernas y empiecen a deshacerse.",
+    "Sacar la patata y la cebolla con una espumadera y escurrir muy bien en un colador para eliminar el exceso de aceite.",
+    "En un bol grande, batir los huevos. Añadir la mezcla de patata y cebolla bien escurrida y agregar la sal. Remover y dejar reposar la mezcla durante unos 5 minutos para que la patata absorba bien el huevo.",
+    "Poner unas gotas de aceite en una sartén antiadherente a fuego medio-fuerte. Verter toda la mezcla, bajar un poco el fuego y dejar cuajar durante unos 3 o 4 minutos por ese lado, remetiendo los bordes con una espátula.",
+    "Dar la vuelta a la tortilla con un movimiento rápido y seguro usando un plato llano o un vuelve-tortillas. Cuajar por el otro lado durante 2 minutos más (o el tiempo necesario según te guste de hecha por dentro).",
+    "Deslizar sobre un plato limpio y servir."
+  ]
+}
+]
