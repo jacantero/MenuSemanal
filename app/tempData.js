@@ -116,19 +116,33 @@ export const addExtraItem = (name, amount, unit) => {
 };
 
 // --- 5. INICIALIZACIÓN (EL CEREBRO DEL ARRANQUE) ---
+// --- 5. INICIALIZACIÓN (EL CEREBRO DEL ARRANQUE) ---
 export const initAppData = async () => {
-  // NUEVO: Leer los emojis personalizados guardados
+  // --- NUEVO: 2. Leer los ingredientes creados por el usuario ---
   try {
-    const savedEmojis = await AsyncStorage.getItem('customEmojis');
-    if (savedEmojis) {
-      USER_CUSTOM_EMOJIS = JSON.parse(savedEmojis);
+    const savedCustomIngs = await AsyncStorage.getItem('@custom_ingredients');
+    if (savedCustomIngs) {
+      USER_CUSTOM_INGREDIENTS = JSON.parse(savedCustomIngs);
+      
+      // Fusionamos los del usuario con los de serie en la memoria RAM
+      Object.assign(INGREDIENTS_DB, USER_CUSTOM_INGREDIENTS);
+      
+      // También los metemos en la lista común para que el buscador predictivo los sugiera
+      Object.values(USER_CUSTOM_INGREDIENTS).forEach(ing => {
+        // Evitamos duplicados en las sugerencias
+        if (!COMMON_INGREDIENTS.some(c => c.name === ing.name)) {
+          COMMON_INGREDIENTS.push({ name: ing.name, unit: ing.unit, emoji: ing.emoji });
+        }
+      });
     }
   } catch (e) {
-    console.log("No hay emojis personalizados guardados");
+    console.log("No hay ingredientes personalizados guardados");
   }
+  // -------------------------------------------------------------
+
   const data = await loadAppData();
   
-  // 1. Menú (Se queda igual que antes)
+  // 3. Menú (Se queda igual que antes)
   if (data.menu) {
     Object.keys(weeklyMenu).forEach(key => delete weeklyMenu[key]);
     Object.assign(weeklyMenu, data.menu);
@@ -136,7 +150,7 @@ export const initAppData = async () => {
     saveMenuToStorage(weeklyMenu);
   }
 
-  // 2. RECETAS (¡Aquí está la magia de la fusión!)
+  // 4. RECETAS (¡Aquí está la magia de la fusión!)
   if (data.recipes) {
     const localRecipes = [...data.recipes];
 
@@ -158,14 +172,13 @@ export const initAppData = async () => {
     saveRecipesToStorage(MOCK_RECIPES);
   }
 
-  // 3. Gastos y Metadatos (Se queda igual que antes)
+  // 5. Gastos y Metadatos (Se queda igual que antes)
   if (data.metadata) {
     weeklyMetadata.supermarketCost = data.metadata.supermarketCost || '';
   } else {
     saveMetadataToStorage(weeklyMetadata);
   }
 };
-
 // --- NUEVO: FUNCIÓN PARA CONSUMIR RECETAS DESDE EL MENÚ ---
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -332,4 +345,48 @@ export const getCanonicalName = (rawName) => {
 
   // 5. Si no está en la BD (ej. un extra manual), lo ponemos bonito y listo
   return rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
+};
+
+/**
+ * Registra un ingrediente nuevo si no existe en la base de datos.
+ * Lo normaliza, lo guarda en el disco duro y lo inyecta en la RAM.
+ */
+/**
+ * Registra un ingrediente nuevo recibiendo sus datos nutricionales.
+ */
+export const registerCustomIngredient = async (rawName, unit = 'g', fetchedMacros = null) => {
+  const cleanName = rawName.toLowerCase().trim();
+  const canonical = getCanonicalName(cleanName);
+  
+  const isFallbackName = canonical === rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
+  const alreadyExistsInDB = Object.keys(INGREDIENTS_DB).some(k => INGREDIENTS_DB[k].name === canonical);
+
+  if (isFallbackName && !alreadyExistsInDB) {
+    const newKey = cleanName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+    
+    // Si la pantalla nos pasa macros, los usamos. Si no, a 0.
+    const finalMacros = fetchedMacros || { kcals: 0, protein: 0, carbs: { total: 0, sugars: 0 }, fats: { total: 0, saturated: 0, monounsaturated: 0, polyunsaturated: 0 }, fiber: 0, salt: 0 };
+
+    const newIngredient = {
+      name: canonical,
+      unit: unit,
+      emoji: "🛒", 
+      purchaseUnit: `1 ${unit}`,
+      macros: finalMacros,
+      micros: { calcium_mg: 0, iron_mg: 0, magnesium_mg: 0, potassium_mg: 0, zinc_mg: 0, vitE_mg: 0, vitC_mg: 0 },
+      source: fetchedMacros ? "OpenFoodFacts" : "USER_CUSTOM"
+    };
+
+    INGREDIENTS_DB[newKey] = newIngredient;
+    COMMON_INGREDIENTS.push({ name: canonical, unit: unit, emoji: "🛒" });
+    USER_CUSTOM_INGREDIENTS[newKey] = newIngredient;
+
+    try {
+      await AsyncStorage.setItem('@custom_ingredients', JSON.stringify(USER_CUSTOM_INGREDIENTS));
+    } catch (e) {
+      console.error("Error guardando ingrediente personalizado", e);
+    }
+  }
+
+  return canonical; 
 };
