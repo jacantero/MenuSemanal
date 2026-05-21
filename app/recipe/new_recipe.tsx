@@ -1,52 +1,56 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal, Image } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router'; 
 import { FontAwesome } from '@expo/vector-icons';
 import { addRecipe, MOCK_RECIPES, updateRecipe, deleteRecipe, registerCustomIngredient, COMMON_INGREDIENTS, INGREDIENTS_DB, getCanonicalName } from '../tempData'; 
 
 const STANDARD_UNITS = ['ud', 'g', 'kg', 'ml', 'L', 'cuch.', 'taza', 'pizca', 'paquete'];
+const UNSPLASH_ACCESS_KEY = "NyeS7XJO0PCjojHXrcphQ2co-C-tyt8tpWvywPdlDGQ";
 
 export default function NewRecipeScreen() {
+  // 1. ESTADOS DE LA RECETA
   const { editId } = useLocalSearchParams();
   const isEditing = !!editId;
 
   const [name, setName] = useState('');
   const [baseDiners, setBaseDiners] = useState('2');
   const [imageUrl, setImageUrl] = useState('');
-
   const [ingredients, setIngredients] = useState([]);
   const [ingName, setIngName] = useState('');
   const [ingAmount, setIngAmount] = useState('1');
   const [ingUnit, setIngUnit] = useState('g'); 
-
   const [instructions, setInstructions] = useState([]);
   const [instructionText, setInstructionText] = useState('');
-
   const [importUrl, setImportUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // 2. ESTADOS DE INTERFAZ Y AUTOCOMPLETADO
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [hasManuallySelectedUnit, setHasManuallySelectedUnit] = useState(false);
 
-  // --- ESTADOS CONTROLADORES DEL MODAL NUTRICIONAL ---
+  // 3. ESTADOS PARA BUSCADOR IMÁGENES
+  const [isImgModalVisible, setIsImgModalVisible] = useState(false);
+  const [imgQuery, setImgQuery] = useState('');
+  const [fetchedImages, setFetchedImages] = useState([]);
+  const [isSearchingImages, setIsSearchingImages] = useState(false);
+
+  // 4. ESTADOS PARA EL MODAL NUTRICIONAL
   const [pendingIngredients, setPendingIngredients] = useState([]);
   const [currentPendingIndex, setCurrentPendingIndex] = useState(0);
   const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
   const [isFetchingNutrients, setIsFetchingNutrients] = useState(false);
-  const [activeTab, setActiveTab] = useState('datos'); // 'datos' | 'macros' | 'micros'
+  const [activeTab, setActiveTab] = useState('datos');
 
-  // --- CAMPOS EDITABLES COMPLETOS DEL INGREDIENTE ---
+  // 5. ESTADOS DE DATOS AVANZADOS
   const [formUnit, setFormUnit] = useState('g');
   const [formEmoji, setFormEmoji] = useState('🛒');
   const [formFormat, setFormFormat] = useState('1kg');
   const [formPrice, setFormPrice] = useState('0.00');
-
   const [formMacros, setFormMacros] = useState({
     kcals: '0', protein: '0', carbsTotal: '0', carbsSugars: '0', 
     fatsTotal: '0', fatsSat: '0', fatsMono: '0', fatsPoly: '0', fiber: '0', salt: '0'
   });
-
   const [formMicros, setFormMicros] = useState({
     calcium: '0', iron: '0', magnesium: '0', potassium: '0', zinc: '0', vitE: '0', vitC: '0'
   });
@@ -79,6 +83,24 @@ export default function NewRecipeScreen() {
     setIngName(suggestion.name);
     if (!hasManuallySelectedUnit) setIngUnit(suggestion.unit || 'g');
     setShowSuggestions(false);
+  };
+
+  const searchPhotosOnline = async () => {
+    if (!imgQuery.trim()) return;
+    setIsSearchingImages(true);
+    try {
+      const response = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(imgQuery.trim())}&per_page=12&client_id=${UNSPLASH_ACCESS_KEY}`
+      );
+      const data = await response.json();
+      // Nos quedamos con las urls en formato regular (buena calidad pero optimizadas para móvil)
+      setFetchedImages(data.results || []);
+    } catch (e) {
+      console.error("Error buscando fotos:", e);
+      Alert.alert("Error", "No se han podido cargar las imágenes.");
+    } finally {
+      setIsSearchingImages(false);
+    }
   };
 
   const handleImportUrl = async () => {
@@ -303,8 +325,22 @@ export default function NewRecipeScreen() {
               <TextInput style={[styles.input, { textAlign: 'center' }]} keyboardType="numeric" value={baseDiners} onChangeText={setBaseDiners} />
             </View>
             <View style={{ flex: 2 }}>
-              <Text style={styles.label}>URL Foto</Text>
-              <TextInput style={styles.input} placeholder="https://..." value={imageUrl} onChangeText={setImageUrl} />
+              <Text style={styles.label}>Foto de la receta</Text>
+              <TouchableOpacity 
+                style={[styles.input, styles.imageSelectorButton]} 
+                onPress={() => {
+                  setIsImgModalVisible(true);
+                  // Si ya han puesto nombre a la receta, autocompletamos la búsqueda
+                  if (name.trim()) {
+                    setImgQuery(name.trim());
+                  }
+                }}
+              >
+                <FontAwesome name="image" size={16} color="#2f95dc" style={{ marginRight: 8 }} />
+                <Text style={{ color: imageUrl ? '#333' : '#94a3b8', fontSize: 15 }} numberOfLines={1}>
+                  {imageUrl ? "✅ Imagen seleccionada" : "🔍 Buscar imagen online..."}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -487,6 +523,70 @@ export default function NewRecipeScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+        {/* ========================================================
+          🖼️ MODAL BUSCADOR DE IMÁGENES ONLINE (UNSPLASH)
+          ======================================================== */}
+      <Modal visible={isImgModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { height: '80%', paddingBottom: 20 }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+              <Text style={styles.modalTitle}>🖼️ Buscador de Fotos Libres</Text>
+              <TouchableOpacity onPress={() => setIsImgModalVisible(false)} style={{ padding: 4 }}>
+                <FontAwesome name="times" size={20} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.row}>
+              <TextInput 
+                style={[styles.input, { flex: 1, marginBottom: 0 }]} 
+                placeholder="Ej: Pasta carbonara, pancakes..." 
+                value={imgQuery}
+                onChangeText={setImgQuery}
+                onSubmitEditing={searchPhotosOnline}
+              />
+              <TouchableOpacity style={styles.unsplashSearchBtn} onPress={searchPhotosOnline} disabled={isSearchingImages}>
+                {isSearchingImages ? <ActivityIndicator color="#fff" size="small" /> : <FontAwesome name="search" size={16} color="#fff" />}
+              </TouchableOpacity>
+            </View>
+
+            {isSearchingImages ? (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#2f95dc" />
+              </View>
+            ) : (
+              <ScrollView contentContainerStyle={styles.imageGridContainer} style={{ marginTop: 15, flex: 1 }}>
+                {fetchedImages.length === 0 ? (
+                  <Text style={styles.noImagesText}>Escribe qué plato buscas y pulsa la lupa.</Text>
+                ) : (
+                  fetchedImages.map((img) => (
+                    <TouchableOpacity 
+                      key={img.id} 
+                      style={styles.imageGridItem}
+                      onPress={() => {
+                        setImageUrl(img.urls.regular); 
+                        setIsImgModalVisible(false); 
+                      }}
+                    >
+                      <View style={{ width: '100%', height: '100%', borderRadius: 12, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+                        <Image 
+                          source={{ uri: img.urls.small }} 
+                          style={{ width: '100%', height: '100%' }} 
+                          resizeMode="cover" 
+                        />
+                        <View style={{position:'absolute', bottom:4, right:4, backgroundColor:'rgba(0,0,0,0.5)', paddingHorizontal:4, paddingVertical:2, borderRadius:4}}>
+                           <Text style={{fontSize:9, color:'#fff', fontWeight: 'bold'}}>
+                             📸 {img.user.name.substring(0, 12)}
+                           </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                )}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -537,5 +637,43 @@ const styles = StyleSheet.create({
   macroLabel: { fontSize: 11, fontWeight: '700', color: '#64748b', marginBottom: 4, paddingLeft: 4 },
   macroInput: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 8, fontSize: 14, fontWeight: 'bold', color: '#334155' },
   confirmModalBtn: { backgroundColor: '#10b981', padding: 14, borderRadius: 14, alignItems: 'center', marginTop: 15 },
-  confirmModalBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  confirmModalBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  imageSelectorButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderColor: '#cbd5e1',
+  },
+  unsplashSearchBtn: {
+    backgroundColor: '#2f95dc',
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  imageGridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingBottom: 20,
+  },
+  imageGridItem: {
+    width: '31%',
+    aspectRatio: 1,
+    marginBottom: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  noImagesText: {
+    width: '100%',
+    textAlign: 'center',
+    color: '#64748b',
+    marginTop: 40,
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
