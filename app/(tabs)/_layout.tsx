@@ -22,6 +22,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <FontAwesome name="shopping-cart" size={24} color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="pantry"
+        options={{
+          title: 'Despensa',
+          tabBarIcon: ({ color }) => <FontAwesome name="home" size={24} color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

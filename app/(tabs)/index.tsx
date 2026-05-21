@@ -1,50 +1,42 @@
 import { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-// --- NUEVO: Importaciones actualizadas ---
-import { weeklyMenu, MOCK_RECIPES, updateEatOutDetails, assignRecipeToMenu, weeklyMetadata, updateSupermarketCost, getTotalEatOutCost, initAppData } from '../tempData';
+// Importaciones actualizadas con la nueva función
+import { weeklyMenu, MOCK_RECIPES, updateEatOutDetails, assignRecipeToMenu, weeklyMetadata, updateSupermarketCost, getTotalEatOutCost, initAppData, consumeRecipeFromPantry } from '../tempData';
 import { FontAwesome } from '@expo/vector-icons';
 
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 export default function MenuScreen() {
-  // --- NUEVO: ESTADO DE CARGA ---
   const [isReady, setIsReady] = useState(false);
-
   const [menuData, setMenuData] = useState(weeklyMenu);
   
-  // --- NUEVO: ESTADOS DEL DASHBOARD ECONÓMICO ---
   const [supermarketInput, setSupermarketInput] = useState('');
   const [dashboardVisible, setDashboardVisible] = useState(false);
 
-  // --- ESTADOS PARA AÑADIR NUEVA COMIDA ---
   const [addMealVisible, setAddMealVisible] = useState(false);
   const [dayToAdd, setDayToAdd] = useState(null);
   const [newMealName, setNewMealName] = useState('');
   const [selectedDays, setSelectedDays] = useState([]);
   
-  // --- ESTADOS MODO SELECCIÓN MÚLTIPLE ---
   const [selectedMeals, setSelectedMeals] = useState([]);
   const isMultiSelectMode = selectedMeals.length > 0;
 
-  // --- ESTADOS PARA EL MODAL DE COMER FUERA ---
   const [eatOutModalVisible, setEatOutModalVisible] = useState(false);
   const [eatOutTarget, setEatOutTarget] = useState({ day: null, mealId: null });
   const [eatOutPlace, setEatOutPlace] = useState('');
   const [eatOutCost, setEatOutCost] = useState('');
 
-  // --- NUEVO: ARRANQUE DE LA APP (Carga la memoria) ---
   useEffect(() => {
     const loadData = async () => {
-      await initAppData(); // Espera a que el disco duro lea todo
-      setMenuData({ ...weeklyMenu }); // Refresca los estados
+      await initAppData(); 
+      setMenuData({ ...weeklyMenu }); 
       setSupermarketInput(weeklyMetadata.supermarketCost || '');
-      setIsReady(true); // ¡Luz verde para pintar la pantalla!
+      setIsReady(true); 
     };
     loadData();
   }, []);
 
-  // --- NUEVO: CÁLCULOS ECONÓMICOS ---
   const totalEatOut = getTotalEatOutCost();
   const totalSupermarket = parseFloat(supermarketInput.replace(',', '.')) || 0; 
   const totalWeekly = totalSupermarket + totalEatOut;
@@ -145,7 +137,6 @@ export default function MenuScreen() {
     return recipe ? recipe.name : 'Receta borrada';
   };
 
-  // --- FUNCIONES PARA REORDENAR Y BORRAR HUECOS ---
   const moveMealUp = (day, index) => {
     if (index === 0) return; 
     const meals = [...weeklyMenu[day]];
@@ -179,7 +170,6 @@ export default function MenuScreen() {
     );
   };
 
-  // --- FUNCIONES DEL MODAL PARA AÑADIR COMIDA---
   const openAddMealModal = (day) => {
     setDayToAdd(day);
     setNewMealName('');
@@ -223,7 +213,6 @@ export default function MenuScreen() {
     }
   };
 
-  // --- FUNCIONES PARA DETALLES DE COMER FUERA ---
   const openEatOutModal = (day, mealObject) => {
     setEatOutTarget({ day, mealId: mealObject.id });
     setEatOutPlace(mealObject.eatOutPlace || '');
@@ -236,6 +225,30 @@ export default function MenuScreen() {
     updateEatOutDetails(eatOutTarget.day, eatOutTarget.mealId, eatOutPlace, costNumber);
     setMenuData({ ...weeklyMenu });
     setEatOutModalVisible(false);
+  };
+
+  // --- NUEVO: FUNCIÓN PARA EL BOTÓN DE COCINAR ---
+  const handleConsumeRecipe = (recipeId, plannedDiners) => {
+    const recipe = MOCK_RECIPES.find(r => String(r.id) === String(recipeId));
+    
+    Alert.alert(
+      "Cocinar receta",
+      `¿Quieres restar de tu despensa los ingredientes necesarios para cocinar "${recipe?.name}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Cocinar y Restar", 
+          onPress: async () => {
+            const success = await consumeRecipeFromPantry(recipe, plannedDiners);
+            if (success) {
+              Alert.alert("¡Que aproveche!", "Los ingredientes se han descontado de la despensa.");
+            } else {
+              Alert.alert("Despensa Vacía", "No se han encontrado los ingredientes en tu despensa para restar.");
+            }
+          }
+        }
+      ]
+    );
   };
 
   const renderMealSlot = (day, mealObject, index, totalMeals) => {
@@ -302,7 +315,7 @@ export default function MenuScreen() {
             
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               
-              {assignedRecipeId === 'eat_out' && (
+              {assignedRecipeId === 'eat_out' ? (
                 <TouchableOpacity 
                   style={styles.editDataBtn} 
                   onPress={() => openEatOutModal(day, mealObject)}
@@ -310,6 +323,15 @@ export default function MenuScreen() {
                   <Text style={styles.editDataBtnText}>
                     {mealObject.eatOutPlace ? '✏️ Editar' : '✏️ Añadir Datos'}
                   </Text>
+                </TouchableOpacity>
+              ) : (
+                // --- NUEVO: BOTÓN DE COCINAR RECETA ---
+                <TouchableOpacity 
+                  style={styles.consumeBtn} 
+                  onPress={() => handleConsumeRecipe(assignedRecipeId, plannedDiners)}
+                >
+                  <FontAwesome name="fire" size={16} color="#e65100" style={{marginRight: 4}} />
+                  <Text style={styles.consumeBtnText}>Cocinar</Text>
                 </TouchableOpacity>
               )}
 
@@ -360,7 +382,6 @@ export default function MenuScreen() {
     );
   };
 
-  // --- NUEVO: PANTALLA DE CARGA ---
   if (!isReady) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e6f7ff' }}>
@@ -373,7 +394,6 @@ export default function MenuScreen() {
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
         
-        {/* --- NUEVO: CABECERA CON CHIVATO ECONÓMICO --- */}
         <View style={styles.headerContainer}>
           <Text style={styles.headerTitle}>Mi Menú Semanal</Text>
           <TouchableOpacity style={styles.miniDashboardBtn} onPress={() => setDashboardVisible(true)}>
@@ -518,7 +538,7 @@ export default function MenuScreen() {
         </View>
       </Modal>
 
-      {/* --- NUEVO: MODAL DEL DASHBOARD ECONÓMICO --- */}
+      {/* MODAL DEL DASHBOARD ECONÓMICO */}
       <Modal animationType="slide" transparent={true} visible={dashboardVisible}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -573,7 +593,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#e6f7ff' },
   scrollContent: { padding: 16, paddingBottom: 40 },
   
-  // --- ESTILOS DE LA CABECERA MODIFICADOS ---
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -635,6 +654,24 @@ const styles = StyleSheet.create({
   },
   editDataBtnText: {
     color: '#2e7d32',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+
+  // --- NUEVOS: Estilos para el botón de consumo ---
+  consumeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffe0b2', 
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: '#ffb74d'
+  },
+  consumeBtnText: {
+    color: '#e65100',
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -752,7 +789,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center' 
   },
 
-  // --- NUEVOS: ESTILOS DEL MODAL DEL DASHBOARD ---
   dashboardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dashboardItem: { flex: 1, alignItems: 'center' },
   dashboardDivider: { width: 1, height: 40, backgroundColor: '#e2e8f0', marginHorizontal: 10 },

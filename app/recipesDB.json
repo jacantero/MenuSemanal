@@ -5,42 +5,18 @@
     "imageUrl": "https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&w=400&q=80",
     "baseDiners": 2,
     "ingredients": [
-      {
-        "name": "Espaguetis",
-        "amount": 250.0,
-        "unit": "g"
-      },
-      {
-        "name": "Bacon",
-        "amount": 125.0,
-        "unit": "g"
-      },
-      {
-        "name": "Cebolla",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimienta negra",
-        "amount": 1.0,
-        "unit": "cuch."
-      },
-      {
-        "name": "Queso Grana Padano",
-        "amount": 100,
-        "unit": "g"
-      },
-      {
-        "name": "Huevo",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Espaguetis", "amount": 200.0, "unit": "g" },
+      { "name": "Bacon / Panceta", "amount": 150.0, "unit": "g" },
+      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "cuch." },
+      { "name": "Queso rallado / Grana Padano", "amount": 80.0, "unit": "g" },
+      { "name": "Huevo de gallina", "amount": 3.0, "unit": "ud" }
     ],
     "instructions": [
-      "Hervir la pasta en agua con mucha sal.",
-      "Dorar el bacon y la cebolla en una sartén.",
-      "Unir todo fuera del fuego, echar el huevo y remover constantemente para que el huevo no se cuaje.",
-      "Servir y espolvorear queso rallado al gusto"
+      "Hervir los espaguetis en agua con sal el tiempo indicado en el paquete para que queden al dente.",
+      "Mientras tanto, cortar el bacon en tiras y dorarlo en una sartén sin aceite hasta que esté crujiente. Retirar del fuego.",
+      "En un bol, batir las yemas de los huevos junto con una parte del huevo entero, la pimienta negra recién molida y el queso rallado hasta formar una pasta cremosa.",
+      "Escurrir la pasta reservando un cazo del agua de cocción. Echar la pasta caliente a la sartén con el bacon.",
+      "Añadir la mezcla de huevo y queso fuera del fuego. Remover enérgicamente añadiendo un poco de agua de la cocción para ligar una salsa cremosa sin que se cuaje el huevo. Servir de inmediato."
     ]
   },
   {
@@ -49,37 +25,23 @@
     "imageUrl": "https://img.freepik.com/fotos-premium/estofado-lentejas-chorizo-cerdo-aislado_58460-1853.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Lentejas",
-        "amount": 400.0,
-        "unit": "g"
-      },
-      {
-        "name": "Zanahoria",
-        "amount": 2.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Patata",
-        "amount": 2.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Cebolla",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Chorizo",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Lentejas", "amount": 350.0, "unit": "g" },
+      { "name": "Zanahoria", "amount": 2.0, "unit": "ud" },
+      { "name": "Patata", "amount": 2.0, "unit": "ud" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Chorizo", "amount": 2.0, "unit": "ud" },
+      { "name": "Ajo", "amount": 3.0, "unit": "ud" },
+      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 1.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
-      "Picar finamente las verduras.",
-      "Hacer un sofrito a fuego lento.",
-      "Añadir el chorizo para que suelte jugo. Después las lentejas y cubrir con agua.",
-      "Cocer a fuego medio durante 10-15 minutos."
+      "Picar la cebolla, el ajo y el tomate muy finamente. Cortar las zanahorias en rodajas y romper las patatas en gajos.",
+      "En una olla con un chorro de aceite de oliva, pochar la cebolla y el ajo a fuego lento hasta que estén tiernos.",
+      "Añadir el pimentón dulce, remover rápidamente para que no se queme e incorporar el tomate rallado cocinando 5 minutos.",
+      "Agregar las patatas, las zanahorias, el chorizo cortado en rodajas grandes y las lentejas previamene lavadas.",
+      "Cubrir con agua fría o caldo, sazonar con sal y cocer a fuego medio-bajo tapado durante 40-45 minutos hasta que las lentejas estén tiernas."
     ]
   },
   {
@@ -88,1119 +50,530 @@
     "imageUrl": "https://img-global.cpcdn.com/recipes/f866408129702dba/1200x630cq80/photo.jpg",
     "baseDiners": 2,
     "ingredients": [
-      {
-        "name": "Muslo de pollo",
-        "amount": 300.0,
-        "unit": "g"
-      },
-      {
-        "name": "Salsa de soja",
-        "amount": 2.0,
-        "unit": "cuch."
-      },
-      {
-        "name": "Sake (o vino blanco)",
-        "amount": 2.0,
-        "unit": "cuch."
-      },
-      {
-        "name": "Aceite de sésamo",
-        "amount": 1.0,
-        "unit": "cuch."
-      },
-      {
-        "name": "Cucharilla ajo rallado",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Cucharilla jengibre rallado",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Maizena",
-        "amount": 1.0,
-        "unit": "cuch."
-      },
-      {
-        "name": "Sal y pimienta",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Huevo",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Pollo (Muslo / Pechuga)", "amount": 400.0, "unit": "g" },
+      { "name": "Salsa de soja", "amount": 3.0, "unit": "cuch." },
+      { "name": "Sake / Vino blanco", "amount": 2.0, "unit": "cuch." },
+      { "name": "Aceite de sésamo", "amount": 1.0, "unit": "cuch." },
+      { "name": "Ajo", "amount": 1.0, "unit": "ud" },
+      { "name": "Jengibre", "amount": 1.0, "unit": "ud" },
+      { "name": "Maizena / Almidón", "amount": 4.0, "unit": "cuch." },
+      { "name": "Huevo de gallina", "amount": 1.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "g" },
+      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "cuch." }
     ],
     "instructions": [
-      "Cortar el pollo en trozos de bocado y sazónelo con la sal y la pimienta.",
-      "Introduzca el pollo en la mezcla de los condimietos durante 30 minutos como mínimo.",
-      "Añade el huevo y mezclalo.",
-      "Calentar el aceite a 170 grados y fría el pollo durante 5 minutos aproximadamente para que quede crujiente.",
-      "Al retirarlo de la sartén, se deja sobre papel de cocina para eliminar el exceso de aceite y se sirve."
+      "Cortar los contramuslos de pollo deshuesados en trozos medianos del tamaño de un bocado.",
+      "En un bol ancho, mezclar la salsa de soja, el sake, el aceite de sésamo, el ajo rallado y el jengibre fresco rallado.",
+      "Introducir el pollo en la marinada, tapar y dejar reposar en la nevera durante un mínimo de 30 a 60 minutos.",
+      "Escurrir ligeramente el pollo, añadir el huevo batido al bol mezclando bien y rebozar cada pieza pasándola generosamente por Maizena.",
+      "Calentar abundante aceite para freír a 170°C. Freír el pollo en tandas durante 4-5 minutos hasta que esté bien dorado y crujiente. Escurrir sobre papel absorbente y servir con limón."
     ]
   },
   {
     "id": "ab59ebc9",
-    "name": "Garbanzos con bacalao, el guiso tradicional de Karlos Arguiñano",
+    "name": "Garbanzos con bacalao tradicional",
     "imageUrl": "https://static.bainet.es/clip/47cf3413-4bf6-4d93-8a0d-03d92a51e2ac_source-aspect-ratio_1600w_0.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Garbanzos",
-        "amount": 300.0,
-        "unit": "g"
-      },
-      {
-        "name": "Espinacas",
-        "amount": 200.0,
-        "unit": "g"
-      },
-      {
-        "name": "Bacalao desalado",
-        "amount": 300.0,
-        "unit": "g"
-      },
-      {
-        "name": "Cebolla",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Zanahoria",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Puerro",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Tomates en rama",
-        "amount": 2.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Huevos",
-        "amount": 2.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Ajo frito",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Rebanada de pan frito",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Almendra frita",
-        "amount": 20.0,
-        "unit": "g"
-      },
-      {
-        "name": "Aceite de oliva virgen extra",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "g"
-      },
-      {
-        "name": "Pimienta",
-        "amount": 1,
-        "unit": "cuch."
-      },
-      {
-        "name": "Perejil",
-        "amount": 1.0,
-        "unit": "cuch."
-      }
+      { "name": "Garbanzos", "amount": 300.0, "unit": "g" },
+      { "name": "Espinacas", "amount": 250.0, "unit": "g" },
+      { "name": "Bacalao desalado", "amount": 400.0, "unit": "g" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
+      { "name": "Puerro", "amount": 1.0, "unit": "ud" },
+      { "name": "Tomate / Concentrado", "amount": 2.0, "unit": "ud" },
+      { "name": "Huevo de gallina", "amount": 2.0, "unit": "ud" },
+      { "name": "Ajo", "amount": 3.0, "unit": "ud" },
+      { "name": "Pan frito", "amount": 1.0, "unit": "ud" },
+      { "name": "Almendras", "amount": 20.0, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "g" },
+      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "cuch." },
+      { "name": "Perejil fresco", "amount": 1.0, "unit": "ud" }
     ],
     "instructions": [
-      "Pon los garbanzos a remojo de víspera. Calienta abundante agua en la olla rápida. Cuando empiece a hervir, escurre los garbanzos e incorpóralos. Agrega los granos de pimienta, la parte blanca del puerro entera y la zanahoria pelada entera. Sazona, tapa la olla y cocina durante 10-12 minutos a partir de que suba la válvula de seguridad.",
-      "Mientras se cuecen los garbanzos, pon abundante agua a hervir en un cazo pequeño. Introduce los huevos y deja que se cocinen durante 10 minutos. Escurre, pela, ábrelos por la mitad y resérvalos.",
-      "Abre la olla. Pasa el puerro, la zanahoria y un puñadito de garbanzos al vaso de la batidora. Añade parte del caldo y tritura. Cuela el resto de garbanzos y reserva la legumbre y el caldo por separado.",
-      "Pon 2-3 cucharadas de aceite en una tartera (cazuela amplia y baja). Pela y pica finamente la cebolla y agrégala a la cazuela. Sazona y cocínala a fuego moderado durante 8 minutos aproximadamente, hasta que se vuelva trasparente.  Ralla los tomates y agrégalos a la cazuela. Cocina durante 5-6 minutos más, hasta que se evapore todo el líquido.  Añade un par de cucharones del caldo de cocción de los garbanzos e introduce las espinacas. Cuando reduzcan un poco el volumen, agrega las hortalizas trituradas e incorpora los garbanzos y el caldo (más o menos cantidad, según la consistencia que te guste). Tapa y cocina durante 4-5 minutos.",
-      "Maja el diente de ajo frito, la rebanada de pan y las almendras en el mortero. Incorpora el majado a la cazuela de los garbanzos y dale un meneo para que se mezcle todo.",
-      "Corta el bacalao (con la piel) en tacos de bocado e incorpóralos a la cazuela. Tapa y cocina durante 3 minutos más. Rectifica de sal.",
-      "Sirve los garbanzos con espinacas y bacalao en platos hondos. Acompaña cada ración con medio huevo cocido y decora con una hojita de perejil."
+      "Poner los garbanzos a remojo la víspera. Cocerlos en la olla rápida con agua hirviendo junto con la zanahoria entera pelada y la parte limpia del puerro durante 12 minutos tras subir la válvula.",
+      "Mientras, cocer los huevos en agua hirviendo durante 10 minutos. Enfriar, pelar, cortar por la mitad y reservar.",
+      "Abrir la olla, triturar la zanahoria y el puerro con un poco de caldo de la cocción y volver a incorporarlo a la olla para espesar. Separar los garbanzos con su caldo.",
+      "En una cazuela baja con aceite, pochar la cebolla bien picada durante 8 minutos. Añadir los tomates rallados y sofreír hasta que pierdan el agua.",
+      "Añadir las espinacas limpias al sofrito. Cuando reduzcan su tamaño, verter los garbanzos con el caldo de cocción necesario y cocinar todo junto 5 minutos.",
+      "Hacer un majado en el mortero con los ajos fritos, la almendra y la rebanada de pan frito e incorporarlo al guiso.",
+      "Cortar el bacalao desalado en dados grandes y añadirlo a la cazuela con la piel hacia arriba. Cocinar 3 minutos a fuego suave, rectificar de sal, decorar con el huevo cocido y perejil picado antes de servir."
     ]
   },
   {
     "id": "746a5938",
-    "name": "Macarrones con chorizo gratinados, receta de Joseba Arguiñano",
+    "name": "Macarrones con chorizo gratinados",
     "imageUrl": "https://static.bainet.es/clip/fcb5dbc2-ea6b-4b0b-900b-fd1274e975c5_source-aspect-ratio_1600w_0.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Macarrones",
-        "amount": 400.0,
-        "unit": "g"
-      },
-      {
-        "name": "Chorizo curado",
-        "amount": 250.0,
-        "unit": "g"
-      },
-      {
-        "name": "Paté de trufa",
-        "amount": 50.0,
-        "unit": "g"
-      },
-      {
-        "name": "Leche",
-        "amount": 600.0,
-        "unit": "ml"
-      },
-      {
-        "name": "Mantequilla",
-        "amount": 55.0,
-        "unit": "g"
-      },
-      {
-        "name": "Harina",
-        "amount": 55.0,
-        "unit": "g"
-      },
-      {
-        "name": "Pizca de nuez moscada",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Queso rallado",
-        "amount": 300.0,
-        "unit": "g"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Perejil",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Macarrones", "amount": 400.0, "unit": "g" },
+      { "name": "Chorizo", "amount": 250.0, "unit": "ud" },
+      { "name": "Paté de trufa", "amount": 75.0, "unit": "g" },
+      { "name": "Leche entera", "amount": 600.0, "unit": "ml" },
+      { "name": "Mantequilla", "amount": 55.0, "unit": "g" },
+      { "name": "Harina de trigo", "amount": 55.0, "unit": "g" },
+      { "name": "Nuez moscada", "amount": 1.0, "unit": "ud" },
+      { "name": "Queso rallado / Grana Padano", "amount": 150.0, "unit": "g" },
+      { "name": "Sal común", "amount": 5.0, "unit": "g" },
+      { "name": "Perejil fresco", "amount": 1.0, "unit": "ud" }
     ],
     "instructions": [
-      "Para hacer la bechamel, funde la mantequilla en una cazuela amplia. Incorpora la harina y rehógala un poco.  Vierte la leche poco a poco mientras remueves enérgicamente. Sazona y cocina la bechamel a fuego suave durante 10-12 minutos, hasta conseguir la textura deseada.  Incorpora el paté y la nuez moscada y remueve para que se integren bien. Reserva.",
-      "Pon abundante agua con una pizca de sal en una cazuela grande. Cuando empiece a hervir, introduce la pasta y deja que se cocine durante el tiempo que indique en el paquete.  Escurre y resérvala.",
-      "Corta el chorizo en trozos pequeños y sofríelo en una sartén sin aceite. Introduce los macarrones y mezcla bien.  Pon los macarrones con chorizo en una fuente apta para el horno. Cubre con la bechamel y espolvorea el queso rallado por encima.  Gratina (con el horno precalentado) durante 5 minutos aproximadamente, hasta que se dore.",
-      "Saca del horno, deja atemperar unos minutos y sirve los macarrones con chorizo gratinados."
+      "Para la bechamel, derretir la mantequilla en una cazuela, incorporar la harina y cocinarla 2 minutos. Añadir la leche tibia poco a poco sin dejar de remover con varillas. Cocinar 10 minutos, añadir el paté de trufa, la nuez moscada y una pizca de sal, removiendo bien.",
+      "Cocer los macarrones en abundante agua hirviendo con sal el tiempo indicado por el fabricante para dejarlos al dente. Escurrir bien.",
+      "Quitar la piel al chorizo, picarlo fino y saltearlo en una sartén sin grasa. Añadir los macarrones escurridos y mezclar uniformemente.",
+      "Pasar la pasta con chorizo a una fuente de horno, cubrir homogéneamente con la bechamel de trufa y esparcir el queso rallado por encima.",
+      "Gratinar a 210°C durante unos 5 minutos hasta que la superficie esté dorada y crujiente. Decorar con perejil fresco antes de servir."
     ]
   },
   {
     "id": "d39b22cd",
-    "name": "Salmón con labneh de hierbas, receta de Joseba Arguiñano",
+    "name": "Salmón con labneh de hierbas",
     "imageUrl": "https://static.bainet.es/clip/a71ebe58-d134-42c9-aa07-0a1ce5d0c667_source-aspect-ratio_1600w_0.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Salmón fresco",
-        "amount": 600.0,
-        "unit": "g"
-      },
-      {
-        "name": "Aceite de oliva virgen extra",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimienta",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Perejil",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Yogur natural",
-        "amount": 650.0,
-        "unit": "g"
-      },
-      {
-        "name": "Cayena en polvo",
-        "amount": 1.0,
-        "unit": "cuch."
-      },
-      {
-        "name": "Frutos secos (variados)",
-        "amount": 40.0,
-        "unit": "g"
-      },
-      {
-        "name": "Limón",
-        "amount": 1.0,
-        "unit": "l"
-      },
-      {
-        "name": "Sal",
-        "amount": 3.0,
-        "unit": "g"
-      },
-      {
-        "name": "Hojas de menta",
-        "amount": 10.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Hojas de albahaca",
-        "amount": 12.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Hojas de perejil",
-        "amount": 12.0,
-        "unit": "ud"
-      }
+      { "name": "Salmón fresco", "amount": 600.0, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 4.0, "unit": "g" },
+      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "cuch." },
+      { "name": "Yogur natural", "amount": 500.0, "unit": "g" },
+      { "name": "Cayena en polvo", "amount": 0.5, "unit": "cuch." },
+      { "name": "Frutos secos variados", "amount": 50.0, "unit": "g" },
+      { "name": "Limón", "amount": 1.0, "unit": "l" },
+      { "name": "Hojas de menta", "amount": 10.0, "unit": "ud" },
+      { "name": "Hojas de albahaca", "amount": 12.0, "unit": "ud" },
+      { "name": "Perejil fresco", "amount": 1.0, "unit": "ud" }
     ],
     "instructions": [
-      "Para el labneh, mezcla el yogur con la sal. Prepara un bol, un colador y una estameña o paño fino.  Vierte el yogur sobre el colador con el paño, envuélvelo y deja que repose en el frigorífico durante 12-24 horas (si quieres, puedes alargarlo hasta las 48 horas.  Cuanto más tiempo esté más líquido perderá lo que hará que intensifique el sabor). Descarta el suero, retira el paño y pon el labneh en un bol.",
-      "Pica las hojas de menta, de albahaca y de perejil. Mezcla las hierbas con el labneh.  Añade ralladura de limón (al gusto) y la cayena.  Añade un chorro de aceite de oliva y mezcla bien.",
-      "Tuesta los frutos secos en una sartén sin aceite, pícalos finamente y agrégalos al labneh.  Mezcla bien y haz 12 quenelles (3 por ración).",
-      "Para hacer el salmón, calienta 2-3 cucharadas de aceite de una sartén.  Corta el lomo en 4 rectángulos largos.  Salpimienta y cocínalos en la sartén durante 2 minutos por cada lado aproximadamente.",
-      "Sirve un trozo de salmón en cada plato y acompaña con 3 quenelles de labneh de hierbas.  Decora con perejil."
+      "Para el labneh, mezclar los yogures naturales con 3 gramos de sal. Colocar un paño fino o estameña sobre un colador e incorporar el yogur. Dejar drenar el suero en la nevera entre 12 y 24 horas.",
+      "Pasado el tiempo, verter el labneh espeso en un bol. Añadir las hojas de menta, albahaca y perejil picadas muy finas, junto a una pizca de cayena en polvo, un chorro de aceite de oliva y ralladura de limón.",
+      "Tostar los frutos secos en una sartén sin aceite, picarlos e integrarlos en la crema de labneh. Formar quenelles o bolas con la ayuda de dos cucharas.",
+      "Cortar el lomo de salmón fresco en 4 porciones iguales. Salpimentar y sellar en una sartén con aceite de oliva caliente durante 2 minutos por cada lado para que quede jugoso.",
+      "Emplatar una porción de salmón bien caliente acompañada de las quenelles de labneh de hierbas aromáticas."
     ]
   },
   {
     "id": "1181025b",
-    "name": "Poke de quinoa y arroz. Receta sana y casera",
+    "name": "Poke de quinoa y arroz",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2026/05/poke-de-quinoa-y-arroz.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Quinoa",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Arroz",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Cebolla",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Zanahoria",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Champiñones",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Salsa de soja",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Aceite de sesamo",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sriacaha",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Quinoa", "amount": 150.0, "unit": "ud" },
+      { "name": "Arroz base", "amount": 150.0, "unit": "kg" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
+      { "name": "Champiñones", "amount": 150.0, "unit": "ud" },
+      { "name": "Salsa de soja", "amount": 3.0, "unit": "cuch." },
+      { "name": "Aceite de sésamo", "amount": 1.0, "unit": "cuch." },
+      { "name": "Salsa Sriracha", "amount": 1.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
-    "instructions": []
+    "instructions": [
+      "Lavar la quinoa minuciosamente y cocerla en agua hirviendo con sal durante 12-15 minutos. Escurrir y dejar enfriar.",
+      "Cocer el arroz en agua con sal durante 15 minutos, escurrir y abanicar para que baje la temperatura a niveles ambiente.",
+      "Cortar los champiñones en láminas finas y saltearlos en una sartén caliente con aceite de sésamo hasta que doren.",
+      "Cortar la zanahoria y la cebolla en una juliana muy fina.",
+      "Disponer en la base de un bol ancho una mitad de arroz y otra mitad de quinoa cocida.",
+      "Colocar ordenadamente encima los champiñones salteados, la zanahoria y la cebolla cruda. Aderezar al gusto combinando la salsa de soja y un toque picante de salsa Sriracha."
+    ]
   },
   {
     "id": "a0b999a7",
-    "name": "Poke de salmón. Receta sana, fácil y casera",
+    "name": "Poke de salmón fresco",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2026/04/poke-de-salmon.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Arroz",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Vinagre de mirin",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Azucar",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Salmon",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Salsa ponzu",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sriracha",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Edadame",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Cebolla",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pepino",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Soja",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 300.0, "unit": "kg" },
+      { "name": "Vinagre de Mirin", "amount": 3.0, "unit": "ud" },
+      { "name": "Azúcar blanco", "amount": 1.0, "unit": "ud" },
+      { "name": "Salmón fresco", "amount": 400.0, "unit": "g" },
+      { "name": "Salsa Sriracha", "amount": 1.0, "unit": "ud" },
+      { "name": "Edamame", "amount": 150.0, "unit": "ud" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Pepino", "amount": 1.0, "unit": "ud" },
+      { "name": "Salsa de soja", "amount": 4.0, "unit": "cuch." },
+      { "name": "Aceite de sésamo", "amount": 1.0, "unit": "cuch." }
     ],
-    "instructions": []
+    "instructions": [
+      "Lavar el arroz varias veces para quitar el almidón y cocerlo durante 15 minutos. Mezclar el vinagre de mirin con el azúcar blanco y una pizca de sal, añadirlo al arroz caliente, remover y dejar enfriar.",
+      "Quitar la piel y espinas al salmón fresco y cortarlo en dados limpios de bocado.",
+      "Marinar el salmón en un cuenco con la salsa de soja, el aceite de sésamo y la salsa Sriracha durante al menos 20 minutos en frío.",
+      "Cocer los edamames en agua hirviendo con sal durante 5 minutos, desgranar las vainas y reservar los habas verdes.",
+      "Cortar el pepino en rodajas muy delgadas y la cebolla en juliana fina.",
+      "Poner el arroz aliñado de base en un cuenco y colocar encima agrupados de forma vistosa el salmón marinado, los edamames, el pepino y la cebolla."
+    ]
   },
   {
     "id": "27ee06ae",
-    "name": "Paella de marisco. Una clásica receta de mi abuela",
+    "name": "Paella de marisco",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2026/02/paella-de-marisco.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Arroz",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Calamares",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimiento",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimentón",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Azafran",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Chirlas",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Gambas",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Mejillones",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 400.0, "unit": "kg" },
+      { "name": "Calamares", "amount": 300.0, "unit": "ud" },
+      { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Chirlas / Almejas", "amount": 250.0, "unit": "ud" },
+      { "name": "Gambas", "amount": 8.0, "unit": "ud" },
+      { "name": "Mejillones", "amount": 500.0, "unit": "ud" },
+      { "name": "Fumet de pescado", "amount": 1.2, "unit": "l" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
-    "instructions": []
+    "instructions": [
+      "Limpiar los mejillones y abrirlos al vapor en una olla con un fondo de agua. Reservar el marisco y colar su caldo incorporándolo al fumet.",
+      "En una paella con aceite de oliva, dorar las gambas enteras un minuto por lado para aromatizar el aceite. Retirar y reservar.",
+      "En ese mismo aceite, sofreír el pimiento picado y los calamares cortados en anillos finos hasta que cojan color.",
+      "Apartar los ingredientes hacia los bordes, incorporar el pimentón en el centro, remover velozmente e inmediatamente verter el tomate rallado para frenar la cocción.",
+      "Agregar el arroz base y rehogarlo 2 minutos con el sofrito. Verter el fumet hirviendo junto con las hebras de azafrán y cocinar 8 minutos a fuego vivo.",
+      "Distribuir las chirlas por la paella, bajar el fuego al mínimo y cocinar otros 10 minutos.",
+      "Colocar los mejillones y las gambas por encima en los últimos 3 minutos. Apagar el fuego, tapar con un paño y dejar reposar 5 minutos antes de comer."
+    ]
   },
   {
     "id": "d95a3e66",
-    "name": "Arroz con setas shiitake y alcachofa. Receta sana y fácil",
+    "name": "Arroz con setas shiitake y alcachofa",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2025/10/arroz-con-setas-y-alcachofas.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Arroz",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Setas shittake",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Alcachofas",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Cebolla",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Ajo",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Tomate",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimenton",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Caldo de verduras",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 360.0, "unit": "kg" },
+      { "name": "Setas Shiitake", "amount": 250.0, "unit": "ud" },
+      { "name": "Alcachofas", "amount": 4.0, "unit": "ud" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Ajo", "amount": 2.0, "unit": "ud" },
+      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
+      { "name": "Caldo base (Pollo/Verdura/Carne)", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
-    "instructions": []
+    "instructions": [
+      "Limpiar las alcachofas quitando las hojas duras, cortar los corazones en cuartos y reservar en agua con perejil para que no se oxiden. Picar la cebolla y los ajos, y trocear las setas shiitake.",
+      "En una cazuela con aceite de oliva, dorar los cuartos de alcachofa y las setas. Retirar y reservar.",
+      "En el mismo aceite, pochar la cebolla y el ajo. Agregar el pimentón dulce, remover rápido e incorporar el tomate rallado dejando que se cocine el sofrito.",
+      "Añadir el arroz, rehogarlo con el sofrito durante 2 minutos y reincorporar las setas y alcachofas.",
+      "Mojar con el caldo de verduras hirviendo y cocinar a fuego fuerte durante 5 minutos. Bajar el fuego al mínimo y continuar la cocción durante 13 minutos más. Dejar reposar tapado antes de servir."
+    ]
   },
   {
     "id": "d5092edd",
-    "name": "Arroz con secreto ibérico. Receta casera y fácil",
+    "name": "Arroz con secreto ibérico",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2025/09/arroz-con-secreto-iberico.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Secreto iberico",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Arroz",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Cebolla",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Puerro",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Caldo de carne",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Azafran",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Tomate",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Aceite de oliva",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Secreto ibérico", "amount": 400.0, "unit": "ud" },
+      { "name": "Arroz base", "amount": 360.0, "unit": "kg" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Puerro", "amount": 1.0, "unit": "ud" },
+      { "name": "Caldo base (Pollo/Verdura/Carne)", "amount": 1.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "ud" }
     ],
-    "instructions": []
+    "instructions": [
+      "Trocear el secreto ibérico en dados pequeños de bocado. Picar la cebolla, el puerro y rallar el tomate.",
+      "En un caldero ancho con un fondo de aceite, dorar los trozos de secreto sazonados a fuego vivo para que queden sellados. Retirar la carne y reservar.",
+      "Bajar el fuego y en la misma grasa pochar la cebolla y el puerro finamente picados hasta que estén muy blandos.",
+      "Añadir el tomate rallado y cocinar 6 minutos hasta crear un sofrito concentrado.",
+      "Incorporar el arroz base, rehogarlo junto al sofrito un par de minutos y devolver los trozos de secreto a la cazuela.",
+      "Verter el caldo de carne hirviendo junto con las hebras de azafrán. Cocinar 5 minutos a fuego fuerte, bajar la intensidad a fuego suave y mantener 13 minutos adicionales. Reposar 5 minutos antes de destapar."
+    ]
   },
   {
     "id": "e74b7733",
-    "name": "Arroz caldoso de pollo, receta de Karlos Arguiñano",
+    "name": "Arroz caldoso de pollo",
     "imageUrl": "https://static.bainet.es/clip/a5dd1acd-a01d-4407-a3e8-3c5ea9ac92a5_source-aspect-ratio_1600w_0.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Arroz",
-        "amount": 300.0,
-        "unit": "g"
-      },
-      {
-        "name": "Muslos de pollo (deshuesados)",
-        "amount": 2.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Cebolleta",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Puerro",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimiento verde",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Zanahoria",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Alcachofas",
-        "amount": 3.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Champiñones",
-        "amount": 8.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Ajo",
-        "amount": 2.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Tomate concentrado",
-        "amount": 1.0,
-        "unit": "cuch."
-      },
-      {
-        "name": "Vino blanco",
-        "amount": 100.0,
-        "unit": "ml"
-      },
-      {
-        "name": "Caldo de pollo",
-        "amount": 1.2,
-        "unit": "ml"
-      },
-      {
-        "name": "Aceite de oliva virgen extra",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimienta",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimentón",
-        "amount": 1.0,
-        "unit": "cuch."
-      },
-      {
-        "name": "Perejil",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 280.0, "unit": "g" },
+      { "name": "Pollo (Muslo / Pechuga)", "amount": 500.0, "unit": "g" },
+      { "name": "Cebolleta", "amount": 1.0, "unit": "ud" },
+      { "name": "Puerro", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
+      { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
+      { "name": "Alcachofas", "amount": 3.0, "unit": "ud" },
+      { "name": "Champiñones", "amount": 150.0, "unit": "ud" },
+      { "name": "Ajo", "amount": 2.0, "unit": "ud" },
+      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "cuch." },
+      { "name": "Sake / Vino blanco", "amount": 100.0, "unit": "ml" },
+      { "name": "Caldo de pollo", "amount": 1200.0, "unit": "ml" },
+      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 5.0, "unit": "g" },
+      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "cuch." },
+      { "name": "Perejil fresco", "amount": 1.0, "unit": "ud" }
     ],
-    "instructions": []
+    "instructions": [
+      "Trocear el pollo y salpimentarlo. Picar la cebolleta, el puerro, el pimiento y el ajo. Cortar la zanahoria en rodajas, los champiñones en cuartos y las alcachofas limpias en gajos.",
+      "En una olla profunda con aceite de oliva, dorar el pollo a fuego fuerte. Retirar y reservar.",
+      "En el mismo aceite, rehogar el ajo, la cebolleta, el puerro y el pimiento. Incorporar la zanahoria, las alcachofas y los champiñones salteándolos 5 minutos.",
+      "Añadir el pimentón dulce y el tomate concentrado, remover rápido y verter el vino blanco dejando reducir el alcohol durante 2 minutos.",
+      "Echar el arroz base y el pollo de vuelta a la olla, mezclar e inmediatamente verter los 1200ml de caldo de pollo hirviendo (proporción de caldo de 4 a 1).",
+      "Cocinar a fuego medio durante 16-17 minutos vigilando que no se quede seco para preservar el caldo. Servir espolvoreado con perejil fresco picado."
+    ]
   },
   {
     "id": "d283eea3",
-    "name": "Arroz tres delicias. Receta casera de los restaurantes chinos",
+    "name": "Arroz tres delicias",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2025/02/arroz-tres-delicias.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Arroz blanco",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Zanahoria",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Guisantes",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Huevos",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Jamon york",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 300.0, "unit": "ud" },
+      { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
+      { "name": "Guisantes", "amount": 100.0, "unit": "ud" },
+      { "name": "Huevo de gallina", "amount": 2.0, "unit": "ud" },
+      { "name": "Jamón York", "amount": 120.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "ud" }
     ],
-    "instructions": []
+    "instructions": [
+      "Cocer el arroz base en agua hirviendo con una cucharada de sal durante 14 minutos. Escurrir bien, enfriar y guardar en la nevera unas horas para que el grano quede seco y suelto.",
+      "Pelar la zanahoria y picarla en daditos minúsculos. Cocer los daditos de zanahoria junto a los guisantes durante 5 minutos en agua con sal. Escurrir.",
+      "Batir los huevos con un toque de sal y cocinar una tortilla francesa muy fina en una sartén antiadherente. Retirar y cortarla en cuadrados pequeños.",
+      "Cortar las lonchas de jamón york en dados pequeños del mismo tamaño que la tortilla.",
+      "Calentar un wok o sartén grande con dos cucharadas de aceite. Añadir el arroz frío directo de la nevera y saltearlo a fuego muy fuerte durante 3 minutos.",
+      "Añadir los vegetales escurridos, el jamón york y la tortilla. Saltear el conjunto removiendo constantemente durante 2 minutos más y servir caliente."
+    ]
   },
   {
     "id": "eb55de73",
-    "name": "Arroz meloso de marisco, receta fácil y casera",
+    "name": "Arroz meloso de marisco",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2024/06/arroz-meloso-de-marisco.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Arroz",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Caldo de pescado",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Gambas",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Calamares",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Chirlas",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Cebolleta",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimiento",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Azafran",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Tomate",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimenton",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Aceite de oliva",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 320.0, "unit": "ud" },
+      { "name": "Fumet de pescado", "amount": 1.1, "unit": "ud" },
+      { "name": "Gambas", "amount": 12.0, "unit": "ud" },
+      { "name": "Calamares", "amount": 250.0, "unit": "ud" },
+      { "name": "Chirlas / Almejas", "amount": 200.0, "unit": "ud" },
+      { "name": "Cebolleta", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "ud" }
     ],
-    "instructions": []
+    "instructions": [
+      "Pelar las gambas, reservar los cuerpos en frío y cocer las cabezas y cáscaras machacadas dentro del fumet de pescado durante 10 minutos para intensificar el sabor. Colar.",
+      "En una cazuela de barro o hierro fundido con aceite de oliva, dorar los anillos de calamar limpios. Retirar y reservar.",
+      "En esa misma cazuela, pochar la cebolleta y el pimiento picados finamente durante 10 minutos. Añadir el pimentón y el tomate rallado, sofriendo todo junto 5 minutos.",
+      "Incorporar el arroz base y los calamares salteándolo con el sofrito para nacarar el grano.",
+      "Verter el fumet hirviendo aromatizado (proporción de 3.5 partes de caldo por 1 de arroz) junto al azafrán tostado. Cocinar 15 minutos removiendo un par de veces para liberar almidón y lograr el punto meloso.",
+      "Agregar las chirlas y los cuerpos de las gambas en los últimos 3 minutos de cocción. Retirar del fuego, dejar reposar destapado 3 minutos y servir meloso."
+    ]
   },
   {
     "id": "47de0d9c",
-    "name": "Risotto de verduras, receta fácil y casera",
+    "name": "Risotto de verduras",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2024/01/risotto-de-verduras.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Arroz",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimiento",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Puerro",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Zanahoria",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimiento",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Caldo de pollo",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Aceite de oliva",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 320.0, "unit": "ud" },
+      { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
+      { "name": "Puerro", "amount": 1.0, "unit": "ud" },
+      { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 4.0, "unit": "ud" },
+      { "name": "Caldo de pollo", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Queso rallado / Grana Padano", "amount": 60.0, "unit": "g" },
+      { "name": "Mantequilla", "amount": 30.0, "unit": "g" }
     ],
-    "instructions": []
+    "instructions": [
+      "Picar el puerro, el pimiento y la zanahoria en daditos uniformes muy pequeños (brunoise). Calentar el caldo de pollo en un cazo y mantenerlo hirviendo a fuego lento.",
+      "En una cazuela plana, calentar el aceite de oliva y pochar las verduras picadas con una pizca de sal a fuego bajo durante 10 minutos.",
+      "Incorporar el arroz base y remover constantemente durante 2 minutos hasta que el grano se vuelva translúcido (nacarar).",
+      "Comenzar a añadir el caldo hirviendo cazo a cazo. No añadir el siguiente cazo hasta que el arroz haya absorbido casi todo el anterior, removiendo de forma continua para soltar el almidón. Cocinar durante 17 minutos.",
+      "Fuera del fuego (Mantecar), añadir la mantequilla fría y el queso rallado. Remover enérgicamente en círculos durante un minuto para lograr la textura untuosa italiana, rectificar de sal y servir al momento."
+    ]
   },
   {
     "id": "e915286a",
-    "name": "Arroz del senyoret, receta valenciana",
+    "name": "Arroz del senyoret",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2023/06/arroz-del-senyoret.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Arroz",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sepia",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Gambas",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Calamar",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Cebolla",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Ajo",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Azafran",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Aceite de oliva",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 400.0, "unit": "ud" },
+      { "name": "Sepia", "amount": 300.0, "unit": "ud" },
+      { "name": "Gambas", "amount": 12.0, "unit": "ud" },
+      { "name": "Calamares", "amount": 200.0, "unit": "ud" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Ajo", "amount": 2.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "ud" },
+      { "name": "Fumet de pescado", "amount": 1.2, "unit": "l" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "cuch." },
+      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" }
     ],
-    "instructions": []
+    "instructions": [
+      "Pelar las gambas por completo y trocear la sepia limpia y los calamares en trozos pequeños de bocado (el arroz se llama así porque todo el marisco va pelado y cortado para comer sin ensuciarse las manos).",
+      "En una paella con aceite, marcar los cuerpos de las gambas durante 30 segundos, retirar y reservar.",
+      "En el mismo aceite dorar los calamares y la sepia, agregar la cebolla y el ajo picados finamente, y sofreír 10 minutos. Incorporar el pimentón y el tomate rallado cocinando hasta reducir.",
+      "Echar el arroz base a la paella, integrarlo bien con el sofrito durante un par de minutos.",
+      "Añadir el fumet de pescado hirviendo con el azafrán disuelto. Cocinar a fuego vivo durante 8 minutos.",
+      "Bajar el fuego al mínimo, repartir los trozos de gambas reservadas por la superficie y terminar la cocción durante 10 minutos. Reposar antes de servir."
+    ]
   },
   {
     "id": "f80c38d1",
-    "name": "Paella valenciana, receta fácil y tradicional",
+    "name": "Paella valenciana tradicional",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2023/03/paella-valenciana-receta-tradicional.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Arroz",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pollo",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Conejo",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Judias verdes",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Garrofon",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Azafrán",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Agua",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimenton",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Romero",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 400.0, "unit": "ud" },
+      { "name": "Pollo (Muslo / Pechuga)", "amount": 600.0, "unit": "ud" },
+      { "name": "Conejo", "amount": 400.0, "unit": "ud" },
+      { "name": "Judías verdes", "amount": 250.0, "unit": "ud" },
+      { "name": "Garrofón", "amount": 100.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Agua", "amount": 1.5, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
+      { "name": "Romero", "amount": 1.0, "unit": "ud" },
+      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "ud" }
     ],
-    "instructions": []
+    "instructions": [
+      "Trocear el pollo y el conejo en piezas medianas uniformes. Añadir el aceite de oliva al centro de la paella, nivelarla y encender el fuego. Dorar la carne muy bien con sal por los laterales.",
+      "Apartar la carne hacia el borde exterior. En el centro sofreír las judías verdes y el garrofón durante 5 minutos. Hacer otro hueco en el centro e incorporar el tomate rallado y el pimentón dulce reduciéndolo todo.",
+      "Mezclar la carne de los bordes con las verduras y el sofrito. Verter el agua hasta casi el borde de la paella y cocinar a fuego vivo durante 15 minutos para crear el caldo base. Añadir el azafrán.",
+      "Probar y rectificar el punto de sal del caldo (debe estar sabroso). Añadir el arroz base haciendo una línea diagonal (caballón) de lado a lado y distribuirlo uniformemente.",
+      "Cocinar los primeros 8 minutos a fuego muy vivo. Disponer la ramita de romero fresco en el centro en los últimos minutos.",
+      "Bajar el fuego al mínimo y cocinar los últimos 9-10 minutos hasta que el caldo se evapore por completo (puedes subir el fuego los últimos 60 segundos si buscas el socarrat). Reposar 5 minutos antes de comer."
+    ]
   },
   {
     "id": "70b561f1",
-    "name": "Risotto de champiñones, receta italiana",
+    "name": "Risotto de champiñones",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2022/01/IMG_20200328_152411.jpg",
     "baseDiners": 2,
     "ingredients": [
-      {
-        "name": "",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 160.0, "unit": "g" },
+      { "name": "Champiñones", "amount": 200.0, "unit": "g" },
+      { "name": "Cebolla", "amount": 0.5, "unit": "ud" },
+      { "name": "Ajo", "amount": 1.0, "unit": "ud" },
+      { "name": "Caldo base (Pollo/Verdura/Carne)", "amount": 600.0, "unit": "ml" },
+      { "name": "Sake / Vino blanco", "amount": 50.0, "unit": "ml" },
+      { "name": "Mantequilla", "amount": 20.0, "unit": "g" },
+      { "name": "Queso rallado / Grana Padano", "amount": 40.0, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
-    "instructions": []
+    "instructions": [
+      "Limpiar y picar los champiñones en láminas. Picar finamente la cebolla y el diente de ajo. Calentar el caldo de verduras en un cazo paralelo.",
+      "En una sartén alta con aceite, rehogar el ajo y la cebolla 5 minutos. Añadir los champiñones y saltearlos hasta que pierdan el agua y se doren.",
+      "Incorporar el arroz base a la cazuela, removiendo durante 2 minutos junto a las setas para nacarar el grano.",
+      "Verter el vino blanco y dejar evaporar el alcohol a fuego medio durante 1 minuto.",
+      "Ir incorporando el caldo caliente cazo a cazo, removiendo de forma continua y suave. Esperar a que el arroz absorba el líquido antes de echar más cazo. Repetir el proceso durante 17 minutos.",
+      "Apagar el fuego, añadir la mantequilla fría y el queso rallado batallando enérgicamente con la cuchara para ligar el risotto cremosa. Reposar un minuto y servir."
+    ]
   },
   {
     "id": "dd31a299",
-    "name": "Arroz al horno, una receta tradicional valenciana",
+    "name": "Arroz al horno valenciano",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2020/03/arroz-al-horno-valenciano.jpg",
     "baseDiners": 2,
     "ingredients": [
-      {
-        "name": "",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 200.0, "unit": "g" },
+      { "name": "Caldo base (Pollo/Verdura/Carne)", "amount": 400.0, "unit": "ml" },
+      { "name": "Costillas de cerdo", "amount": 200.0, "unit": "g" },
+      { "name": "Chorizo", "amount": 1.0, "unit": "ud" },
+      { "name": "Morcilla", "amount": 1.0, "unit": "ud" },
+      { "name": "Garbanzos", "amount": 100.0, "unit": "g" },
+      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
+      { "name": "Patata", "amount": 1.0, "unit": "ud" },
+      { "name": "Ajo", "amount": 1.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
-    "instructions": []
+    "instructions": [
+      "Precalentar el horno a 220°C. En una sartén con aceite de oliva, dorar las costillas de cerdo sazonadas, las rodajas de patata y las rodajas de chorizo. Retirar y reservar.",
+      "Sofreír el tomate rallado en la misma grasa junto a los garbanzos cocidos y el arroz base durante un par de minutos.",
+      "Pasar todo el conjunto de la sartén a una cazuela de barro honda. Distribuir el arroz, la carne, las patatas y el chorizo uniformemente.",
+      "Colocar en el centro la cabeza de ajos entera y las morcillas en los costados de la cazuela de barro.",
+      "Verter el caldo hirviendo coloreado con el azafrán (proporción exacta de dos partes de caldo por una de arroz). Introducir inmediatamente en el horno.",
+      "Hornear a 220°C durante 18-20 minutos estrictos hasta que el arroz esté seco, suelto y con una costra dorada superior. Dejar reposar 5 minutos fuera del horno."
+    ]
   },
   {
-  "id": "e8b4a7c2",
-  "name": "Arroz a banda, receta tradicional valenciana",
-  "imageUrl": "https://images.unsplash.com/photo-1534080564583-6be75777b70a?auto=format&fit=crop&w=800&q=80",
-  "baseDiners": 4,
-  "ingredients": [
-    {
-      "name": "Arroz bomba",
-      "amount": 380.0,
-      "unit": "g"
-    },
-    {
-      "name": "Sepia grande",
-      "amount": 1.0,
-      "unit": "ud"
-    },
-    {
-      "name": "Gambas arroceras",
-      "amount": 400.0,
-      "unit": "g"
-    },
-    {
-      "name": "Cebolla",
-      "amount": 1.0,
-      "unit": "ud"
-    },
-    {
-      "name": "Tomates medianos",
-      "amount": 2.0,
-      "unit": "ud"
-    },
-    {
-      "name": "Fumet de pescado",
-      "amount": 1.2,
-      "unit": "l"
-    },
-    {
-      "name": "Morralla, raspas de rape o merluza",
-      "amount": 1.0,
-      "unit": "kg"
-    },
-    {
-      "name": "Puerro",
-      "amount": 2.0,
-      "unit": "ud"
-    },
-    {
-      "name": "Apio",
-      "amount": 1.0,
-      "unit": "ud"
-    },
-    {
-      "name": "Cabezas de carabineros",
-      "amount": 6.0,
-      "unit": "ud"
-    },
-    {
-      "name": "Azafrán o colorante",
-      "amount": 1.0,
-      "unit": "pizca"
-    },
-    {
-      "name": "Hoja de laurel",
-      "amount": 1.0,
-      "unit": "ud"
-    },
-    {
-      "name": "Sal",
-      "amount": 1.0,
-      "unit": "pizca"
-    }
-  ],
-  "instructions": [
-    "Comenzamos haciendo el fumet para el arroz, es lo más importante. Ponemos a cocer las raspas o la morralla con las verduras durante unos 25 minutos a fuego medio. De agua que lo cubra bien. Pasado ese tiempo colamos el fumet.",
-    "Si tenemos cabezas de carabineros, las incorporamos al caldo colado y cocemos unos 8 minutos. Pasado ese tiempo trituramos todo, colamos y reservamos. Esto hace que salga un fumet con un sabor espectacular.",
-    "En una paellera, pochamos la cebolla a fuego lento durante unos 10 minutos.",
-    "Pasado ese tiempo agregamos el tomate pelado, sin pepitas y en dados. Rehogamos durante otros 15 minutos a fuego lento, que se haga bien.",
-    "Incorporamos la sepia limpia cortada en dados y las gambas peladas. Cocinamos unos minutos. Ponemos un poco de sal, pero un toque, porque ya el fumet lo lleva.",
-    "Agregamos el arroz y rehogamos con todo el conjunto unos 3 minutos.",
-    "Cubrimos con el caldo de pescado y carabineros, agregamos el azafrán o el colorante y dejamos cocinar 18 minutos. Los primeros 5 minutos a fuego fuerte y lo demás a fuego suave. Servimos en la mesa con alioli casero."
-  ]
+    "id": "e8b4a7c2",
+    "name": "Arroz a banda valenciano",
+    "imageUrl": "https://images.unsplash.com/photo-1534080564583-6be75777b70a?auto=format&fit=crop&w=800&q=80",
+    "baseDiners": 4,
+    "ingredients": [
+      { "name": "Arroz base", "amount": 380.0, "unit": "g" },
+      { "name": "Sepia", "amount": 300.0, "unit": "ud" },
+      { "name": "Gambas", "amount": 400.0, "unit": "g" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Tomate / Concentrado", "amount": 2.0, "unit": "ud" },
+      { "name": "Fumet de pescado", "amount": 1.2, "unit": "l" },
+      { "name": "Morralla / Raspas", "amount": 1.0, "unit": "kg" },
+      { "name": "Puerro", "amount": 2.0, "unit": "ud" },
+      { "name": "Apio", "amount": 1.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Laurel", "amount": 1.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 5.0, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "ud" }
+    ],
+    "instructions": [
+      "Hacer el fumet: cocer la morralla y las raspas de rape o merluza junto con los puerros, el apio y la hoja de laurel en agua abundante durante 25 minutos. Colar y mantener caliente.",
+      "En una paella con aceite de oliva virgen extra, dorar las gambas peladas durante un minuto y retirar. Reservar las cabezas para exprimir su jugo en el fumet.",
+      "En el mismo aceite de la paella, pochar la cebolla finamente picada a fuego muy lento durante 10 minutos hasta que caramelice.",
+      "Añadir el tomate pelado y rallado en dados. Rehogar durante otros 15 minutos a fuego bajo para hacer un sofrito oscuro y concentrado.",
+      "Incorporar la sepia limpia cortada en dados. Cocinar un par de minutos, verter el arroz base y removerlo con el sofrito durante 3 minutos.",
+      "Cubrir con el fumet de pescado hirviendo (proporción doble de caldo), esparcir las hebras de azafrán y sazonar.",
+      "Cocinar 18 minutos en total: los primeros 5 minutos a fuego muy vivo y los 13 restantes a fuego suave. Añadir las gambas al final, retirar del fuego y servir junto a un alioli casero."
+    ]
   },
   {
     "id": "f328910b",
-    "name": "Arroz negro con calamares, receta fácil y casera",
+    "name": "Arroz negro con calamares",
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2017/08/arroz-negro-receta.jpg",
     "baseDiners": 4,
     "ingredients": [
-      {
-        "name": "Arroz",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Calamares",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Cebolla",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Pimiento",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Fumet de pescado",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Sal",
-        "amount": 1.0,
-        "unit": "ud"
-      },
-      {
-        "name": "Aceite de oliva",
-        "amount": 1.0,
-        "unit": "ud"
-      }
+      { "name": "Arroz base", "amount": 360.0, "unit": "ud" },
+      { "name": "Calamares", "amount": 400.0, "unit": "ud" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
+      { "name": "Fumet de pescado", "amount": 1.1, "unit": "ud" },
+      { "name": "Sal común", "amount": 2.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Ajo", "amount": 2.0, "unit": "ud" },
+      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" }
     ],
-    "instructions": []
+    "instructions": [
+      "Limpiar los calamares reservando sus bolsas de tinta (o usar sobres de tinta comprados). Picar finamente la cebolla, el pimiento verde y los dientes de ajo.",
+      "En una paella con aceite de oliva, marcar los calamares cortados en rodajas finas hasta que tomen color. Retirar y reservar.",
+      "En el mismo fondo de cocción, pochar la cebolla, el pimiento y el ajo a fuego lento durante 12 minutos. Incorporar el pimentón y el tomate maduro rallado sofreídolo bien.",
+      "Disolver las tintas de calamar en un cazo con un poco de fumet caliente.",
+      "Incorporar el arroz base a la paella nacarándolo con el sofrito 2 minutos, verter la tinta disuelta e inmediatamente echar todo el fumet de pescado hirviendo.",
+      "Cocinar 8 minutos a fuego fuerte, reincorporar los calamares, bajar la potencia y cocinar 10 minutos más a fuego suave. Dejar reposar tapado con papel de periódico antes de servir con alioli."
+    ]
   },
   {
-  "id": "f5e6d7c8",
-  "name": "Tortilla de patatas tradicional",
-  "imageUrl": "https://t4.ftcdn.net/jpg/03/29/46/69/360_F_329466927_kmuuVgBQXwvKqMt2L5wdbqNCRk70WQg7.jpg",
-  "baseDiners": 4,
-  "ingredients": [
-    {
-      "name": "Patatas",
-      "amount": 800.0,
-      "unit": "g"
-    },
-    {
-      "name": "Huevos",
-      "amount": 6.0,
-      "unit": "ud"
-    },
-    {
-      "name": "Cebolla",
-      "amount": 1.0,
-      "unit": "ud"
-    },
-    {
-      "name": "Aceite de oliva virgen",
-      "amount": 500.0,
-      "unit": "ml"
-    },
-    {
-      "name": "Sal",
-      "amount": 10.0,
-      "unit": "g"
-    }
-  ],
-  "instructions": [
-    "Pelar, lavar y secar las patatas. Cortarlas en láminas finas o dados pequeños. Picar la cebolla finamente.",
-    "Poner a calentar abundante aceite de oliva en una sartén grande. Añadir la patata y la cebolla, y freír a fuego medio-bajo durante unos 15-20 minutos hasta que estén muy tiernas y empiecen a deshacerse.",
-    "Sacar la patata y la cebolla con una espumadera y escurrir muy bien en un colador para eliminar el exceso de aceite.",
-    "En un bol grande, batir los huevos. Añadir la mezcla de patata y cebolla bien escurrida y agregar la sal. Remover y dejar reposar la mezcla durante unos 5 minutos para que la patata absorba bien el huevo.",
-    "Poner unas gotas de aceite en una sartén antiadherente a fuego medio-fuerte. Verter toda la mezcla, bajar un poco el fuego y dejar cuajar durante unos 3 o 4 minutos por ese lado, remetiendo los bordes con una espátula.",
-    "Dar la vuelta a la tortilla con un movimiento rápido y seguro usando un plato llano o un vuelve-tortillas. Cuajar por el otro lado durante 2 minutos más (o el tiempo necesario según te guste de hecha por dentro).",
-    "Deslizar sobre un plato limpio y servir."
-  ]
-}
+    "id": "f5e6d7c8",
+    "name": "Tortilla de patatas tradicional",
+    "imageUrl": "https://t4.ftcdn.net/jpg/03/29/46/69/360_F_329466927_kmuuVgBQXwvKqMt2L5wdbqNCRk70WQg7.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      { "name": "Patata", "amount": 800.0, "unit": "g" },
+      { "name": "Huevo de gallina", "amount": 6.0, "unit": "ud" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 500.0, "unit": "ml" },
+      { "name": "Sal común", "amount": 10.0, "unit": "g" }
+    ],
+    "instructions": [
+      "Pelar, lavar y secar las patatas. Cortarlas en láminas finas o dados pequeños. Picar la cebolla finamente.",
+      "Poner a calentar abundante aceite de oliva en una sartén grande. Añadir la patata y la cebolla, y freír a fuego medio-bajo durante unos 15-20 minutos hasta que estén muy tiernas y empiecen a deshacerse.",
+      "Sacar la patata y la cebolla con una espumadera y escurrir muy bien en un colador para eliminar el exceso de aceite.",
+      "En un bol grande, batir los huevos. Añadir la mezcla de patata y cebolla bien escurrida y agregar la sal. Remover y dejar reposar la mezcla durante unos 5 minutos para que la patata absorba bien el huevo.",
+      "Poner unas gotas de aceite en una sartén antiadherente a fuego medio-fuerte. Verter toda la mezcla, bajar un poco el fuego y dejar cuajar durante unos 3 o 4 minutos por ese lado, remetiendo los bordes con una espátula.",
+      "Dar la vuelta a la tortilla con un movimiento rápido y seguro usando un plato llano o un vuelve-tortillas. Cuajar por el otro lado durante 2 minutos más (o el tiempo necesario según te guste de hecha por dentro).",
+      "Deslizar sobre un plato limpio y servir."
+    ]
+  }
 ]

@@ -1,39 +1,32 @@
 import { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform, Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { weeklyMenu, MOCK_RECIPES, INGREDIENTS_DB, COMMON_INGREDIENTS } from '../tempData';
+import { weeklyMenu, MOCK_RECIPES, INGREDIENTS_DB, COMMON_INGREDIENTS, normalizeToBase, getCanonicalName } from '../tempData';
 
-// --- DICCIONARIO DE EMOJIS (Automático, sin edición) ---
-export const getEmojiForIngredient = (name) => {
-  const n = name.toLowerCase().trim();
-  const foundKey = Object.keys(INGREDIENTS_DB).find(
-    key => n.includes(key) || n.includes(INGREDIENTS_DB[key].name.toLowerCase())
-  );
-  if (foundKey) return INGREDIENTS_DB[foundKey].emoji;
+export const getEmojiForIngredient = (rawName) => {
+  const canonical = getCanonicalName(rawName);
+  const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonical);
+  if (dbKey) return INGREDIENTS_DB[dbKey].emoji;
   return '🛒';
 };
 
 const STANDARD_UNITS = ['ud', 'kg', 'g', 'L', 'ml', 'pack', 'bote', 'lata', 'paquete'];
 
-// --- COLORES Y LETRAS PARA LOS DÍAS ---
 const DAY_BADGES = {
-  'Lunes': { text: 'L', color: '#ef4444' }, // Rojo
-  'Martes': { text: 'M', color: '#f97316' }, // Naranja
-  'Miércoles': { text: 'X', color: '#eab308' }, // Amarillo
-  'Jueves': { text: 'J', color: '#22c55e' }, // Verde
-  'Viernes': { text: 'V', color: '#3b82f6' }, // Azul
-  'Sábado': { text: 'S', color: '#8b5cf6' }, // Morado
-  'Domingo': { text: 'D', color: '#d946ef' }, // Rosa
+  'Lunes': { text: 'L', color: '#ef4444' },
+  'Martes': { text: 'M', color: '#f97316' },
+  'Miércoles': { text: 'X', color: '#eab308' },
+  'Jueves': { text: 'J', color: '#22c55e' },
+  'Viernes': { text: 'V', color: '#3b82f6' },
+  'Sábado': { text: 'S', color: '#8b5cf6' },
+  'Domingo': { text: 'D', color: '#d946ef' },
 };
 
 export default function ShoppingScreen() {
   const [isReady, setIsReady] = useState(false);
-  
-  // Lista plana de ingredientes
   const [shoppingItems, setShoppingItems] = useState([]);
-  
   const [extraItems, setExtraItems] = useState([]);
   const [checkedItems, setCheckedItems] = useState(new Set());
   const [deletedItems, setDeletedItems] = useState(new Set());
@@ -80,7 +73,6 @@ export default function ShoppingScreen() {
     }, [isReady, extraItems, checkedItems, deletedItems])
   );
 
-  // --- LÓGICA DE CÁLCULO Y SUMA DE CANTIDADES ---
   const calculateList = () => {
     const ingredientMap = {};
 
@@ -98,27 +90,27 @@ export default function ShoppingScreen() {
             const currentDiners = plannedDiners || recipe.baseDiners || 1;
 
             recipe.ingredients.forEach(ing => {
-              const nameLower = ing.name.toLowerCase().trim();
-              const itemId = `menu-${nameLower}`; 
+              const canonicalName = getCanonicalName(ing.name);
+              
+              // ID MUCHO MÁS SEGURO: Usamos solo letras y números
+              const cleanSafeId = canonicalName.toLowerCase().replace(/[^a-z0-9]/g, '');
+              const itemId = `menu-${cleanSafeId}`; 
 
               if (deletedItems.has(itemId)) return; 
 
               let adjustedAmount = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
+              const normalized = normalizeToBase(adjustedAmount, ing.unit);
 
-              // Si el ingrediente ya existe de otra receta, le SUMAMOS la cantidad
-              if (ingredientMap[nameLower]) {
-                ingredientMap[nameLower].amount += adjustedAmount; 
-                // Redondeamos para evitar decimales infinitos de JavaScript (ej. 1.3333333)
-                ingredientMap[nameLower].amount = Math.round(ingredientMap[nameLower].amount * 100) / 100;
-                // Le añadimos la etiqueta de este nuevo día
-                ingredientMap[nameLower].days.add(day); 
+              if (ingredientMap[canonicalName]) {
+                ingredientMap[canonicalName].amount += normalized.amount; 
+                ingredientMap[canonicalName].amount = Math.round(ingredientMap[canonicalName].amount * 100) / 100;
+                ingredientMap[canonicalName].days.add(day); 
               } else {
-                // Si es la primera vez que vemos este ingrediente, lo creamos
-                ingredientMap[nameLower] = {
+                ingredientMap[canonicalName] = {
                   id: itemId,
-                  name: ing.name, 
-                  amount: Math.round(adjustedAmount * 100) / 100,
-                  unit: ing.unit,
+                  name: canonicalName, 
+                  amount: Math.round(normalized.amount * 100) / 100,
+                  unit: normalized.unit,
                   days: new Set([day]),
                   checked: checkedItems.has(itemId), 
                   isExtra: false
@@ -135,12 +127,17 @@ export default function ShoppingScreen() {
       days: Array.from(ing.days) 
     }));
 
-    const extrasList = extraItems.map(item => ({ 
-      ...item, 
-      checked: checkedItems.has(item.id), 
-      isExtra: true, 
-      days: [] 
-    })).filter(item => !deletedItems.has(item.id));
+    const extrasList = extraItems.map(item => {
+      const normalizedExtra = normalizeToBase(item.amount, item.unit);
+      return { 
+        ...item, 
+        amount: Math.round(normalizedExtra.amount * 100) / 100,
+        unit: normalizedExtra.unit,
+        checked: checkedItems.has(item.id), 
+        isExtra: true, 
+        days: [] 
+      };
+    }).filter(item => !deletedItems.has(item.id));
 
     const finalFlatList = [...menuList, ...extrasList].sort((a, b) => {
       if (a.checked === b.checked) return a.name.localeCompare(b.name);
@@ -152,35 +149,49 @@ export default function ShoppingScreen() {
 
   const handleAddManual = async () => {
     if (newItemName.trim() && newItemAmount.trim()) {
+      const canonicalName = getCanonicalName(newItemName);
+      const cleanSafeId = canonicalName.toLowerCase().replace(/[^a-z0-9]/g, '');
       const finalAmount = parseFloat(newItemAmount) || 1; 
-      const itemId = `extra-${newItemName.trim().toLowerCase()}`;
       
-      const newItem = { id: itemId, name: newItemName.trim(), amount: finalAmount, unit: newItemUnit };
+      const itemId = `extra-${cleanSafeId}-${Date.now()}`; // Añadido Date.now para extras repetidos
+      
+      const newItem = { id: itemId, name: canonicalName, amount: finalAmount, unit: newItemUnit };
       const updatedExtras = [...extraItems, newItem];
       
       setExtraItems(updatedExtras);
       await AsyncStorage.setItem('@shopping_extras', JSON.stringify(updatedExtras));
-
-      if (deletedItems.has(itemId)) {
-        const newDeleted = new Set(deletedItems);
-        newDeleted.delete(itemId);
-        setDeletedItems(newDeleted);
-        await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(newDeleted)));
-      }
 
       setNewItemName(''); setNewItemAmount('1'); setNewItemUnit('ud');
       setHasManuallySelectedUnit(false); setShowSuggestions(false); setIsModalVisible(false);
     }
   };
 
-  const toggleCheck = async (itemId) => {
-    const newChecked = new Set(checkedItems);
-    if (newChecked.has(itemId)) newChecked.delete(itemId);
-    else newChecked.add(itemId);
-    
-    setCheckedItems(newChecked);
-    await AsyncStorage.setItem('@shopping_checked', JSON.stringify(Array.from(newChecked)));
-  };
+  const toggleCheck = useCallback(async (itemId) => {
+    setCheckedItems(prev => {
+      const newChecked = new Set(prev);
+      if (newChecked.has(itemId)) newChecked.delete(itemId);
+      else newChecked.add(itemId);
+      
+      AsyncStorage.setItem('@shopping_checked', JSON.stringify(Array.from(newChecked)))
+        .catch(e => console.error("Error guardando checks:", e));
+      return newChecked;
+    });
+
+    setShoppingItems(prevItems => 
+      prevItems.map(item => 
+        item.id === itemId ? { ...item, checked: !item.checked } : item
+      )
+    );
+
+    setTimeout(() => {
+      setShoppingItems(currentItems => {
+        return [...currentItems].sort((a, b) => {
+          if (a.checked === b.checked) return a.name.localeCompare(b.name);
+          return a.checked ? 1 : -1;
+        });
+      });
+    }, 1000);
+  }, []);
 
   const handleDeleteItem = async (itemToDelete) => {
     const newDeleted = new Set(deletedItems);
@@ -196,7 +207,18 @@ export default function ShoppingScreen() {
     }
   };
 
-  const handleClearChecked = async () => {
+  const handleClearChecked = () => {
+    Alert.alert(
+      "¿Añadir a la despensa?",
+      "Si borras los ingredientes tachados aquí se perderán. Para guardar tu compra, ve a la pestaña de 'Despensa' y se limpiarán automáticamente.",
+      [
+        { text: "Solo borrarlos", style: "destructive", onPress: performClear },
+        { text: "Entendido", style: "cancel" }
+      ]
+    );
+  };
+
+  const performClear = async () => {
     const newDeleted = new Set(deletedItems);
     const extrasToRemove = new Set();
 
@@ -217,7 +239,6 @@ export default function ShoppingScreen() {
     }
   };
 
-  // --- RENDERIZADO DE LAS MINI ETIQUETAS DE DÍAS ---
   const renderDayBadges = (daysArray) => {
     if (!daysArray || daysArray.length === 0) return null;
 
@@ -321,7 +342,6 @@ export default function ShoppingScreen() {
                   key={ing.id}
                   style={[styles.gridCard, ing.checked && styles.gridCardChecked]} 
                 >
-                  {/* Mini-labels laterales */}
                   {renderDayBadges(ing.days)}
 
                   <TouchableOpacity onPress={() => handleDeleteItem(ing)} style={styles.cardDeleteBtn}>
@@ -340,7 +360,6 @@ export default function ShoppingScreen() {
                     <Text style={styles.cardAmountText}>{ing.amount} {ing.unit}</Text>
                   </View>
 
-                  {/* Capa para tachar la tarjeta */}
                   <TouchableOpacity 
                     style={styles.absoluteTouchOverlay}
                     onPress={() => toggleCheck(ing.id)}
@@ -395,7 +414,6 @@ const styles = StyleSheet.create({
   },
   gridCardChecked: { opacity: 0.5, transform: [{ scale: 0.95 }], backgroundColor: '#f1f5f9' },
   
-  // ESTILOS DE LOS LABELS LATERALES
   daysSidebar: {
     position: 'absolute',
     top: 6,
