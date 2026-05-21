@@ -390,3 +390,27 @@ export const registerCustomIngredient = async (rawName, unit = 'g', fetchedMacro
 
   return canonical; 
 };
+
+
+/**
+ * Sobreescribe los datos de un ingrediente existente.
+ * Lo guarda en USER_CUSTOM_INGREDIENTS para que el cambio persista al reiniciar.
+ */
+export const updateIngredientDatabase = async (canonicalName, updatedData) => {
+  // Buscamos su clave original, o le creamos una si hiciera falta
+  const key = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName) 
+          || canonicalName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+  
+  // 1. Lo actualizamos en la memoria RAM
+  INGREDIENTS_DB[key] = updatedData;
+  
+  // 2. Lo metemos en la mochila de personalizaciones del usuario
+  USER_CUSTOM_INGREDIENTS[key] = updatedData; 
+  
+  try {
+    // 3. Guardamos la mochila en el disco duro
+    await AsyncStorage.setItem('@custom_ingredients', JSON.stringify(USER_CUSTOM_INGREDIENTS));
+  } catch (e) {
+    console.error("Error guardando edición de ingrediente", e);
+  }
+};
