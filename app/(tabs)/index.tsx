@@ -1,17 +1,53 @@
-import { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ProgressBarAndroid } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 // Importaciones actualizadas con la nueva función
-import { weeklyMenu, MOCK_RECIPES, updateEatOutDetails, assignRecipeToMenu, weeklyMetadata, updateSupermarketCost, getTotalEatOutCost, initAppData, consumeRecipeFromPantry } from '../tempData';
+import { weeklyMenu, MOCK_RECIPES, updateEatOutDetails, assignRecipeToMenu, weeklyMetadata, updateSupermarketCost, getTotalEatOutCost, initAppData, consumeRecipeFromPantry, INGREDIENTS_DB, getCanonicalName, normalizeToBase } from '../tempData';
 import { FontAwesome } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // IMPORTANTE AÑADIR ESTO
 
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+// --- OBJETIVOS Y LÍMITES DIARIOS MÁXIMOS RECOMENDADOS (OMS / IDR) ---
+let kcals = 2000;
+let kcal_fat = 9;
+let kcal_protein = 4;
+let kcal_carb = 4;
+let perc_fat = 25;
+let perc_fatSat = 10;
+let perc_carbs = 50;
+let perc_sugar = 10;
+let perc_protein = 25;
+
+const NUTRITION_LIMITS = {
+  kcals: kcals,
+  protein: (perc_protein*kcals/(100*kcal_protein)),
+  carbsTotal: (perc_carbs*kcals/(100*kcal_carb)),
+  fatsTotal: (perc_fat*kcals/(100*kcal_fat)),
+  sugarsMax: (perc_sugar*kcals/(100*kcal_carb)),      // Máx 50g azúcares libres
+  fatsSatMax: (perc_fatSat*kcals/(100*kcal_fat)),     // Máx 10% de la energía diaria en saturadas
+  saltMax: 5,         // Máx 5g de sal al día según la OMS
+  vitC: 80,           // mg
+  vitD: 15,           // mcg
+  vitB1: 1.1,         // mg
+  vitB2: 1.5,         // mg
+  vitB3: 17,          // mg
+  vitB6: 1.7,         // mg
+  vitB9: 400,         // mcg
+  vitB12: 2.5,        // mcg
+  calcio: 950,        // mg
+  fosforo: 700,       // mg
+  hierro: 15,         // mg
+  magnesio: 350,      // mg
+  potasio: 3500,      // mg
+};
 
 export default function MenuScreen() {
   const [isReady, setIsReady] = useState(false);
   const [menuData, setMenuData] = useState(weeklyMenu);
   
-  const [supermarketInput, setSupermarketInput] = useState('');
+  // --- ESTADO PARA EL COSTE ESTIMADO DE LA COMPRA ---
+  const [supermarketCost, setSupermarketCost] = useState(0);
   const [dashboardVisible, setDashboardVisible] = useState(false);
 
   const [addMealVisible, setAddMealVisible] = useState(false);
@@ -27,21 +63,128 @@ export default function MenuScreen() {
   const [eatOutPlace, setEatOutPlace] = useState('');
   const [eatOutCost, setEatOutCost] = useState('');
 
+  // --- NUEVOS ESTADOS PARA EL DESGLOSE DE NUTRIENTES ---
+  const [isNutritionModalVisible, setIsNutritionModalVisible] = useState(false);
+  const [nutritionSelectedDay, setNutritionSelectedDay] = useState('');
+
   useEffect(() => {
     const loadData = async () => {
       await initAppData(); 
       setMenuData({ ...weeklyMenu }); 
-      setSupermarketInput(weeklyMetadata.supermarketCost || '');
+      
+      // Primera lectura rápida del presupuesto
+      try {
+        const savedCost = await AsyncStorage.getItem('@estimated_shopping_cost');
+        if (savedCost) setSupermarketCost(parseFloat(savedCost));
+      } catch (e) { console.error(e) }
+
       setIsReady(true); 
     };
     loadData();
   }, []);
 
   const totalEatOut = getTotalEatOutCost();
-  const totalSupermarket = parseFloat(supermarketInput.replace(',', '.')) || 0; 
-  const totalWeekly = totalSupermarket + totalEatOut;
+  const totalWeekly = supermarketCost + totalEatOut;
 
-  // --- FUNCIONES DE SELECCIÓN MÚLTIPLE ---
+  // --- LECTURA CONSTANTE AL VOLVER A LA PANTALLA ---
+  useFocusEffect(
+    useCallback(() => {
+      const fetchMenuAndCost = async () => {
+        if (isReady) {
+          setMenuData({ ...weeklyMenu }); 
+          try {
+            const savedCost = await AsyncStorage.getItem('@estimated_shopping_cost');
+            if (savedCost) setSupermarketCost(parseFloat(savedCost));
+          } catch (e) {}
+        }
+      };
+      fetchMenuAndCost();
+    }, [isReady])
+  );
+
+  // --- CÁLCULO PROFUNDO DE MACROS Y MICROS PROPORCIONAL POR COMENSALES ---
+  const calculateDayNutrition = (day) => {
+    const dayMeals = menuData[day] || [];
+    let totals = {
+      kcals: 0, protein: 0, carbsTotal: 0, sugars: 0, fatsTotal: 0, fatsSat: 0, salt: 0,
+      vitC: 0, vitD: 0, vitB1: 0, vitB2: 0, vitB3: 0, vitB6: 0, vitB9: 0, vitB12: 0, 
+      calcio: 0, fosforo: 0, hierro: 0, magnesio: 0, potasio: 0
+    };
+
+    dayMeals.forEach(meal => {
+      if (meal.recipeId && meal.recipeId !== 'eat_out') {
+        const recipe = MOCK_RECIPES.find(r => String(r.id) === String(meal.recipeId));
+        if (recipe) {
+          // Si el usuario no ha especificado comensales para esta comida en el menú, 
+          // asumimos que es 1 persona para calcular la ración individual real consumida.
+          const actualDinersEating = 1;
+          const recipeBaseDiners = recipe.baseDiners || 1;
+          
+          recipe.ingredients.forEach(ing => {
+            const canonicalName = getCanonicalName(ing.name);
+            const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName);
+            const dbItem = dbKey ? INGREDIENTS_DB[dbKey] : null;
+
+            if (dbItem) {
+              // MATEMÁTICA CRUCIAL: (Cantidad total de la receta / Personas para las que está hecha) = Ración para 1 persona
+              // Luego lo multiplicamos por cuánta gente va a comer realmente en esa comida.
+              let amountForThisMeal = (ing.amount / recipeBaseDiners) * actualDinersEating;
+              
+              const normalized = normalizeToBase(amountForThisMeal, ing.unit); 
+              const amountIn100g = normalized.amount / 100;
+
+              if (dbItem.macros) {
+                totals.kcals += (dbItem.macros.kcals || 0) * amountIn100g;
+                totals.protein += (dbItem.macros.protein || 0) * amountIn100g;
+                totals.carbsTotal += (dbItem.macros.carbs?.total || 0) * amountIn100g;
+                totals.sugars += (dbItem.macros.carbs?.sugars || 0) * amountIn100g;
+                totals.fatsTotal += (dbItem.macros.fats?.total || 0) * amountIn100g;
+                totals.fatsSat += (dbItem.macros.fats?.saturated || 0) * amountIn100g;
+                totals.salt += (dbItem.macros.salt || 0) * amountIn100g;
+              }
+              if (dbItem.micros) {
+                totals.vitC += (dbItem.micros.vitC_mg || 0) * amountIn100g;
+                totals.vitD += (dbItem.micros.vitD_mcg || 0) * amountIn100g;
+                totals.vitB1 += (dbItem.micros.vitB1_mg || 0) * amountIn100g;
+                totals.vitB2 += (dbItem.micros.vitB2_mg || 0) * amountIn100g;
+                totals.vitB3 += (dbItem.micros.vitB3_mg || 0) * amountIn100g;
+                totals.vitB6 += (dbItem.micros.vitB6_mg || 0) * amountIn100g;
+                totals.vitB9 += (dbItem.micros.vitB9_mcg || 0) * amountIn100g;
+                totals.vitB12 += (dbItem.micros.vitB12_mcg || 0) * amountIn100g;
+                totals.calcio += (dbItem.micros.calcium_mg || 0) * amountIn100g;
+                totals.fosforo += (dbItem.micros.phosphorus_mg || 0) * amountIn100g;
+                totals.hierro += (dbItem.micros.iron_mg || 0) * amountIn100g;
+                totals.magnesio += (dbItem.micros.magnesium_mg || 0) * amountIn100g;
+                totals.potasio += (dbItem.micros.potassium_mg || 0) * amountIn100g;
+              }
+            }
+          });
+        }
+      }
+    });
+
+    Object.keys(totals).forEach(k => totals[k] = Math.round(totals[k] * 10) / 10);
+    return totals;
+  };
+
+  const getDayScore = (totals) => {
+    if (totals.kcals === 0) return { score: 0, text: "Sin recetas planificadas", color: "#64748b" };
+    
+    if (totals.sugars > NUTRITION_LIMITS.sugarsMax || totals.fatsSat > NUTRITION_LIMITS.fatsSatMax || totals.salt > NUTRITION_LIMITS.saltMax) {
+      return { score: 100, text: "⚠️ Excede límites saludables", color: "#ef4444" };
+    }
+
+    const kcalPercent = (totals.kcals / NUTRITION_LIMITS.kcals) * 100;
+    if (kcalPercent < 60) return { score: kcalPercent, text: "Déficit Calórico", color: "#f59e0b" };
+    if (kcalPercent <= 110) return { score: kcalPercent, text: "Menú Equilibrado", color: "#10b981" };
+    return { score: kcalPercent, text: "Superávit Calórico", color: "#3b82f6" };
+  };
+
+  const currentNutritionData = useMemo(() => {
+    return nutritionSelectedDay ? calculateDayNutrition(nutritionSelectedDay) : null;
+  }, [nutritionSelectedDay, menuData]);
+
+  // --- FUNCIONES DE SELECCIÓN MÚLTIPLE Y MODALES (IGUAL) ---
   const handleLongPressTitle = (title) => {
     const newSelection = [];
     Object.keys(weeklyMenu).forEach(d => {
@@ -58,7 +201,6 @@ export default function MenuScreen() {
     setSelectedMeals(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
   };
 
-  // --- FUNCIONES DE ACCIÓN EN BLOQUE ---
   const bulkMoveUp = () => {
     selectedMeals.forEach(key => {
       const [d, mId] = key.split('|');
@@ -227,7 +369,6 @@ export default function MenuScreen() {
     setEatOutModalVisible(false);
   };
 
-  // --- NUEVO: FUNCIÓN PARA EL BOTÓN DE COCINAR ---
   const handleConsumeRecipe = (recipeId, plannedDiners) => {
     const recipe = MOCK_RECIPES.find(r => String(r.id) === String(recipeId));
     
@@ -316,42 +457,26 @@ export default function MenuScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               
               {assignedRecipeId === 'eat_out' ? (
-                <TouchableOpacity 
-                  style={styles.editDataBtn} 
-                  onPress={() => openEatOutModal(day, mealObject)}
-                >
+                <TouchableOpacity style={styles.editDataBtn} onPress={() => openEatOutModal(day, mealObject)}>
                   <Text style={styles.editDataBtnText}>
                     {mealObject.eatOutPlace ? '✏️ Editar' : '✏️ Añadir Datos'}
                   </Text>
                 </TouchableOpacity>
               ) : (
-                // --- NUEVO: BOTÓN DE COCINAR RECETA ---
-                <TouchableOpacity 
-                  style={styles.consumeBtn} 
-                  onPress={() => handleConsumeRecipe(assignedRecipeId, plannedDiners)}
-                >
+                <TouchableOpacity style={styles.consumeBtn} onPress={() => handleConsumeRecipe(assignedRecipeId, plannedDiners)}>
                   <FontAwesome name="fire" size={16} color="#e65100" style={{marginRight: 4}} />
                   <Text style={styles.consumeBtnText}>Cocinar</Text>
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity 
-                style={styles.unassignBtn} 
-                onPress={() => {
-                  assignRecipeToMenu(day, mealObject.id, null);
-                  setMenuData({ ...weeklyMenu }); 
-                }}
-              >
+              <TouchableOpacity style={styles.unassignBtn} onPress={() => { assignRecipeToMenu(day, mealObject.id, null); setMenuData({ ...weeklyMenu }); }}>
                 <FontAwesome name="eraser" size={18} color="#ff5252" />
               </TouchableOpacity>
             </View>
 
           </View>
         ) : (
-          <TouchableOpacity 
-            style={styles.emptySlot} 
-            onPress={() => router.push({ pathname: '/recipe/select', params: { day, meal: mealObject.id } })}
-          >
+          <TouchableOpacity style={styles.emptySlot} onPress={() => router.push({ pathname: '/recipe/select', params: { day, meal: mealObject.id } })}>
             <Text style={styles.emptySlotText}>+ Asignar receta</Text>
           </TouchableOpacity>
         )}
@@ -361,19 +486,35 @@ export default function MenuScreen() {
 
   const renderDayCard = (day) => {
     const dayMeals = menuData[day] || [];
+    const dayNutrition = calculateDayNutrition(day);
+    const dayScoreInfo = getDayScore(dayNutrition);
+    
+    const barWidth = dayScoreInfo.score > 100 ? 100 : dayScoreInfo.score;
 
     return (
       <View key={day} style={styles.dayCard}>
         <View style={styles.dayHeader}>
           <Text style={styles.dayTitle}>{day}</Text>
-          <TouchableOpacity 
-            style={styles.addMealSmallBtn} 
-            onPress={() => openAddMealModal(day)}
-          >
+          <TouchableOpacity style={styles.addMealSmallBtn} onPress={() => openAddMealModal(day)}>
             <FontAwesome name="plus-circle" size={16} color="#2f95dc" />
             <Text style={styles.addMealSmallBtnText}>Añadir momento del día</Text>
           </TouchableOpacity>
         </View>
+
+        {/* --- INDICADOR INTEGRADO INTERACTIVO --- */}
+        <TouchableOpacity 
+          style={styles.nutritionIndicatorBar} 
+          activeOpacity={0.7} 
+          onPress={() => { setNutritionSelectedDay(day); setIsNutritionModalVisible(true); }}
+        >
+          <View style={styles.nutritionMetaRow}>
+            <Text style={styles.nutritionMetaText}>{Math.round(dayNutrition.kcals)} / {Math.round(NUTRITION_LIMITS.kcals)} Kcal</Text>
+            <Text style={[styles.nutritionStatusText, { color: dayScoreInfo.color }]}>{dayScoreInfo.text} 📊</Text>
+          </View>
+          <View style={styles.nutritionProgressTrack}>
+            <View style={[styles.nutritionProgressBar, { width: `${barWidth || 5}%`, backgroundColor: dayScoreInfo.color }]} />
+          </View>
+        </TouchableOpacity>
         
         {dayMeals.map((mealObject, index) => 
           renderMealSlot(day, mealObject, index, dayMeals.length)
@@ -405,7 +546,6 @@ export default function MenuScreen() {
         {DAYS_OF_WEEK.map(renderDayCard)}
       </ScrollView>
 
-      {/* BARRA INFERIOR DE SELECCIÓN MÚLTIPLE */}
       {isMultiSelectMode && (
         <View style={styles.bulkActionBar}>
           <TouchableOpacity onPress={() => setSelectedMeals([])} style={styles.bulkBtn}>
@@ -414,24 +554,139 @@ export default function MenuScreen() {
           <Text style={styles.bulkText}>{selectedMeals.length}</Text>
           
           <View style={{ flexDirection: 'row', gap: 15 }}>
-            <TouchableOpacity onPress={bulkMoveUp} style={styles.bulkBtnAction}>
-              <FontAwesome name="arrow-up" size={18} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={bulkMoveDown} style={styles.bulkBtnAction}>
-              <FontAwesome name="arrow-down" size={18} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={bulkAssign} style={[styles.bulkBtnAction, { backgroundColor: '#2f95dc', borderColor: '#2f95dc' }]}>
-              <FontAwesome name="cutlery" size={18} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={bulkUnassignRecipes} style={[styles.bulkBtnAction, { backgroundColor: '#ff5252', borderColor: '#ff5252' }]}>
-              <FontAwesome name="eraser" size={16} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={bulkDelete} style={[styles.bulkBtnAction, { backgroundColor: '#ff5252', borderColor: '#ff5252' }]}>
-              <FontAwesome name="trash" size={18} color="#fff" />
-            </TouchableOpacity>
+            <TouchableOpacity onPress={bulkMoveUp} style={styles.bulkBtnAction}><FontAwesome name="arrow-up" size={18} color="#fff" /></TouchableOpacity>
+            <TouchableOpacity onPress={bulkMoveDown} style={styles.bulkBtnAction}><FontAwesome name="arrow-down" size={18} color="#fff" /></TouchableOpacity>
+            <TouchableOpacity onPress={bulkAssign} style={[styles.bulkBtnAction, { backgroundColor: '#2f95dc', borderColor: '#2f95dc' }]}><FontAwesome name="cutlery" size={18} color="#fff" /></TouchableOpacity>
+            <TouchableOpacity onPress={bulkUnassignRecipes} style={[styles.bulkBtnAction, { backgroundColor: '#ff5252', borderColor: '#ff5252' }]}><FontAwesome name="eraser" size={16} color="#fff" /></TouchableOpacity>
+            <TouchableOpacity onPress={bulkDelete} style={[styles.bulkBtnAction, { backgroundColor: '#ff5252', borderColor: '#ff5252' }]}><FontAwesome name="trash" size={18} color="#fff" /></TouchableOpacity>
           </View>
         </View>
       )}
+
+      {/* ========================================================
+          🧾 MODAL: DIAGNÓSTICO NUTRICIONAL AVANZADO
+          ======================================================== */}
+      <Modal visible={isNutritionModalVisible} animationType="slide" transparent={true} onRequestClose={() => setIsNutritionModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { height: '80%' }]}>
+            <View style={styles.modalHeaderCloseRow}>
+              <Text style={styles.modalAdvancedTitle}>📊 Balance Técnico: {nutritionSelectedDay}</Text>
+              <TouchableOpacity onPress={() => setIsNutritionModalVisible(false)} style={{ padding: 4 }}><FontAwesome name="times" size={22} color="#64748b" /></TouchableOpacity>
+            </View>
+
+            {currentNutritionData && (
+              <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, marginTop: 10 }}>
+                {/* 1. SECCIÓN ENERGÍA Y MACROS */}
+                <Text style={styles.subBlockTitle}>🍎 Energía y Macronutrientes</Text>
+                <View style={styles.cardNutrientRow}>
+                  <Text style={styles.nutrientName}>Calorías:</Text>
+                  <Text style={styles.nutrientVal}>{currentNutritionData.kcals} / {Math.round(NUTRITION_LIMITS.kcals)} kcal</Text>
+                </View>
+                <View style={styles.cardNutrientRow}>
+                  <Text style={styles.nutrientName}>Proteínas:</Text>
+                  <Text style={styles.nutrientVal}>{currentNutritionData.protein}g / {Math.round(NUTRITION_LIMITS.protein)}g</Text>
+                </View>
+                <View style={styles.cardNutrientRow}>
+                  <Text style={styles.nutrientName}>Carbohidratos:</Text>
+                  <Text style={styles.nutrientVal}>{currentNutritionData.carbsTotal}g / {Math.round(NUTRITION_LIMITS.carbsTotal)}g</Text>
+                </View>
+                <View style={styles.cardNutrientRow}>
+                  <Text style={styles.nutrientName}>Grasas (Totales):</Text>
+                  <Text style={styles.nutrientVal}>{currentNutritionData.fatsTotal}g / {Math.round(NUTRITION_LIMITS.fatsTotal)}g</Text>
+                </View>
+
+                {/* 2. ALERTAS DE CONTROL CRÍTICO */}
+                <Text style={[styles.subBlockTitle, { color: '#b91c1c', marginTop: 15 }]}>🛑 Límites Clínicos Máximos</Text>
+                
+                <View style={[styles.alertNutrientBox, currentNutritionData.sugars > NUTRITION_LIMITS.sugarsMax && styles.alertTriggered]}>
+                  <Text style={styles.nutrientName}>🍬 Azúcares Libres:</Text>
+                  <Text style={[styles.nutrientVal, currentNutritionData.sugars > NUTRITION_LIMITS.sugarsMax && {color: '#b91c1c', fontWeight: 'bold'}]}>
+                    {currentNutritionData.sugars}g / {Math.round(NUTRITION_LIMITS.sugarsMax)}g max {currentNutritionData.sugars > NUTRITION_LIMITS.sugarsMax ? '🚨' : '✅'}
+                  </Text>
+                </View>
+
+                <View style={[styles.alertNutrientBox, currentNutritionData.fatsSat > NUTRITION_LIMITS.fatsSatMax && styles.alertTriggered]}>
+                  <Text style={styles.nutrientName}>🥩 Grasas Saturadas:</Text>
+                  <Text style={[styles.nutrientVal, currentNutritionData.fatsSat > NUTRITION_LIMITS.fatsSatMax && {color: '#b91c1c', fontWeight: 'bold'}]}>
+                    {currentNutritionData.fatsSat}g / {Math.round(NUTRITION_LIMITS.fatsSatMax)}g max {currentNutritionData.fatsSat > NUTRITION_LIMITS.fatsSatMax ? '🚨' : '✅'}
+                  </Text>
+                </View>
+
+                <View style={[styles.alertNutrientBox, currentNutritionData.salt > NUTRITION_LIMITS.saltMax && styles.alertTriggered]}>
+                  <Text style={styles.nutrientName}>🧂 Sal Común:</Text>
+                  <Text style={[styles.nutrientVal, currentNutritionData.salt > NUTRITION_LIMITS.saltMax && {color: '#b91c1c', fontWeight: 'bold'}]}>
+                    {currentNutritionData.salt}g / {NUTRITION_LIMITS.saltMax}g max {currentNutritionData.salt > NUTRITION_LIMITS.saltMax ? '🚨' : '✅'}
+                  </Text>
+                </View>
+
+                {/* 3. DESGLOSE DE VITAMINAS Y MINERALES */}
+                <Text style={[styles.subBlockTitle, { color: '#0369a1', marginTop: 15 }]}>🔬 Micronutrientes Esenciales</Text>
+                
+                <View style={styles.cardNutrientRow}>
+                  <Text style={styles.nutrientName}>☀️ Vitamina D:</Text>
+                  <Text style={styles.nutrientVal}>{currentNutritionData.vitD} mcg / {NUTRITION_LIMITS.vitD} mcg ({Math.round((currentNutritionData.vitD / NUTRITION_LIMITS.vitD)*100)}%)</Text>
+                </View>
+                <View style={styles.cardNutrientRow}>
+                  <Text style={styles.nutrientName}>🍊 Vitamina C:</Text>
+                  <Text style={styles.nutrientVal}>{currentNutritionData.vitC} mg / {NUTRITION_LIMITS.vitC} mg ({Math.round((currentNutritionData.vitC / NUTRITION_LIMITS.vitC)*100)}%)</Text>
+                </View>
+                
+                <Text style={styles.microGroupLabel}>⚡ Complejo Vitamínico B:</Text>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>B1 (Tiamina):</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB1}mg ({Math.round((currentNutritionData.vitB1 / NUTRITION_LIMITS.vitB1)*100)}%)</Text>
+                </View>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>B2 (Riboflavina):</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB2}mg ({Math.round((currentNutritionData.vitB2 / NUTRITION_LIMITS.vitB2)*100)}%)</Text>
+                </View>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>B3 (Niacina):</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB3}mg ({Math.round((currentNutritionData.vitB3 / NUTRITION_LIMITS.vitB3)*100)}%)</Text>
+                </View>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>B6 (Piridoxina):</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB6}mg ({Math.round((currentNutritionData.vitB6 / NUTRITION_LIMITS.vitB6)*100)}%)</Text>
+                </View>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>B9 (Ácido Fólico):</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB9}mcg ({Math.round((currentNutritionData.vitB9 / NUTRITION_LIMITS.vitB9)*100)}%)</Text>
+                </View>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>B12 (Cobalamina):</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB12}mcg ({Math.round((currentNutritionData.vitB12 / NUTRITION_LIMITS.vitB12)*100)}%)</Text>
+                </View>
+
+                <Text style={styles.microGroupLabel}>🪨 Minerales Clave:</Text>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>Calcio:</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.calcio}mg ({Math.round((currentNutritionData.calcio / NUTRITION_LIMITS.calcio)*100)}%)</Text>
+                </View>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>Fósforo:</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.fosforo}mg ({Math.round((currentNutritionData.fosforo / NUTRITION_LIMITS.fosforo)*100)}%)</Text>
+                </View>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>Hierro:</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.hierro}mg ({Math.round((currentNutritionData.hierro / NUTRITION_LIMITS.hierro)*100)}%)</Text>
+                </View>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>Magnesio:</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.magnesio}mg ({Math.round((currentNutritionData.magnesio / NUTRITION_LIMITS.magnesio)*100)}%)</Text>
+                </View>
+                <View style={styles.microIndentRow}>
+                  <Text style={styles.microIndentName}>Potasio:</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.potasio}mg ({Math.round((currentNutritionData.potasio / NUTRITION_LIMITS.potasio)*100)}%)</Text>
+                </View>
+
+              </ScrollView>
+            )}
+            <TouchableOpacity style={styles.modalCloseFullBtn} onPress={() => setIsNutritionModalVisible(false)}>
+              <Text style={styles.modalCloseFullBtnText}>Cerrar Diagnóstico</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* MODAL PARA ESCRIBIR EL NOMBRE DEL HUECO */}
       <Modal visible={addMealVisible} animationType="fade" transparent={true}>
@@ -542,49 +797,28 @@ export default function MenuScreen() {
       <Modal animationType="slide" transparent={true} visible={dashboardVisible}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#333' }}>📊 Resumen de Gastos</Text>
-              <TouchableOpacity onPress={() => setDashboardVisible(false)} style={{ padding: 5 }}>
-                <FontAwesome name="times" size={24} color="#888" />
-              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setDashboardVisible(false)} style={{ padding: 5 }}><FontAwesome name="times" size={24} color="#888" /></TouchableOpacity>
             </View>
-
             <View style={styles.dashboardRow}>
               <View style={styles.dashboardItem}>
-                <Text style={styles.dashboardLabel}>🛒 Súper</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.dashboardInput}
-                    keyboardType="decimal-pad"
-                    placeholder="0.00"
-                    value={supermarketInput}
-                    onChangeText={(val) => {
-                      setSupermarketInput(val);
-                      updateSupermarketCost(val);
-                    }}
-                  />
-                  <Text style={styles.currency}>€</Text>
-                </View>
+                <Text style={styles.dashboardLabel}>🛒 Súper (Estimado)</Text>
+                <Text style={styles.dashboardValue}>{supermarketCost.toFixed(2)} €</Text>
               </View>
-
               <View style={styles.dashboardDivider} />
-
               <View style={styles.dashboardItem}>
                 <Text style={styles.dashboardLabel}>🍽️ Fuera</Text>
                 <Text style={styles.dashboardValue}>{totalEatOut.toFixed(2)} €</Text>
               </View>
             </View>
-
             <View style={styles.dashboardTotal}>
               <Text style={styles.dashboardTotalLabel}>Total Semanal:</Text>
               <Text style={styles.dashboardTotalValue}>{totalWeekly.toFixed(2)} €</Text>
             </View>
-
           </View>
         </View>
       </Modal>
-
     </View>
   );
 }
@@ -618,7 +852,7 @@ const styles = StyleSheet.create({
   },
 
   dayCard: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#000', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
-  dayTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', borderBottomColor: '#eee', paddingBottom: 8 },
+  dayTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   mealSection: { marginBottom: 16 },
   mealTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#555' },
   emptySlot: { backgroundColor: '#f0f8ff', borderWidth: 1, borderColor: '#2f95dc', borderStyle: 'dashed', borderRadius: 8, padding: 12, alignItems: 'center' },
@@ -643,6 +877,14 @@ const styles = StyleSheet.create({
     paddingRight: 10
   },
 
+  // --- NUEVO: Estilos para la barra nutricional ---
+  nutritionIndicatorBar: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, padding: 8, marginBottom: 15 },
+  nutritionMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  nutritionMetaText: { fontSize: 12, color: '#475569', fontWeight: '700' },
+  nutritionStatusText: { fontSize: 11, fontWeight: '800' },
+  nutritionProgressTrack: { height: 6, backgroundColor: '#cbd5e1', borderRadius: 3, overflow: 'hidden' },
+  nutritionProgressBar: { height: '100%', borderRadius: 3 },
+
   editDataBtn: {
     backgroundColor: '#c8e6c9', 
     paddingHorizontal: 8,
@@ -658,7 +900,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 
-  // --- NUEVOS: Estilos para el botón de consumo ---
   consumeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -743,10 +984,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 8,
+    marginBottom: 5,
   },
 
   addMealSmallBtn: {
@@ -802,4 +1040,20 @@ const styles = StyleSheet.create({
   dashboardTotal: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
   dashboardTotalLabel: { fontSize: 16, fontWeight: 'bold', color: '#334155' },
   dashboardTotalValue: { fontSize: 20, fontWeight: '900', color: '#2f95dc' },
+
+  // --- ESTILOS DEL NUEVO MODAL NUTRICIONAL ---
+  modalHeaderCloseRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 10 },
+  modalAdvancedTitle: { fontSize: 17, fontWeight: 'bold', color: '#1e293b' },
+  subBlockTitle: { fontSize: 14, fontWeight: 'bold', color: '#334155', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  cardNutrientRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f8fafc' },
+  alertNutrientBox: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, paddingHorizontal: 8, borderRadius: 8, backgroundColor: '#f8fafc', marginBottom: 6 },
+  alertTriggered: { backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fca5a5' },
+  nutrientName: { fontSize: 14, fontWeight: '600', color: '#475569' },
+  nutrientVal: { fontSize: 14, fontWeight: '700', color: '#334155' },
+  microGroupLabel: { fontSize: 13, fontWeight: 'bold', color: '#0284c7', marginTop: 10, marginBottom: 4 },
+  microIndentRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, paddingLeft: 12 },
+  microIndentName: { fontSize: 13, color: '#64748b', fontWeight: '500' },
+  microIndentVal: { fontSize: 13, fontWeight: '700', color: '#334155' },
+  modalCloseFullBtn: { backgroundColor: '#2f95dc', padding: 15, borderRadius: 12, alignItems: 'center', marginTop: 15 },
+  modalCloseFullBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
 });

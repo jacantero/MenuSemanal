@@ -175,11 +175,18 @@ export default function ShoppingScreen() {
         currentLotsStr,
         currentUnit,
         itemTotalCost
-      };
+      };     
     });
 
     return { total, items };
   }, [shoppingItems, tempPrices, ticketOverrides]);
+
+    // --- GUARDADO AUTOMÁTICO DEL PRESUPUESTO EN SEGUNDO PLANO ---
+  useEffect(() => {
+    // Cada vez que el total cambie, lo guardamos en la memoria interna
+    AsyncStorage.setItem('@estimated_shopping_cost', budgetDetails.total.toString())
+      .catch(e => console.error("Error guardando el presupuesto:", e));
+  }, [budgetDetails.total]);
 
   const updatePriceInTicket = async (itemName, dbKey, newPriceStr) => {
     const newPrice = parseFloat(newPriceStr.replace(',', '.'));
