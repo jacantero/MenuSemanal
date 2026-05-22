@@ -33,7 +33,7 @@
       { "name": "Ajo", "amount": 3.0, "unit": "ud" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 1.0, "unit": "cuch." },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -86,10 +86,10 @@
       { "name": "Ajo", "amount": 3.0, "unit": "ud" },
       { "name": "Pan frito", "amount": 1.0, "unit": "ud" },
       { "name": "Almendras", "amount": 20.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "cuch." },
       { "name": "Sal común", "amount": 1.0, "unit": "g" },
       { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "cuch." },
-      { "name": "Perejil fresco", "amount": 1.0, "unit": "ud" }
+      { "name": "Perejil fresco", "amount": 1.0, "unit": "cuch." }
     ],
     "instructions": [
       "Poner los garbanzos a remojo la víspera. Cocerlos en la olla rápida con agua hirviendo junto con la zanahoria entera pelada y la parte limpia del puerro durante 12 minutos tras subir la válvula.",
@@ -116,7 +116,7 @@
       { "name": "Nuez moscada", "amount": 1.0, "unit": "ud" },
       { "name": "Queso rallado / Grana Padano", "amount": 150.0, "unit": "g" },
       { "name": "Sal común", "amount": 5.0, "unit": "g" },
-      { "name": "Perejil fresco", "amount": 1.0, "unit": "ud" }
+      { "name": "Perejil fresco", "amount": 2.0, "unit": "cuch." }
     ],
     "instructions": [
       "Para la bechamel, derretir la mantequilla en una cazuela, incorporar la harina y cocinarla 2 minutos. Añadir la leche tibia poco a poco sin dejar de remover con varillas. Cocinar 10 minutos, añadir el paté de trufa, la nuez moscada y una pizca de sal, removiendo bien.",
@@ -133,7 +133,7 @@
     "baseDiners": 4,
     "ingredients": [
       { "name": "Salmón fresco", "amount": 600.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
       { "name": "Sal común", "amount": 4.0, "unit": "g" },
       { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "cuch." },
       { "name": "Yogur natural", "amount": 500.0, "unit": "g" },
@@ -142,7 +142,7 @@
       { "name": "Limón", "amount": 1.0, "unit": "l" },
       { "name": "Hojas de menta", "amount": 10.0, "unit": "ud" },
       { "name": "Hojas de albahaca", "amount": 12.0, "unit": "ud" },
-      { "name": "Perejil fresco", "amount": 1.0, "unit": "ud" }
+      { "name": "Perejil fresco", "amount": 1.0, "unit": "cuch." }
     ],
     "instructions": [
       "Para el labneh, mezclar los yogures naturales con 3 gramos de sal. Colocar un paño fino o estameña sobre un colador e incorporar el yogur. Dejar drenar el suero en la nevera entre 12 y 24 horas.",
@@ -159,7 +159,7 @@
     "baseDiners": 4,
     "ingredients": [
       { "name": "Quinoa", "amount": 150.0, "unit": "ud" },
-      { "name": "Arroz base", "amount": 150.0, "unit": "kg" },
+      { "name": "Arroz base", "amount": 150.0, "unit": "g" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
       { "name": "Champiñones", "amount": 150.0, "unit": "ud" },
@@ -183,7 +183,7 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2026/04/poke-de-salmon.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Arroz base", "amount": 300.0, "unit": "kg" },
+      { "name": "Arroz base", "amount": 300.0, "unit": "g" },
       { "name": "Vinagre de Mirin", "amount": 3.0, "unit": "ud" },
       { "name": "Azúcar blanco", "amount": 1.0, "unit": "ud" },
       { "name": "Salmón fresco", "amount": 400.0, "unit": "g" },
@@ -209,16 +209,16 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2026/02/paella-de-marisco.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Arroz base", "amount": 400.0, "unit": "kg" },
+      { "name": "Arroz base", "amount": 400.0, "unit": "g" },
       { "name": "Calamares", "amount": 300.0, "unit": "ud" },
       { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
       { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
-      { "name": "Chirlas / Almejas", "amount": 250.0, "unit": "ud" },
+      { "name": "Chirlas / Almejas", "amount": 250.0, "unit": "g" },
       { "name": "Gambas", "amount": 8.0, "unit": "ud" },
       { "name": "Mejillones", "amount": 500.0, "unit": "ud" },
       { "name": "Fumet de pescado", "amount": 1.2, "unit": "l" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -237,15 +237,15 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2025/10/arroz-con-setas-y-alcachofas.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Arroz base", "amount": 360.0, "unit": "kg" },
-      { "name": "Setas Shiitake", "amount": 250.0, "unit": "ud" },
+      { "name": "Arroz base", "amount": 360.0, "unit": "g" },
+      { "name": "Setas Shiitake", "amount": 250.0, "unit": "g" },
       { "name": "Alcachofas", "amount": 4.0, "unit": "ud" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Ajo", "amount": 2.0, "unit": "ud" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
       { "name": "Caldo base (Pollo/Verdura/Carne)", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -263,14 +263,14 @@
     "baseDiners": 4,
     "ingredients": [
       { "name": "Secreto ibérico", "amount": 400.0, "unit": "ud" },
-      { "name": "Arroz base", "amount": 360.0, "unit": "kg" },
+      { "name": "Arroz base", "amount": 360.0, "unit": "g" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Puerro", "amount": 1.0, "unit": "ud" },
       { "name": "Caldo base (Pollo/Verdura/Carne)", "amount": 1.0, "unit": "ud" },
       { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Sal común", "amount": 1.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "ud" }
+      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "cuch." }
     ],
     "instructions": [
       "Trocear el secreto ibérico en dados pequeños de bocado. Picar la cebolla, el puerro y rallar el tomate.",
@@ -299,7 +299,7 @@
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "cuch." },
       { "name": "Sake / Vino blanco", "amount": 100.0, "unit": "ml" },
       { "name": "Caldo de pollo", "amount": 1200.0, "unit": "ml" },
-      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "cuch." },
       { "name": "Sal común", "amount": 5.0, "unit": "g" },
       { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "ud" },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "cuch." },
@@ -320,13 +320,13 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2025/02/arroz-tres-delicias.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Arroz base", "amount": 300.0, "unit": "ud" },
+      { "name": "Arroz base", "amount": 300.0, "unit": "g" },
       { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
       { "name": "Guisantes", "amount": 100.0, "unit": "ud" },
       { "name": "Huevo de gallina", "amount": 2.0, "unit": "ud" },
       { "name": "Jamón York", "amount": 120.0, "unit": "ud" },
-      { "name": "Sal común", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "ud" }
+      { "name": "Sal común", "amount": 1.0, "unit": "cuch." },
+      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "cuch." }
     ],
     "instructions": [
       "Cocer el arroz base en agua hirviendo con una cucharada de sal durante 14 minutos. Escurrir bien, enfriar y guardar en la nevera unas horas para que el grano quede seco y suelto.",
@@ -343,7 +343,7 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2024/06/arroz-meloso-de-marisco.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Arroz base", "amount": 320.0, "unit": "ud" },
+      { "name": "Arroz base", "amount": 320.0, "unit": "g" },
       { "name": "Fumet de pescado", "amount": 1.1, "unit": "ud" },
       { "name": "Gambas", "amount": 12.0, "unit": "ud" },
       { "name": "Calamares", "amount": 250.0, "unit": "ud" },
@@ -354,7 +354,7 @@
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
       { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
-      { "name": "Sal común", "amount": 1.0, "unit": "ud" }
+      { "name": "Sal común", "amount": 1.0, "unit": "cuch." }
     ],
     "instructions": [
       "Pelar las gambas, reservar los cuerpos en frío y cocer las cabezas y cáscaras machacadas dentro del fumet de pescado durante 10 minutos para intensificar el sabor. Colar.",
@@ -371,13 +371,13 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2024/01/risotto-de-verduras.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Arroz base", "amount": 320.0, "unit": "ud" },
+      { "name": "Arroz base", "amount": 320.0, "unit": "g" },
       { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
       { "name": "Puerro", "amount": 1.0, "unit": "ud" },
       { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
-      { "name": "Sal común", "amount": 4.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 4.0, "unit": "g" },
       { "name": "Caldo de pollo", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
       { "name": "Queso rallado / Grana Padano", "amount": 60.0, "unit": "g" },
       { "name": "Mantequilla", "amount": 30.0, "unit": "g" }
     ],
@@ -395,14 +395,14 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2023/06/arroz-del-senyoret.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Arroz base", "amount": 400.0, "unit": "ud" },
+      { "name": "Arroz base", "amount": 400.0, "unit": "g" },
       { "name": "Sepia", "amount": 300.0, "unit": "ud" },
       { "name": "Gambas", "amount": 12.0, "unit": "ud" },
       { "name": "Calamares", "amount": 200.0, "unit": "ud" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Ajo", "amount": 2.0, "unit": "ud" },
-      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 1.0, "unit": "cuch." },
+      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "cuch." },
       { "name": "Fumet de pescado", "amount": 1.2, "unit": "l" },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "cuch." },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" }
@@ -422,18 +422,18 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2023/03/paella-valenciana-receta-tradicional.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Arroz base", "amount": 400.0, "unit": "ud" },
-      { "name": "Pollo (Muslo / Pechuga)", "amount": 600.0, "unit": "ud" },
-      { "name": "Conejo", "amount": 400.0, "unit": "ud" },
-      { "name": "Judías verdes", "amount": 250.0, "unit": "ud" },
-      { "name": "Garrofón", "amount": 100.0, "unit": "ud" },
-      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
-      { "name": "Agua", "amount": 1.5, "unit": "ud" },
-      { "name": "Sal común", "amount": 1.0, "unit": "ud" },
+      { "name": "Arroz base", "amount": 400.0, "unit": "g" },
+      { "name": "Pollo (Muslo / Pechuga)", "amount": 600.0, "unit": "g" },
+      { "name": "Conejo", "amount": 400.0, "unit": "g" },
+      { "name": "Judías verdes", "amount": 250.0, "unit": "g" },
+      { "name": "Garrofón", "amount": 100.0, "unit": "g" },
+      { "name": "Azafrán", "amount": 1.0, "unit": "cuch." },
+      { "name": "Agua", "amount": 1.5, "unit": "l" },
+      { "name": "Sal común", "amount": 1.0, "unit": "cuch." },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
       { "name": "Romero", "amount": 1.0, "unit": "ud" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "ud" }
+      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "cuch." }
     ],
     "instructions": [
       "Trocear el pollo y el conejo en piezas medianas uniformes. Añadir el aceite de oliva al centro de la paella, nivelarla y encender el fuego. Dorar la carne muy bien con sal por los laterales.",
@@ -458,7 +458,7 @@
       { "name": "Sake / Vino blanco", "amount": 50.0, "unit": "ml" },
       { "name": "Mantequilla", "amount": 20.0, "unit": "g" },
       { "name": "Queso rallado / Grana Padano", "amount": 40.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "cuch." },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -485,8 +485,8 @@
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Patata", "amount": 1.0, "unit": "ud" },
       { "name": "Ajo", "amount": 1.0, "unit": "ud" },
-      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 1.0, "unit": "cuch." },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -516,7 +516,7 @@
       { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
       { "name": "Laurel", "amount": 1.0, "unit": "ud" },
       { "name": "Sal común", "amount": 5.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "ud" }
+      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "cuch." }
     ],
     "instructions": [
       "Hacer el fumet: cocer la morralla y las raspas de rape o merluza junto con los puerros, el apio y la hoja de laurel en agua abundante durante 25 minutos. Colar y mantener caliente.",
@@ -534,13 +534,13 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2017/08/arroz-negro-receta.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Arroz base", "amount": 360.0, "unit": "ud" },
-      { "name": "Calamares", "amount": 400.0, "unit": "ud" },
+      { "name": "Arroz base", "amount": 360.0, "unit": "g" },
+      { "name": "Calamares", "amount": 400.0, "unit": "g" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
       { "name": "Fumet de pescado", "amount": 1.1, "unit": "ud" },
-      { "name": "Sal común", "amount": 2.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 2.0, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
       { "name": "Ajo", "amount": 2.0, "unit": "ud" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" }

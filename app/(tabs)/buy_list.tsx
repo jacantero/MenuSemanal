@@ -1,9 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform, Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// Añadimos updateIngredientDatabase a la importación
 import { weeklyMenu, MOCK_RECIPES, INGREDIENTS_DB, COMMON_INGREDIENTS, normalizeToBase, getCanonicalName, registerCustomIngredient, updateIngredientDatabase } from '../tempData';
 
 export const getEmojiForIngredient = (rawName) => {
@@ -37,7 +36,7 @@ export default function ShoppingScreen() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [hasManuallySelectedUnit, setHasManuallySelectedUnit] = useState(false);
 
-  // --- NUEVO: ESTADOS DEL MODAL DE EDICIÓN DE INGREDIENTE ---
+  // ESTADOS DEL MODAL DE EDICIÓN DE INGREDIENTE (LONG PRESS)
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingIngName, setEditingIngName] = useState('');
   const [activeTab, setActiveTab] = useState('datos'); 
@@ -50,6 +49,11 @@ export default function ShoppingScreen() {
   const [formMacros, setFormMacros] = useState({ kcals: '0', protein: '0', carbsTotal: '0', carbsSugars: '0', fatsTotal: '0', fatsSat: '0', fatsMono: '0', fatsPoly: '0', fiber: '0', salt: '0' });
   const [formMicros, setFormMicros] = useState({ calcium: '0', iron: '0', magnesium: '0', potassium: '0', zinc: '0', vitE: '0', vitC: '0' });
 
+  // --- ESTADOS PARA EL MODAL DEL TICKET (PRESUPUESTO) Y SUS EDICIONES ---
+  const [isBudgetModalVisible, setIsBudgetModalVisible] = useState(false);
+  const [tempPrices, setTempPrices] = useState({});
+  const [ticketOverrides, setTicketOverrides] = useState({}); // Guarda las cantidades y unidades editadas en el ticket
+  const [activeUnitEditId, setActiveUnitEditId] = useState(null); // Controla qué desplegable de unidad de ticket está abierto
 
   const suggestions = newItemName.trim().length > 0 
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
@@ -121,10 +125,71 @@ export default function ShoppingScreen() {
     setShoppingItems(finalFlatList);
   };
 
-  const handleSelectSuggestion = (suggestion) => {
-    setNewItemName(suggestion.name);
-    if (!hasManuallySelectedUnit) setNewItemUnit(suggestion.unit || 'ud');
-    setShowSuggestions(false);
+  // --- LÓGICA DE PRESUPUESTO MEJORADA CON OVERRIDES DEL USUARIO ---
+  const budgetDetails = useMemo(() => {
+    let total = 0;
+    const items = shoppingItems.map(item => {
+      const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === item.name);
+      const dbItem = dbKey ? INGREDIENTS_DB[dbKey] : null;
+      
+      let unitPrice = dbItem ? (tempPrices[item.name] !== undefined ? tempPrices[item.name] : dbItem.purchasePrice) : 0;
+      let pAmount = 1;
+      let lots = 1;
+      let pUnit = 'ud';
+      let purchaseFormat = dbItem ? dbItem.purchaseUnit : '1 ud';
+      
+      if (dbItem && dbItem.purchaseUnit) {
+        const match = dbItem.purchaseUnit.match(/^([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
+        if (match) {
+          pAmount = parseFloat(match[1]) || 1;
+          pUnit = match[2].toLowerCase();
+          
+          let itemAmt = item.amount;
+          let pkgAmt = pAmount;
+          
+          if (item.unit === 'g' && pUnit === 'kg') pkgAmt = pAmount * 1000;
+          if (item.unit === 'kg' && pUnit === 'g') itemAmt = item.amount * 1000;
+          if (item.unit === 'ml' && pUnit === 'l') pkgAmt = pAmount * 1000;
+          if (item.unit === 'l' && pUnit === 'ml') itemAmt = item.amount * 1000;
+          if (pUnit === 'docena') pkgAmt = 12;
+          
+          lots = Math.ceil(itemAmt / pkgAmt) || 1;
+        }
+      }
+
+      // Aplicamos las ediciones en vivo del ticket (Overrides) si existen
+      const override = ticketOverrides[item.id];
+      const currentLotsStr = override ? override.lotsStr : String(lots);
+      const currentLotsNum = parseFloat(currentLotsStr) || 0;
+      const currentUnit = override ? override.unit : pUnit;
+
+      const itemTotalCost = currentLotsNum * unitPrice;
+      total += itemTotalCost;
+
+      return {
+        ...item,
+        dbKey,
+        unitPrice,
+        purchaseFormat,
+        lots: currentLotsNum,
+        currentLotsStr,
+        currentUnit,
+        itemTotalCost
+      };
+    });
+
+    return { total, items };
+  }, [shoppingItems, tempPrices, ticketOverrides]);
+
+  const updatePriceInTicket = async (itemName, dbKey, newPriceStr) => {
+    const newPrice = parseFloat(newPriceStr.replace(',', '.'));
+    if (isNaN(newPrice)) return;
+
+    setTempPrices(prev => ({ ...prev, [itemName]: newPrice }));
+    if (dbKey && INGREDIENTS_DB[dbKey]) {
+      const updatedIng = { ...INGREDIENTS_DB[dbKey], purchasePrice: newPrice };
+      await updateIngredientDatabase(itemName, updatedIng);
+    }
   };
 
   const handleAddManual = async () => {
@@ -165,7 +230,6 @@ export default function ShoppingScreen() {
     } else { proceedToAdd(canonicalName); }
   };
 
-  // --- LÓGICA DE EDICIÓN MEDIANTE LONG PRESS ---
   const openIngredientEditor = (ingredientName) => {
     const canonical = getCanonicalName(ingredientName);
     const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonical);
@@ -175,7 +239,6 @@ export default function ShoppingScreen() {
       setEditingIngName(canonical);
       setActiveTab('datos');
       
-      // Rellenamos el modal con los datos existentes
       setFormUnit(dbData.unit || 'g');
       setFormEmoji(dbData.emoji || '🛒');
       setFormFormat(dbData.purchaseUnit || `1${dbData.unit}`);
@@ -209,11 +272,8 @@ export default function ShoppingScreen() {
       source: "USER_CUSTOM"
     };
 
-    // Actualizamos la base de datos RAM y el disco duro
     await updateIngredientDatabase(editingIngName, advancedIngredientObject);
     setIsEditModalVisible(false);
-    
-    // Forzamos recálculo de la lista para que el emoji o unidad se actualicen al instante
     calculateList(); 
     Alert.alert("¡Ficha actualizada!", `Los datos de "${editingIngName}" se han guardado correctamente.`);
   };
@@ -292,6 +352,17 @@ export default function ShoppingScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.headerTitle}>🛒 Mi Compra</Text>
+
+      <TouchableOpacity style={styles.budgetCard} activeOpacity={0.8} onPress={() => setIsBudgetModalVisible(true)}>
+        <View style={styles.budgetTextContainer}>
+          <Text style={styles.budgetLabel}>Presupuesto Estimado</Text>
+          <Text style={styles.budgetValue}>{budgetDetails.total.toFixed(2)} €</Text>
+        </View>
+        <View style={{ alignItems: 'center' }}>
+          <FontAwesome name="calculator" size={24} color="#0284c7" style={{ opacity: 0.8, marginBottom: 4 }} />
+          <Text style={{ fontSize: 10, color: '#0369a1', fontWeight: '600' }}>Ver ticket</Text>
+        </View>
+      </TouchableOpacity>
       
       <TouchableOpacity style={styles.fakeSearchInput} activeOpacity={0.8} onPress={() => setIsModalVisible(true)}>
         <FontAwesome name="plus-circle" size={20} color="#2f95dc" style={{ marginRight: 10 }} />
@@ -300,7 +371,6 @@ export default function ShoppingScreen() {
 
       <Text style={styles.helperText}>💡 Mantén pulsado un ingrediente para editar su ficha técnica.</Text>
 
-      {/* --- MODAL PARA AÑADIR MANUAL --- */}
       <Modal visible={isModalVisible} animationType="fade" transparent={true}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -347,7 +417,6 @@ export default function ShoppingScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* --- GRID DE LA COMPRA --- */}
       {shoppingItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Tu carrito está vacío.</Text>
@@ -395,6 +464,99 @@ export default function ShoppingScreen() {
           )}
         </ScrollView>
       )}
+
+      {/* ========================================================
+          🧾 MODAL TICKET CON EDICIÓN DE CANTIDAD Y UNIDAD INLINE
+          ======================================================== */}
+      <Modal visible={isBudgetModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { height: '85%', paddingBottom: 20 }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+              <Text style={styles.modalTitle}>🧾 Ticket Estimado</Text>
+              <TouchableOpacity onPress={() => { setIsBudgetModalVisible(false); setActiveUnitEditId(null); }} style={{ padding: 4 }}>
+                <FontAwesome name="times" size={20} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.ticketHeaderRow}>
+              <Text style={[styles.ticketHeaderCol, { flex: 1.5 }]}>PRODUCTO</Text>
+              <Text style={[styles.ticketHeaderCol, { flex: 1.5, textAlign: 'center' }]}>CANTIDAD</Text>
+              <Text style={[styles.ticketHeaderCol, { flex: 1, textAlign: 'right' }]}>PRECIO (€)</Text>
+            </View>
+
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+              {budgetDetails.items.map((item) => (
+                <View key={item.id}>
+                  <View style={styles.ticketRow}>
+                    <View style={{ flex: 1.5, paddingRight: 5 }}>
+                      <Text style={styles.ticketItemName} numberOfLines={1}>
+                        {getEmojiForIngredient(item.name)} {item.name}
+                      </Text>
+                      <Text style={styles.ticketItemDesc}>
+                        Req: {item.amount}{item.unit}
+                      </Text>
+                    </View>
+
+                    {/* CAJA EDITABLE DE CANTIDAD Y UNIDAD */}
+                    <View style={{ flex: 1.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                      <TextInput
+                        style={styles.ticketQtyInput}
+                        keyboardType="decimal-pad"
+                        value={item.currentLotsStr}
+                        onChangeText={(val) => setTicketOverrides(prev => ({...prev, [item.id]: { lotsStr: val, unit: item.currentUnit }}))}
+                      />
+                      <TouchableOpacity 
+                        style={styles.ticketUnitBtn}
+                        onPress={() => setActiveUnitEditId(activeUnitEditId === item.id ? null : item.id)}
+                      >
+                        <Text style={styles.ticketUnitText}>{item.currentUnit} ▾</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={{ flex: 1, alignItems: 'flex-end', justifyContent: 'center' }}>
+                      <TextInput
+                        style={styles.ticketPriceInput}
+                        keyboardType="decimal-pad"
+                        value={item.unitPrice.toString()}
+                        onChangeText={(val) => updatePriceInTicket(item.name, item.dbKey, val)}
+                      />
+                      <Text style={styles.ticketSubtotalText}>= {item.itemTotalCost.toFixed(2)}€</Text>
+                    </View>
+                  </View>
+
+                  {/* DESPLEGABLE INLINE PARA SELECCIONAR LA UNIDAD */}
+                  {activeUnitEditId === item.id && (
+                    <View style={styles.inlineUnitSelector}>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {STANDARD_UNITS.map(u => (
+                          <TouchableOpacity 
+                            key={u} 
+                            style={[styles.unitChip, item.currentUnit === u && styles.unitChipSelected, { paddingVertical: 6, paddingHorizontal: 12, marginBottom: 0, marginRight: 6 }]}
+                            onPress={() => {
+                              setTicketOverrides(prev => ({...prev, [item.id]: { lotsStr: item.currentLotsStr, unit: u }}));
+                              setActiveUnitEditId(null);
+                            }}
+                          >
+                            <Text style={[styles.unitChipText, item.currentUnit === u && styles.unitChipTextSelected, { fontSize: 11 }]}>{u}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={styles.ticketFooter}>
+              <Text style={styles.ticketFooterLabel}>TOTAL APROXIMADO</Text>
+              <Text style={styles.ticketFooterTotal}>{budgetDetails.total.toFixed(2)} €</Text>
+            </View>
+            <TouchableOpacity style={[styles.confirmButton, { marginTop: 15 }]} onPress={() => { setIsBudgetModalVisible(false); setActiveUnitEditId(null); }}>
+              <Text style={styles.confirmButtonText}>Cerrar Ticket</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* ========================================================
           🎛️ MODAL EDICIÓN DE FICHA TÉCNICA (LONG PRESS)
@@ -483,6 +645,11 @@ const styles = StyleSheet.create({
   helperText: { fontSize: 11, color: '#64748b', textAlign: 'center', marginBottom: 15, fontStyle: 'italic' },
   listContainer: { paddingBottom: 80, paddingTop: 5 },
   
+  budgetCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#e0f2fe', borderWidth: 1, borderColor: '#bae6fd', borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: '#0284c7', shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
+  budgetTextContainer: { flexDirection: 'column' },
+  budgetLabel: { fontSize: 13, fontWeight: '700', color: '#0369a1', textTransform: 'uppercase', letterSpacing: 0.5 },
+  budgetValue: { fontSize: 26, fontWeight: '900', color: '#0284c7', marginTop: 2 },
+
   gridWrapper: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: '3%', marginLeft:5 },
   gridCard: { width: '31%', aspectRatio: 1, borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0', backgroundColor: '#ffffff', padding: 8, marginBottom: 10, alignItems: 'center', justifyContent: 'center', position: 'relative', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, elevation: 2 },
   gridCardChecked: { opacity: 0.5, transform: [{ scale: 0.95 }], backgroundColor: '#f1f5f9' },
@@ -528,13 +695,26 @@ const styles = StyleSheet.create({
 
   clearAllButton: { flexDirection: 'row', backgroundColor: '#fff', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#ffcdd2', alignItems: 'center', justifyContent: 'center', marginTop: 20 },
   clearAllText: { color: '#d32f2f', fontSize: 16, fontWeight: 'bold' },
-  
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
   emptyText: { fontSize: 18, fontWeight: 'bold', color: '#555', marginBottom: 8 },
   emptySubText: { fontSize: 16, color: '#888', textAlign: 'center' },
 
-  // --- ESTILOS DEL MODAL DE EDICIÓN NUTRICIONAL ---
-  modalSubtitle: { fontSize: 14, fontWeight: '700', color: '#2f95dc', textAlign: 'center', marginBottom: 15 },
+  // --- ESTILOS DEL MODAL TICKET REAJUSTADOS ---
+  ticketHeaderRow: { flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: '#e2e8f0', paddingBottom: 8, marginBottom: 10 },
+  ticketHeaderCol: { fontSize: 11, fontWeight: 'bold', color: '#64748b' },
+  ticketRow: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingVertical: 12 },
+  ticketItemName: { fontSize: 14, fontWeight: '700', color: '#1e293b', marginBottom: 2 },
+  ticketItemDesc: { fontSize: 10, color: '#64748b' },
+  ticketQtyInput: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 6, paddingVertical: 4, paddingHorizontal: 6, width: 45, textAlign: 'center', fontSize: 12, fontWeight: 'bold', color: '#334155' },
+  ticketUnitBtn: { backgroundColor: '#e2e8f0', borderRadius: 6, paddingVertical: 5, paddingHorizontal: 6, marginLeft: 4 },
+  ticketUnitText: { fontSize: 11, fontWeight: 'bold', color: '#475569' },
+  inlineUnitSelector: { backgroundColor: '#f8fafc', padding: 8, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
+  ticketPriceInput: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 6, paddingVertical: 4, paddingHorizontal: 6, width: 55, textAlign: 'center', fontSize: 12, fontWeight: 'bold', color: '#0284c7', marginBottom: 4 },
+  ticketSubtotalText: { fontSize: 12, fontWeight: 'bold', color: '#475569' },
+  ticketFooter: { borderTopWidth: 2, borderTopColor: '#e2e8f0', paddingTop: 15, marginTop: 5, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  ticketFooterLabel: { fontSize: 16, fontWeight: 'bold', color: '#334155' },
+  ticketFooterTotal: { fontSize: 24, fontWeight: '900', color: '#0284c7' },
+
   tabContainer: { flexDirection: 'row', backgroundColor: '#f1f5f9', borderRadius: 12, padding: 4, marginBottom: 15 },
   tabButton: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
   tabActive: { backgroundColor: '#ffffff', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 2, elevation: 1 },
