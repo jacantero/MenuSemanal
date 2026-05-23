@@ -427,7 +427,7 @@
       { "name": "Conejo", "amount": 400.0, "unit": "g" },
       { "name": "Judías verdes", "amount": 250.0, "unit": "g" },
       { "name": "Garrofón", "amount": 100.0, "unit": "g" },
-      { "name": "Azafrán", "amount": 1.0, "unit": "cuch." },
+      { "name": "Azafrán", "amount": 0.08, "unit": "g" },
       { "name": "Agua", "amount": 1.5, "unit": "l" },
       { "name": "Sal común", "amount": 1.0, "unit": "cuch." },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
