@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Keyboa
 import { router, Stack, useLocalSearchParams } from 'expo-router'; 
 import { FontAwesome } from '@expo/vector-icons';
 import { addRecipe, MOCK_RECIPES, updateRecipe, deleteRecipe, registerCustomIngredient, COMMON_INGREDIENTS, INGREDIENTS_DB, getCanonicalName } from '../tempData'; 
+import { decode } from 'base-64'; // ¡Asegúrate de que esta línea esté al inicio!
 
 const STANDARD_UNITS = ['ud', 'g', 'kg', 'ml', 'L', 'cuch.', 'taza', 'pizca', 'paquete'];
 const UNSPLASH_ACCESS_KEY = "NyeS7XJO0PCjojHXrcphQ2co-C-tyt8tpWvywPdlDGQ";
@@ -11,6 +12,9 @@ export default function NewRecipeScreen() {
   // 1. ESTADOS DE LA RECETA
   const { editId } = useLocalSearchParams();
   const isEditing = !!editId;
+
+  const [isImportModalVisible, setIsImportModalVisible] = useState(false);
+  const [codeToImport, setCodeToImport] = useState('');
 
   const [name, setName] = useState('');
   const [baseDiners, setBaseDiners] = useState('2');
@@ -172,6 +176,33 @@ export default function NewRecipeScreen() {
     } catch (error) { Alert.alert('Error', 'No se ha podido leer el enlace.'); } finally { setIsImporting(false); setImportUrl(''); }
   };
 
+  // 1. Esta abre el modal
+  const openImportModal = () => {
+    setIsImportModalVisible(true);
+  };
+
+  // --- LÓGICA DE IMPORTAR ---
+  const handleImportRecipe = () => {
+      try {
+        if (codeToImport.startsWith("APP-RECIPE:")) {
+          const base64Data = codeToImport.split(":")[1];
+          const jsonString = decode(base64Data);
+          const importedRecipe = JSON.parse(jsonString);
+          
+          addRecipe(importedRecipe);
+          
+          setIsImportModalVisible(false);
+          setCodeToImport('');
+          Alert.alert("¡Éxito!", `Receta "${importedRecipe.name}" importada.`);
+          router.back();
+        } else {
+          Alert.alert("Error", "El código no parece ser válido.");
+        }
+      } catch (e) { 
+        Alert.alert("Error", "No se pudo descifrar la receta."); 
+      }
+    };
+
   const handleAddIngredient = () => {
     if (!ingName.trim()) return;
     setIngredients([...ingredients, { name: ingName.trim(), amount: parseFloat(ingAmount) || 1, unit: ingUnit.trim() }]);
@@ -303,18 +334,39 @@ export default function NewRecipeScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <Stack.Screen options={{ title: isEditing ? 'Editar Receta' : 'Nueva Receta' }} />
         
-        {/* --- TUS SECCIONES DE SIEMPRE (Importación, datos base, ingredientes, pasos) --- */}
-        {!isEditing && (
-          <View style={[styles.card, { backgroundColor: '#f0f9ff', borderColor: '#bae6fd', borderWidth: 1 }]}>
-            <Text style={styles.sectionTitle}>🔗 Importar desde web</Text>
-            <View style={styles.row}>
-              <TextInput style={[styles.input, { flex: 1, marginBottom: 0 }]} placeholder="https://..." value={importUrl} onChangeText={setImportUrl} autoCapitalize="none" />
-              <TouchableOpacity style={[styles.importButton, !importUrl.trim() && { opacity: 0.5 }]} onPress={handleImportUrl} disabled={!importUrl.trim() || isImporting || isSaving}>
-                {isImporting ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.importButtonText}>Extraer</Text>}
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+{/* --- SECCIÓN DE IMPORTACIÓN --- */}
+{!isEditing && (
+  <View>
+    {/* IMPORTAR DESDE WEB (Tu código existente) */}
+    <View style={[styles.card, { backgroundColor: '#f0f9ff', borderColor: '#bae6fd', borderWidth: 1 }]}>
+      <Text style={styles.sectionTitle}>🔗 Importar desde web</Text>
+      <View style={styles.row}>
+        <TextInput style={[styles.input, { flex: 1, marginBottom: 0 }]} placeholder="https://..." value={importUrl} onChangeText={setImportUrl} autoCapitalize="none" />
+        <TouchableOpacity style={[styles.importButton, !importUrl.trim() && { opacity: 0.5 }]} onPress={handleImportUrl} disabled={!importUrl.trim() || isImporting || isSaving}>
+          {isImporting ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.importButtonText}>Extraer</Text>}
+        </TouchableOpacity>
+      </View>
+    </View>
+
+    {/* NUEVO: IMPORTAR DESDE CÓDIGO */}
+    <TouchableOpacity 
+      style={[styles.card, { 
+        backgroundColor: '#f0fdf4', 
+        borderColor: '#bbf7d0', 
+        borderWidth: 1, 
+        flexDirection: 'row', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        padding: 15,
+        marginTop: 10 
+      }]} 
+      onPress={openImportModal}
+    >
+      <FontAwesome name="download" size={16} color="#15803d" />
+      <Text style={{ color: '#15803d', fontWeight: 'bold', marginLeft: 10 }}>Importar receta desde código</Text>
+    </TouchableOpacity>
+  </View>
+)}
 
         <View style={styles.card}>
           <Text style={styles.label}>Nombre de la receta *</Text>
@@ -587,6 +639,29 @@ export default function NewRecipeScreen() {
           </View>
         </View>
       </Modal>
+
+      <Modal visible={isImportModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Pegar código de receta</Text>
+            <TextInput 
+              style={styles.modalInput}
+              placeholder="APP-RECIPE:..."
+              value={codeToImport}
+              onChangeText={setCodeToImport}
+              multiline
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={[styles.modalBtn, {backgroundColor: '#cbd5e1'}]} onPress={() => setIsImportModalVisible(false)}>
+                <Text style={{fontWeight: 'bold'}}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalBtn, {backgroundColor: '#10b981'}]} onPress={handleImportRecipe}>
+                <Text style={{color: '#fff', fontWeight: 'bold'}}>Importar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -676,4 +751,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+
+  modalInput: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 10, height: 100, marginBottom: 20 },
+  modalButtons: { flexDirection: 'row', gap: 10 },
+  modalBtn: { flex: 1, padding: 15, borderRadius: 8, alignItems: 'center' },
 });

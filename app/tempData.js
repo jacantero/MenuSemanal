@@ -5,9 +5,17 @@ import recipesData from './recipesDB.json'
 export let MOCK_RECIPES = [...recipesData];
 export let USER_CUSTOM_INGREDIENTS = {};
 
+// En tu archivo tempData.js
 export const addRecipe = (newRecipe) => {
-  MOCK_RECIPES.push(newRecipe);
-  saveRecipesToStorage(MOCK_RECIPES); // Autoguardado
+  // Creamos una copia para no mutar el objeto original
+  const recipeToSave = { 
+    ...newRecipe, 
+    id: Date.now().toString() // Generamos un ID único nuevo al importar
+  };
+  
+  MOCK_RECIPES.push(recipeToSave);
+  saveRecipesToStorage(MOCK_RECIPES); // Tu función de autoguardado
+  return recipeToSave; // Devolvemos la receta para usarla si hace falta
 };
 
 export const deleteRecipe = (id) => {

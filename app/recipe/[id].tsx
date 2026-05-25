@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Modal, KeyboardAvoidingView, Platform, Share } from 'react-native';
 import { router, useLocalSearchParams, Stack } from 'expo-router';
 import { deleteRecipe, assignRecipeToMenu, MOCK_RECIPES, INGREDIENTS_DB, getCanonicalName, normalizeToBase } from '../tempData';
 import { FontAwesome } from '@expo/vector-icons';
+import { encode } from 'base-64'; // Necesario para compartir
 
 export const getEmojiForIngredient = (rawName) => {
   const canonical = getCanonicalName(rawName);
@@ -107,6 +108,14 @@ export default function RecipeDetailScreen() {
     };
   }, [recipe, diners]);
 
+  const handleExportRecipe = async () => {
+    const jsonString = JSON.stringify(recipe);
+    const encodedData = encode(jsonString);
+    await Share.share({
+      message: `¡Mira esta receta en mi app! Cópiala y pégala para importarla:\n\nAPP-RECIPE:${encodedData}`,
+    });
+  };
+
   const handleDelete = () => {
     Alert.alert(
       "¿Borrar receta?",
@@ -167,9 +176,15 @@ export default function RecipeDetailScreen() {
         <Stack.Screen options={{ title: recipe.name }} />
 
         <Image source={{ uri: recipe.imageUrl }} style={styles.image} />
-
+        
+        {/*Titulo y botón de exportación*/}
         <View style={styles.content}>
-          <Text style={styles.title}>{recipe.name}</Text>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{recipe.name}</Text>
+            <TouchableOpacity style={styles.smallShareBtn} onPress={handleExportRecipe}>
+              <FontAwesome name="share-alt" size={16} color="#fff" />
+            </TouchableOpacity>
+          </View>
 
           {day && meal && (
             <View style={styles.contextContainer}>
@@ -353,5 +368,24 @@ const styles = StyleSheet.create({
   detailMacros: { fontSize: 12, color: '#64748b', fontWeight: '500' },
   detailCost: { fontSize: 16, fontWeight: '800', color: '#059669' },
   modalCloseFullBtn: { backgroundColor: '#2f95dc', padding: 15, borderRadius: 12, alignItems: 'center', marginTop: 15 },
-  modalCloseFullBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  modalCloseFullBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  // Nuevo contenedor para el título y el botón
+  titleContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    marginBottom: 15 
+  },
+  // Botón pequeñito
+  smallShareBtn: { 
+    backgroundColor: '#2f95dc', 
+    padding: 10, 
+    borderRadius: 20, 
+    marginLeft: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2
+  },
 });
