@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform, Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
+import { doc, onSnapshot, updateDoc, setDoc } from 'firebase/firestore';
+import {db} from '../firebaseConfig'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { weeklyMenu, MOCK_RECIPES, INGREDIENTS_DB, COMMON_INGREDIENTS, normalizeToBase, getCanonicalName, registerCustomIngredient, updateIngredientDatabase } from '../tempData';
 
@@ -59,22 +61,63 @@ export default function ShoppingScreen() {
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
     : [];
 
-  useEffect(() => {
-    const loadMemory = async () => {
+useEffect(() => {
+    const setupSync = async () => {
       try {
-        const savedExtras = await AsyncStorage.getItem('@shopping_extras');
-        const savedChecked = await AsyncStorage.getItem('@shopping_checked');
-        const savedDeleted = await AsyncStorage.getItem('@shopping_deleted');
+        const householdId = await AsyncStorage.getItem('@household_id');
+        
+        // Si no hay hogar configurado, cargamos de local para no romper nada
+        if (!householdId) {
+          const savedExtras = await AsyncStorage.getItem('@shopping_extras');
+          const savedChecked = await AsyncStorage.getItem('@shopping_checked');
+          const savedDeleted = await AsyncStorage.getItem('@shopping_deleted');
+          if (savedExtras) setExtraItems(JSON.parse(savedExtras));
+          if (savedChecked) setCheckedItems(new Set(JSON.parse(savedChecked)));
+          if (savedDeleted) setDeletedItems(new Set(JSON.parse(savedDeleted)));
+          setIsReady(true);
+          return;
+        }
 
-        if (savedExtras) setExtraItems(JSON.parse(savedExtras));
-        if (savedChecked) setCheckedItems(new Set(JSON.parse(savedChecked)));
-        if (savedDeleted) setDeletedItems(new Set(JSON.parse(savedDeleted)));
-      } catch (e) {} finally { setIsReady(true); }
+        // --- CONEXIÓN FIREBASE EN TIEMPO REAL ---
+        const docRef = doc(db, "households", householdId);
+        
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            // Actualizamos estados con lo que viene de la nube
+            if (data.extras) setExtraItems(data.extras);
+            if (data.checked) setCheckedItems(new Set(data.checked));
+            if (data.deleted) setDeletedItems(new Set(data.deleted));
+          }
+          setIsReady(true);
+        });
+
+        return () => unsubscribe();
+      } catch (e) {
+        console.error("Error cargando datos:", e);
+        setIsReady(true);
+      }
     };
-    loadMemory();
+    setupSync();
   }, []);
 
   useFocusEffect(useCallback(() => { if (isReady) calculateList(); }, [isReady, extraItems, checkedItems, deletedItems]));
+
+  const syncToFirebase = async (extras, checked, deleted) => {
+    const householdId = await AsyncStorage.getItem('@household_id');
+    if (!householdId) return; // Si no hay hogar, no sincronizamos
+
+    const docRef = doc(db, "households", householdId);
+    try {
+      await updateDoc(docRef, {
+        extras: extras,
+        checked: Array.from(checked), // Convertimos Set a Array para Firebase
+        deleted: Array.from(deleted)  // Convertimos Set a Array para Firebase
+      });
+    } catch (e) {
+      console.error("Error sincronizando cambios:", e);
+    }
+  };
 
   const calculateList = () => {
     const ingredientMap = {};

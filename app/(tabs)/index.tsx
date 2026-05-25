@@ -5,7 +5,9 @@ import { router, useFocusEffect } from 'expo-router';
 import { weeklyMenu, MOCK_RECIPES, updateEatOutDetails, assignRecipeToMenu, weeklyMetadata, updateSupermarketCost, getTotalEatOutCost, initAppData, consumeRecipeFromPantry, INGREDIENTS_DB, getCanonicalName, normalizeToBase } from '../tempData';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // IMPORTANTE AÑADIR ESTO
-
+import {db} from '../firebaseConfig'
+// --- NUEVAS IMPORTACIONES DE FIREBASE ---
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 // --- OBJETIVOS Y LÍMITES DIARIOS MÁXIMOS RECOMENDADOS (OMS / IDR) ---
@@ -45,6 +47,11 @@ const NUTRITION_LIMITS = {
 export default function MenuScreen() {
   const [isReady, setIsReady] = useState(false);
   const [menuData, setMenuData] = useState(weeklyMenu);
+
+  // --- ESTADOS DEL HOGAR (FIREBASE) ---
+  const [householdId, setHouseholdId] = useState(null);
+  const [joinCodeInput, setJoinCodeInput] = useState('');
+  const [isHouseholdLoading, setIsHouseholdLoading] = useState(false);
   
   // --- ESTADO PARA EL COSTE ESTIMADO DE LA COMPRA ---
   const [supermarketCost, setSupermarketCost] = useState(0);
@@ -76,6 +83,12 @@ export default function MenuScreen() {
       try {
         const savedCost = await AsyncStorage.getItem('@estimated_shopping_cost');
         if (savedCost) setSupermarketCost(parseFloat(savedCost));
+
+        // --- BUSCAMOS EL ID DEL HOGAR ---
+        const savedHousehold = await AsyncStorage.getItem('@household_id');
+        if (savedHousehold) {
+          setHouseholdId(savedHousehold);
+        }
       } catch (e) { console.error(e) }
 
       setIsReady(true); 
@@ -101,6 +114,59 @@ export default function MenuScreen() {
       fetchMenuAndCost();
     }, [isReady])
   );
+
+  // --- FUNCIONES DE EMPAREJAMIENTO FIREBASE ---
+  const generateRandomCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Sin O, 0, 1, I para evitar confusiones
+    let result = '';
+    for (let i = 0; i < 5; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
+    return result;
+  };
+
+  const handleCreateHousehold = async () => {
+    setIsHouseholdLoading(true);
+    const newCode = generateRandomCode();
+    try {
+      // Creamos la "carpeta" de esta familia en Firebase
+      await setDoc(doc(db, "households", newCode), {
+        createdAt: new Date(),
+        supermarketCost: 0
+      });
+      // Lo guardamos en el teléfono
+      await AsyncStorage.setItem('@household_id', newCode);
+      setHouseholdId(newCode);
+      Alert.alert("¡Familia Creada!", `Tu código es: ${newCode}\nCompártelo para que se unan a tu familia.`);
+    } catch (error) {
+      console.error("🚨 ERROR REAL DE FIREBASE:", error); // <-- AÑADE ESTO
+      Alert.alert("Error", "No se pudo crear el hogar. Comprueba tu conexión.");
+    }
+    setIsHouseholdLoading(false);
+  };
+
+  const handleJoinHousehold = async () => {
+    const code = joinCodeInput.trim().toUpperCase();
+    if (code.length !== 5) {
+      Alert.alert("Código inválido", "El código debe tener 5 caracteres.");
+      return;
+    }
+    setIsHouseholdLoading(true);
+    try {
+      // Comprobamos si esa familia existe en la nube
+      const docRef = doc(db, "households", code);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        await AsyncStorage.setItem('@household_id', code);
+        setHouseholdId(code);
+        Alert.alert("¡Éxito!", "Te has unido a la familia correctamente.");
+      } else {
+        Alert.alert("No encontrado", "No existe ninguna familia con ese código.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "No se pudo verificar el código.");
+    }
+    setIsHouseholdLoading(false);
+  };
 
   // --- CÁLCULO PROFUNDO DE MACROS Y MICROS PROPORCIONAL POR COMENSALES ---
   const calculateDayNutrition = (day) => {
@@ -816,6 +882,53 @@ export default function MenuScreen() {
               <Text style={styles.dashboardTotalLabel}>Total Semanal:</Text>
               <Text style={styles.dashboardTotalValue}>{totalWeekly.toFixed(2)} €</Text>
             </View>
+          </View>
+        </View>
+      </Modal>
+      {/* ========================================================
+          🚀 MODAL DE BIENVENIDA (BLOQUEA LA APP SI NO HAY HOGAR)
+          ======================================================== */}
+      <Modal visible={isReady && !householdId} animationType="slide" transparent={false}>
+        <View style={{ flex: 1, backgroundColor: '#2f95dc', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: '#fff', padding: 30, borderRadius: 20, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 }}>
+            <FontAwesome name="home" size={60} color="#2f95dc" style={{ marginBottom: 20 }} />
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 10, textAlign: 'center' }}>Bienvenido a tu Cocina</Text>
+            <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 }}>
+              Para sincronizar la despensa y el menú en tiempo real, necesitas crear una familia o unirte a una existente.
+            </Text>
+
+            {/* BOTÓN CREAR */}
+            <TouchableOpacity 
+              style={{ backgroundColor: '#10b981', padding: 15, borderRadius: 12, width: '100%', alignItems: 'center', marginBottom: 20 }}
+              onPress={handleCreateHousehold}
+              disabled={isHouseholdLoading}
+            >
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
+                {isHouseholdLoading ? 'Cargando...' : '✨ Crear Nueva Familia'}
+              </Text>
+            </TouchableOpacity>
+
+            <View style={{ width: '100%', height: 1, backgroundColor: '#eee', marginVertical: 10 }} />
+            <Text style={{ fontSize: 14, color: '#999', marginBottom: 15, fontWeight: 'bold' }}>O ÚNETE A UNA EXISTENTE</Text>
+
+            {/* INPUT UNIRSE */}
+            <View style={{ flexDirection: 'row', width: '100%', gap: 10 }}>
+              <TextInput 
+                style={{ flex: 1, backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 10, padding: 12, fontSize: 18, textAlign: 'center', textTransform: 'uppercase' }}
+                placeholder="CÓDIGO"
+                maxLength={5}
+                value={joinCodeInput}
+                onChangeText={setJoinCodeInput}
+              />
+              <TouchableOpacity 
+                style={{ backgroundColor: '#2f95dc', paddingHorizontal: 20, borderRadius: 10, justifyContent: 'center', opacity: joinCodeInput.length === 5 ? 1 : 0.5 }}
+                onPress={handleJoinHousehold}
+                disabled={joinCodeInput.length !== 5 || isHouseholdLoading}
+              >
+                <FontAwesome name="arrow-right" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            
           </View>
         </View>
       </Modal>

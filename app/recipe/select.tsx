@@ -5,6 +5,7 @@ import { MOCK_RECIPES, assignRecipeToMenu, deleteRecipe } from '../tempData';
 import { FontAwesome } from '@expo/vector-icons';
 import Fuse from "fuse.js";
 
+
 export default function SelectRecipeScreen() {
   // 1. Añadimos bulkMeals a los parámetros que recibimos
   const { day, meal, bulkMeals } = useLocalSearchParams();
