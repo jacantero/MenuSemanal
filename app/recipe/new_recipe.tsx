@@ -2,15 +2,19 @@ import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal, Image } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router'; 
 import { FontAwesome } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker'; // <-- NUEVA LIBRERÍA
+import { decode } from 'base-64';
 import { addRecipe, MOCK_RECIPES, updateRecipe, deleteRecipe, registerCustomIngredient, COMMON_INGREDIENTS, INGREDIENTS_DB, getCanonicalName } from '../tempData'; 
 
 const STANDARD_UNITS = ['ud', 'g', 'kg', 'ml', 'L', 'cuch.', 'taza', 'pizca', 'paquete'];
 const UNSPLASH_ACCESS_KEY = "NyeS7XJO0PCjojHXrcphQ2co-C-tyt8tpWvywPdlDGQ";
 
 export default function NewRecipeScreen() {
-  // 1. ESTADOS DE LA RECETA
   const { editId } = useLocalSearchParams();
   const isEditing = !!editId;
+
+  const [isImportModalVisible, setIsImportModalVisible] = useState(false);
+  const [codeToImport, setCodeToImport] = useState('');
 
   const [name, setName] = useState('');
   const [baseDiners, setBaseDiners] = useState('2');
@@ -25,24 +29,20 @@ export default function NewRecipeScreen() {
   const [isImporting, setIsImporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // 2. ESTADOS DE INTERFAZ Y AUTOCOMPLETADO
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [hasManuallySelectedUnit, setHasManuallySelectedUnit] = useState(false);
 
-  // 3. ESTADOS PARA BUSCADOR IMÁGENES
   const [isImgModalVisible, setIsImgModalVisible] = useState(false);
   const [imgQuery, setImgQuery] = useState('');
   const [fetchedImages, setFetchedImages] = useState([]);
   const [isSearchingImages, setIsSearchingImages] = useState(false);
 
-  // 4. ESTADOS PARA EL MODAL NUTRICIONAL
   const [pendingIngredients, setPendingIngredients] = useState([]);
   const [currentPendingIndex, setCurrentPendingIndex] = useState(0);
   const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
   const [isFetchingNutrients, setIsFetchingNutrients] = useState(false);
   const [activeTab, setActiveTab] = useState('datos');
 
-  // 5. ESTADOS DE DATOS AVANZADOS
   const [formUnit, setFormUnit] = useState('g');
   const [formEmoji, setFormEmoji] = useState('🛒');
   const [formFormat, setFormFormat] = useState('1kg');
@@ -85,22 +85,67 @@ export default function NewRecipeScreen() {
     setShowSuggestions(false);
   };
 
+  // --- NUEVA LÓGICA: SELECCIÓN DE IMÁGENES LOCALES ---
+  const pickImageFromGallery = async () => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+      if (!result.canceled) {
+        setImageUrl(result.assets[0].uri);
+        setIsImgModalVisible(false);
+      }
+    } catch (e) { Alert.alert("Error", "No se pudo acceder a la galería."); }
+  };
+
+  const takePhotoWithCamera = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      if (permissionResult.granted === false) {
+        Alert.alert("Permiso denegado", "Necesitas dar permiso para usar la cámara.");
+        return;
+      }
+      let result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+      if (!result.canceled) {
+        setImageUrl(result.assets[0].uri);
+        setIsImgModalVisible(false);
+      }
+    } catch (e) { Alert.alert("Error", "No se pudo abrir la cámara."); }
+  };
+
   const searchPhotosOnline = async () => {
     if (!imgQuery.trim()) return;
     setIsSearchingImages(true);
     try {
-      const response = await fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(imgQuery.trim())}&per_page=12&client_id=${UNSPLASH_ACCESS_KEY}`
-      );
+      const response = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(imgQuery.trim())}&per_page=12&client_id=${UNSPLASH_ACCESS_KEY}`);
       const data = await response.json();
-      // Nos quedamos con las urls en formato regular (buena calidad pero optimizadas para móvil)
       setFetchedImages(data.results || []);
-    } catch (e) {
-      console.error("Error buscando fotos:", e);
-      Alert.alert("Error", "No se han podido cargar las imágenes.");
-    } finally {
-      setIsSearchingImages(false);
+    } catch (e) { Alert.alert("Error", "No se han podido cargar las imágenes."); } 
+    finally { setIsSearchingImages(false); }
+  };
+
+  // --- NUEVA LÓGICA: CONVERSIÓN DE UNIDADES (UD -> GRAMOS) ---
+  const normalizeToGramsIfUnit = (name, amount, unit) => {
+    if (unit.toLowerCase() === 'ud') {
+      const canonical = getCanonicalName(name.trim());
+      const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonical);
+      if (dbKey && INGREDIENTS_DB[dbKey].weightPerUnit) {
+        return {
+          name: name.trim(),
+          amount: Math.round(amount * INGREDIENTS_DB[dbKey].weightPerUnit),
+          unit: 'g', // Pasamos automáticamente a gramos
+          originalUd: amount // Guardamos la unidad original para la interfaz visual
+        };
+      }
     }
+    return { name: name.trim(), amount, unit, originalUd: null };
   };
 
   const handleImportUrl = async () => {
@@ -159,7 +204,8 @@ export default function NewRecipeScreen() {
               parsedName = (matchIng[4] || rawStr).trim();
             }
             parsedName = parsedName.charAt(0).toUpperCase() + parsedName.slice(1);
-            return { name: parsedName, amount, unit };
+            // Aplicamos la conversión si viene en "ud" desde la web
+            return normalizeToGramsIfUnit(parsedName, amount, unit);
           }).filter(i => i !== null);
           setIngredients(newIngs);
         }
@@ -172,20 +218,54 @@ export default function NewRecipeScreen() {
     } catch (error) { Alert.alert('Error', 'No se ha podido leer el enlace.'); } finally { setIsImporting(false); setImportUrl(''); }
   };
 
+  const openImportModal = () => setIsImportModalVisible(true);
+  
+  const handleImportRecipe = () => {
+    try {
+      const cleanCode = codeToImport.trim();
+      if (cleanCode.startsWith("APP-RECIPE:")) {
+        const base64Data = cleanCode.split(":")[1];
+        const jsonString = decode(base64Data);
+        const importedRecipe = JSON.parse(jsonString);
+        
+        addRecipe(importedRecipe);
+        
+        setIsImportModalVisible(false);
+        setCodeToImport('');
+        Alert.alert("¡Éxito!", `Receta "${importedRecipe.name}" importada.`);
+        router.back();
+      } else { Alert.alert("Error", "El código no parece ser válido."); }
+    } catch (e) { Alert.alert("Error", "No se pudo descifrar la receta."); }
+  };
+
   const handleAddIngredient = () => {
     if (!ingName.trim()) return;
-    setIngredients([...ingredients, { name: ingName.trim(), amount: parseFloat(ingAmount) || 1, unit: ingUnit.trim() }]);
+    const parsedAmount = parseFloat(ingAmount) || 1;
+    // Aplicamos la conversión si la añaden a mano con "ud"
+    const newIng = normalizeToGramsIfUnit(ingName, parsedAmount, ingUnit.trim());
+    setIngredients([...ingredients, newIng]);
     setIngName(''); setIngAmount('1'); setHasManuallySelectedUnit(false); setShowSuggestions(false);
   };
 
   const handleRemoveIngredient = (indexToRemove) => setIngredients(ingredients.filter((_, index) => index !== indexToRemove));
+
+  // --- NUEVA LÓGICA: EDITAR INGREDIENTE (LONG PRESS) ---
+  const handleEditIngredient = (index) => {
+    const ing = ingredients[index];
+    setIngName(ing.name);
+    // Si tenía unidad original, devolvemos las uds al input, si no, devolvemos los gramos
+    setIngAmount(ing.originalUd ? String(ing.originalUd) : String(ing.amount));
+    setIngUnit(ing.originalUd ? 'ud' : ing.unit);
+    setHasManuallySelectedUnit(true);
+    handleRemoveIngredient(index); // Lo borramos temporalmente para que se reemplace al guardar
+  };
+
   const handleAddInstruction = () => { if (!instructionText.trim()) return; setInstructions([...instructions, instructionText.trim()]); setInstructionText(''); };
   const handleRemoveInstruction = (indexToRemove) => setInstructions(instructions.filter((_, index) => index !== indexToRemove));
 
-  // --- ESCÁNER DE APIS CON DATOS AVANZADOS ---
   const fetchNutrientsFromAPI = async (ingredientName, baseUnit) => {
     setIsFetchingNutrients(true);
-    setActiveTab('datos'); // Reseteamos a la pestaña de datos básicos
+    setActiveTab('datos'); 
     setFormUnit(baseUnit);
     setFormEmoji('🛒');
     setFormFormat(`1${baseUnit}`);
@@ -201,25 +281,11 @@ export default function NewRecipeScreen() {
         
         setFormEmoji(prod.image_front_thumb ? '📦' : '🛒');
         setFormMacros({
-          kcals: String(Math.round(nut['energy-kcal_100g'] || 0)),
-          protein: String(Math.round((nut['proteins_100g'] || 0) * 10) / 10),
-          carbsTotal: String(Math.round((nut['carbohydrates_100g'] || 0) * 10) / 10),
-          carbsSugars: String(Math.round((nut['sugars_100g'] || 0) * 10) / 10),
-          fatsTotal: String(Math.round((nut['fat_100g'] || 0) * 10) / 10),
-          fatsSat: String(Math.round((nut['saturated-fat_100g'] || 0) * 10) / 10),
-          fatsMono: String(Math.round((nut['monounsaturated-fat_100g'] || 0) * 10) / 10),
-          fatsPoly: String(Math.round((nut['polyunsaturated-fat_100g'] || 0) * 10) / 10),
-          fiber: String(Math.round((nut['fiber_100g'] || 0) * 10) / 10),
-          salt: String(Math.round((nut['salt_100g'] || 0) * 100) / 100)
+          kcals: String(Math.round(nut['energy-kcal_100g'] || 0)), protein: String(Math.round((nut['proteins_100g'] || 0) * 10) / 10), carbsTotal: String(Math.round((nut['carbohydrates_100g'] || 0) * 10) / 10), carbsSugars: String(Math.round((nut['sugars_100g'] || 0) * 10) / 10), fatsTotal: String(Math.round((nut['fat_100g'] || 0) * 10) / 10), fatsSat: String(Math.round((nut['saturated-fat_100g'] || 0) * 10) / 10), fatsMono: String(Math.round((nut['monounsaturated-fat_100g'] || 0) * 10) / 10), fatsPoly: String(Math.round((nut['polyunsaturated-fat_100g'] || 0) * 10) / 10), fiber: String(Math.round((nut['fiber_100g'] || 0) * 10) / 10), salt: String(Math.round((nut['salt_100g'] || 0) * 100) / 100)
         });
 
         setFormMicros({
-          calcium: String(nut['calcium_100g'] ? Math.round(nut['calcium_100g'] * 1000) : 0),
-          iron: String(nut['iron_100g'] ? Math.round(nut['iron_100g'] * 1000) : 0),
-          magnesium: String(nut['magnesium_100g'] ? Math.round(nut['magnesium_100g'] * 1000) : 0),
-          potassium: String(nut['potassium_100g'] ? Math.round(nut['potassium_100g'] * 1000) : 0),
-          zinc: String(nut['zinc_100g'] ? Math.round(nut['zinc_100g'] * 1000) : 0),
-          vitE: '0', vitC: String(nut['vitamin-c_100g'] ? Math.round(nut['vitamin-c_100g'] * 1000) : 0)
+          calcium: String(nut['calcium_100g'] ? Math.round(nut['calcium_100g'] * 1000) : 0), iron: String(nut['iron_100g'] ? Math.round(nut['iron_100g'] * 1000) : 0), magnesium: String(nut['magnesium_100g'] ? Math.round(nut['magnesium_100g'] * 1000) : 0), potassium: String(nut['potassium_100g'] ? Math.round(nut['potassium_100g'] * 1000) : 0), zinc: String(nut['zinc_100g'] ? Math.round(nut['zinc_100g'] * 1000) : 0), vitE: '0', vitC: String(nut['vitamin-c_100g'] ? Math.round(nut['vitamin-c_100g'] * 1000) : 0)
         });
       } else { resetFormFields(baseUnit); }
     } catch (e) { resetFormFields(baseUnit); } finally { setIsFetchingNutrients(false); }
@@ -247,33 +313,12 @@ export default function NewRecipeScreen() {
     executeFinalSave();
   };
 
-  // --- CONSTRUCCIÓN DEL OBJETO COMPLETO DE SÚPER Y NUTRICIÓN ---
   const confirmPendingIngredient = async () => {
     const currentIng = pendingIngredients[currentPendingIndex];
-    
     const advancedIngredientObject = {
-      name: getCanonicalName(currentIng.name),
-      unit: formUnit,
-      emoji: formEmoji.trim() || '🛒',
-      purchaseUnit: formFormat.trim() || `1 ${formUnit}`,
-      purchasePrice: parseFloat(formPrice) || 0,
-      macros: {
-        kcals: parseFloat(formMacros.kcals) || 0,
-        protein: parseFloat(formMacros.protein) || 0,
-        carbs: { total: parseFloat(formMacros.carbsTotal) || 0, sugars: parseFloat(formMacros.carbsSugars) || 0 },
-        fats: { total: parseFloat(formMacros.fatsTotal) || 0, saturated: parseFloat(formMacros.fatsSat) || 0, monounsaturated: parseFloat(formMacros.fatsMono) || 0, polyunsaturated: parseFloat(formMacros.fatsPoly) || 0 },
-        fiber: parseFloat(formMacros.fiber) || 0,
-        salt: parseFloat(formMacros.salt) || 0
-      },
-      micros: {
-        calcium_mg: parseFloat(formMicros.calcium) || 0,
-        iron_mg: parseFloat(formMicros.iron) || 0,
-        magnesium_mg: parseFloat(formMicros.magnesium) || 0,
-        potassium_mg: parseFloat(formMicros.potassium) || 0,
-        zinc_mg: parseFloat(formMicros.zinc) || 0,
-        vitE_mg: parseFloat(formMicros.vitE) || 0,
-        vitC_mg: parseFloat(formMicros.vitC) || 0
-      },
+      name: getCanonicalName(currentIng.name), unit: formUnit, emoji: formEmoji.trim() || '🛒', purchaseUnit: formFormat.trim() || `1 ${formUnit}`, purchasePrice: parseFloat(formPrice) || 0,
+      macros: { kcals: parseFloat(formMacros.kcals) || 0, protein: parseFloat(formMacros.protein) || 0, carbs: { total: parseFloat(formMacros.carbsTotal) || 0, sugars: parseFloat(formMacros.carbsSugars) || 0 }, fats: { total: parseFloat(formMacros.fatsTotal) || 0, saturated: parseFloat(formMacros.fatsSat) || 0, monounsaturated: parseFloat(formMacros.fatsMono) || 0, polyunsaturated: parseFloat(formMacros.fatsPoly) || 0 }, fiber: parseFloat(formMacros.fiber) || 0, salt: parseFloat(formMacros.salt) || 0 },
+      micros: { calcium_mg: parseFloat(formMicros.calcium) || 0, iron_mg: parseFloat(formMicros.iron) || 0, magnesium_mg: parseFloat(formMicros.magnesium) || 0, potassium_mg: parseFloat(formMicros.potassium) || 0, zinc_mg: parseFloat(formMicros.zinc) || 0, vitE_mg: parseFloat(formMicros.vitE) || 0, vitC_mg: parseFloat(formMicros.vitC) || 0 },
       source: "USER_CUSTOM"
     };
 
@@ -291,7 +336,31 @@ export default function NewRecipeScreen() {
   const executeFinalSave = async () => {
     setIsSaving(true);
     try {
-      const processedIngredients = await Promise.all(ingredients.map(async (ing) => ({ name: await registerCustomIngredient(ing.name, ing.unit), amount: ing.amount, unit: ing.unit })));
+      const processedIngredients = await Promise.all(ingredients.map(async (ing) => {
+        const canonicalName = await registerCustomIngredient(ing.name, ing.unit);
+        
+        let finalAmt = ing.amount;
+        let finalUnit = ing.unit;
+        let origUd = ing.originalUd;
+
+        // FILTRO DE SEGURIDAD FINAL: Si por algún motivo se coló alguna 'ud', la fulminamos aquí.
+        if (finalUnit.toLowerCase() === 'ud') {
+          const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName);
+          if (dbKey && INGREDIENTS_DB[dbKey].weightPerUnit) {
+            origUd = finalAmt;
+            finalAmt = Math.round(finalAmt * INGREDIENTS_DB[dbKey].weightPerUnit);
+            finalUnit = 'g';
+          } else {
+            // Si es un ingrediente Custom sin peso registrado, forzamos la conversión a 100g por unidad
+            origUd = finalAmt;
+            finalAmt = finalAmt * 100; 
+            finalUnit = 'g';
+          }
+        }
+
+        return { name: canonicalName, amount: finalAmt, unit: finalUnit, originalUd: origUd };
+      }));
+
       const recipeData = { name: name.trim(), imageUrl: imageUrl || 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=800&q=80', baseDiners: parseInt(baseDiners) || 2, ingredients: processedIngredients, instructions: instructions.length > 0 ? instructions : ['Cocinar con mucho amor.'] };
       isEditing ? updateRecipe(editId, recipeData) : addRecipe({ ...recipeData, id: `recipe-${Date.now()}` });
       router.back(); 
@@ -303,16 +372,25 @@ export default function NewRecipeScreen() {
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <Stack.Screen options={{ title: isEditing ? 'Editar Receta' : 'Nueva Receta' }} />
         
-        {/* --- TUS SECCIONES DE SIEMPRE (Importación, datos base, ingredientes, pasos) --- */}
         {!isEditing && (
-          <View style={[styles.card, { backgroundColor: '#f0f9ff', borderColor: '#bae6fd', borderWidth: 1 }]}>
-            <Text style={styles.sectionTitle}>🔗 Importar desde web</Text>
-            <View style={styles.row}>
-              <TextInput style={[styles.input, { flex: 1, marginBottom: 0 }]} placeholder="https://..." value={importUrl} onChangeText={setImportUrl} autoCapitalize="none" />
-              <TouchableOpacity style={[styles.importButton, !importUrl.trim() && { opacity: 0.5 }]} onPress={handleImportUrl} disabled={!importUrl.trim() || isImporting || isSaving}>
-                {isImporting ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.importButtonText}>Extraer</Text>}
-              </TouchableOpacity>
+          <View>
+            <View style={[styles.card, { backgroundColor: '#f0f9ff', borderColor: '#bae6fd', borderWidth: 1 }]}>
+              <Text style={styles.sectionTitle}>🔗 Importar desde web</Text>
+              <View style={styles.row}>
+                <TextInput style={[styles.input, { flex: 1, marginBottom: 0 }]} placeholder="https://..." value={importUrl} onChangeText={setImportUrl} autoCapitalize="none" />
+                <TouchableOpacity style={[styles.importButton, !importUrl.trim() && { opacity: 0.5 }]} onPress={handleImportUrl} disabled={!importUrl.trim() || isImporting || isSaving}>
+                  {isImporting ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.importButtonText}>Extraer</Text>}
+                </TouchableOpacity>
+              </View>
             </View>
+
+            <TouchableOpacity 
+              style={[styles.card, { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0', borderWidth: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 15, marginTop: 10 }]} 
+              onPress={openImportModal}
+            >
+              <FontAwesome name="download" size={16} color="#15803d" />
+              <Text style={{ color: '#15803d', fontWeight: 'bold', marginLeft: 10 }}>Importar receta desde código</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -326,19 +404,10 @@ export default function NewRecipeScreen() {
             </View>
             <View style={{ flex: 2 }}>
               <Text style={styles.label}>Foto de la receta</Text>
-              <TouchableOpacity 
-                style={[styles.input, styles.imageSelectorButton]} 
-                onPress={() => {
-                  setIsImgModalVisible(true);
-                  // Si ya han puesto nombre a la receta, autocompletamos la búsqueda
-                  if (name.trim()) {
-                    setImgQuery(name.trim());
-                  }
-                }}
-              >
+              <TouchableOpacity style={[styles.input, styles.imageSelectorButton]} onPress={() => { setIsImgModalVisible(true); if (name.trim()) setImgQuery(name.trim()); }}>
                 <FontAwesome name="image" size={16} color="#2f95dc" style={{ marginRight: 8 }} />
                 <Text style={{ color: imageUrl ? '#333' : '#94a3b8', fontSize: 15 }} numberOfLines={1}>
-                  {imageUrl ? "✅ Imagen seleccionada" : "🔍 Buscar imagen online..."}
+                  {imageUrl ? "✅ Imagen lista" : "📷 Elegir foto..."}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -347,14 +416,25 @@ export default function NewRecipeScreen() {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>🛒 Ingredientes</Text>
+          <Text style={{fontSize: 12, color: '#94a3b8', marginBottom: 10}}>Mantén pulsado un ingrediente para editarlo.</Text>
+          
           {ingredients.map((ing, idx) => (
-            <View key={idx} style={styles.addedItemRow}>
-              <Text style={styles.addedItemText}>• {ing.amount} {ing.unit} de {ing.name}</Text>
-              <TouchableOpacity onPress={() => handleRemoveIngredient(idx)}>
+            <TouchableOpacity 
+              key={idx} 
+              style={styles.addedItemRow}
+              onLongPress={() => handleEditIngredient(idx)}
+              delayLongPress={300}
+            >
+              {/* INTERFAZ VISUAL INTELIGENTE PARA MOSTRAR UDS CONVERTIDAS */}
+              <Text style={[styles.addedItemText, { flex: 1 }]}>
+                • {ing.originalUd ? `${ing.originalUd} uds (${ing.amount}${ing.unit})` : `${ing.amount} ${ing.unit}`} de {ing.name}
+              </Text>
+              <TouchableOpacity onPress={() => handleRemoveIngredient(idx)} style={{ padding: 5 }}>
                 <FontAwesome name="trash" size={18} color="#ff5252" />
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           ))}
+          
           <View style={styles.addBlock}>
             <View style={[styles.row, { zIndex: 10, position: 'relative' }]}>
               <View style={{ flex: 2, marginRight: 8 }}>
@@ -419,71 +499,34 @@ export default function NewRecipeScreen() {
         )}
       </ScrollView>
 
-      {/* ========================================================
-          🎛️ MODAL PREMIUM CON PESTAÑAS E INPUTS COMPLETOS 
-          ======================================================== */}
+      {/* --- MODAL DE FICHA TÉCNICA (Se mantiene igual) --- */}
       <Modal visible={isRegisterModalVisible} animationType="slide" transparent={true}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>✨ Configurar Ficha Técnica</Text>
-            
             {isFetchingNutrients ? (
-              <View style={{ alignItems: 'center', padding: 30 }}>
-                <ActivityIndicator size="large" color="#2f95dc" />
-                <Text style={{ marginTop: 15, color: '#64748b' }}>Consultando OpenFoodFacts...</Text>
-              </View>
+              <View style={{ alignItems: 'center', padding: 30 }}><ActivityIndicator size="large" color="#2f95dc" /><Text style={{ marginTop: 15, color: '#64748b' }}>Consultando OpenFoodFacts...</Text></View>
             ) : (
               <View style={{ flexShrink: 1 }}>
                 <Text style={styles.modalSubtitle}>Ingrediente: {pendingIngredients[currentPendingIndex]?.name}</Text>
-
-                {/* SELECTOR DE PESTAÑAS */}
                 <View style={styles.tabContainer}>
-                  <TouchableOpacity style={[styles.tabButton, activeTab === 'datos' && styles.tabActive]} onPress={() => setActiveTab('datos')}>
-                    <Text style={[styles.tabText, activeTab === 'datos' && styles.tabTextActive]}>Súper</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.tabButton, activeTab === 'macros' && styles.tabActive]} onPress={() => setActiveTab('macros')}>
-                    <Text style={[styles.tabText, activeTab === 'macros' && styles.tabTextActive]}>Macros (100g)</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.tabButton, activeTab === 'micros' && styles.tabActive]} onPress={() => setActiveTab('micros')}>
-                    <Text style={[styles.tabText, activeTab === 'micros' && styles.tabTextActive]}>Micros</Text>
-                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.tabButton, activeTab === 'datos' && styles.tabActive]} onPress={() => setActiveTab('datos')}><Text style={[styles.tabText, activeTab === 'datos' && styles.tabTextActive]}>Súper</Text></TouchableOpacity>
+                  <TouchableOpacity style={[styles.tabButton, activeTab === 'macros' && styles.tabActive]} onPress={() => setActiveTab('macros')}><Text style={[styles.tabText, activeTab === 'macros' && styles.tabTextActive]}>Macros (100g)</Text></TouchableOpacity>
+                  <TouchableOpacity style={[styles.tabButton, activeTab === 'micros' && styles.tabActive]} onPress={() => setActiveTab('micros')}><Text style={[styles.tabText, activeTab === 'micros' && styles.tabTextActive]}>Micros</Text></TouchableOpacity>
                 </View>
-
                 <ScrollView style={{ maxHeight: 280 }} keyboardShouldPersistTaps="handled">
-                  {/* PESTAÑA 1: DATOS DE COMPRA */}
                   {activeTab === 'datos' && (
                     <View style={styles.gridWrapperModal}>
-                      <View style={styles.macroBox}>
-                        <Text style={styles.macroLabel}>Emoji</Text>
-                        <TextInput style={styles.macroInput} value={formEmoji} onChangeText={setFormEmoji} placeholder="Ej: 🍅" />
-                      </View>
-                      {/* --- NUEVO: SELECTOR EN CHIPS PARA LA UNIDAD BASE --- */}
-                      <View style={[styles.macroBox, { width: '100%' }]}>
-                        <Text style={styles.macroLabel}>Unidad Base</Text>
+                      <View style={styles.macroBox}><Text style={styles.macroLabel}>Emoji</Text><TextInput style={styles.macroInput} value={formEmoji} onChangeText={setFormEmoji} placeholder="Ej: 🍅" /></View>
+                      <View style={[styles.macroBox, { width: '100%' }]}><Text style={styles.macroLabel}>Unidad Base</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.unitsScroll, { marginTop: 4, paddingBottom: 4 }]}>
-                          {STANDARD_UNITS.map((u) => (
-                            <TouchableOpacity 
-                              key={u} 
-                              style={[styles.unitChip, formUnit === u && styles.unitChipSelected, { paddingHorizontal: 12, paddingVertical: 6, marginBottom: 0 }]} 
-                              onPress={() => setFormUnit(u)}
-                            >
-                              <Text style={[styles.unitChipText, formUnit === u && styles.unitChipTextSelected, { fontSize: 12 }]}>{u}</Text>
-                            </TouchableOpacity>
-                          ))}
+                          {STANDARD_UNITS.map((u) => (<TouchableOpacity key={u} style={[styles.unitChip, formUnit === u && styles.unitChipSelected, { paddingHorizontal: 12, paddingVertical: 6, marginBottom: 0 }]} onPress={() => setFormUnit(u)}><Text style={[styles.unitChipText, formUnit === u && styles.unitChipTextSelected, { fontSize: 12 }]}>{u}</Text></TouchableOpacity>))}
                         </ScrollView>
                       </View>
-                      <View style={styles.macroBox}>
-                        <Text style={styles.macroLabel}>Formato Venta</Text>
-                        <TextInput style={styles.macroInput} value={formFormat} onChangeText={setFormFormat} placeholder="Ej: Malla 1kg" />
-                      </View>
-                      <View style={styles.macroBox}>
-                        <Text style={styles.macroLabel}>Precio Venta (€)</Text>
-                        <TextInput style={styles.macroInput} keyboardType="decimal-pad" value={formPrice} onChangeText={setFormPrice} />
-                      </View>
+                      <View style={styles.macroBox}><Text style={styles.macroLabel}>Formato Venta</Text><TextInput style={styles.macroInput} value={formFormat} onChangeText={setFormFormat} placeholder="Ej: Malla 1kg" /></View>
+                      <View style={styles.macroBox}><Text style={styles.macroLabel}>Precio Venta (€)</Text><TextInput style={styles.macroInput} keyboardType="decimal-pad" value={formPrice} onChangeText={setFormPrice} /></View>
                     </View>
                   )}
-
-                  {/* PESTAÑA 2: MACRONUTRIENTES (POR 100G) */}
                   {activeTab === 'macros' && (
                     <View style={styles.gridWrapperModal}>
                       <View style={styles.macroBox}><Text style={styles.macroLabel}>Kcals</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.kcals} onChangeText={t => setFormMacros({...formMacros, kcals: t})} /></View>
@@ -498,8 +541,6 @@ export default function NewRecipeScreen() {
                       <View style={styles.macroBox}><Text style={styles.macroLabel}>Sal (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.salt} onChangeText={t => setFormMacros({...formMacros, salt: t})} /></View>
                     </View>
                   )}
-
-                  {/* PESTAÑA 3: MICRONUTRIENTES (POR 100G) */}
                   {activeTab === 'micros' && (
                     <View style={styles.gridWrapperModal}>
                       <View style={styles.macroBox}><Text style={styles.macroLabel}>Calcio (mg)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMicros.calcium} onChangeText={t => setFormMicros({...formMicros, calcium: t})} /></View>
@@ -512,71 +553,62 @@ export default function NewRecipeScreen() {
                     </View>
                   )}
                 </ScrollView>
-
-                <TouchableOpacity style={styles.confirmModalBtn} onPress={confirmPendingIngredient}>
-                  <Text style={styles.confirmModalBtnText}>
-                    Aceptar Ficha
-                  </Text>
-                </TouchableOpacity>
+                <TouchableOpacity style={styles.confirmModalBtn} onPress={confirmPendingIngredient}><Text style={styles.confirmModalBtnText}>Aceptar Ficha</Text></TouchableOpacity>
               </View>
             )}
           </View>
         </KeyboardAvoidingView>
       </Modal>
-        {/* ========================================================
-          🖼️ MODAL BUSCADOR DE IMÁGENES ONLINE (UNSPLASH)
-          ======================================================== */}
+
+      {/* --- MODAL MEJORADO DE SELECCIÓN DE IMAGEN --- */}
       <Modal visible={isImgModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { height: '80%', paddingBottom: 20 }]}>
+          <View style={[styles.modalContent, { height: '85%', paddingBottom: 20 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-              <Text style={styles.modalTitle}>🖼️ Buscador de Fotos Libres</Text>
+              <Text style={styles.modalTitle}>Añadir Imagen</Text>
               <TouchableOpacity onPress={() => setIsImgModalVisible(false)} style={{ padding: 4 }}>
                 <FontAwesome name="times" size={20} color="#64748b" />
               </TouchableOpacity>
             </View>
 
+            {/* BOTONES DE DISPOSITIVO LOCAL */}
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 15 }}>
+              <TouchableOpacity style={[styles.secondaryButton, { flex: 1, marginTop: 0, backgroundColor: '#10b981' }]} onPress={takePhotoWithCamera}>
+                <FontAwesome name="camera" size={16} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.secondaryButtonText}>Cámara</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.secondaryButton, { flex: 1, marginTop: 0, backgroundColor: '#8b5cf6' }]} onPress={pickImageFromGallery}>
+                <FontAwesome name="image" size={16} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.secondaryButtonText}>Galería</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 15}}>
+              <View style={{flex: 1, height: 1, backgroundColor: '#e2e8f0'}} />
+              <Text style={{marginHorizontal: 10, color: '#64748b', fontSize: 11, fontWeight: 'bold'}}>O BUSCAR EN UNSPLASH</Text>
+              <View style={{flex: 1, height: 1, backgroundColor: '#e2e8f0'}} />
+            </View>
+
             <View style={styles.row}>
-              <TextInput 
-                style={[styles.input, { flex: 1, marginBottom: 0 }]} 
-                placeholder="Ej: Pasta carbonara, pancakes..." 
-                value={imgQuery}
-                onChangeText={setImgQuery}
-                onSubmitEditing={searchPhotosOnline}
-              />
+              <TextInput style={[styles.input, { flex: 1, marginBottom: 0 }]} placeholder="Ej: Pasta carbonara..." value={imgQuery} onChangeText={setImgQuery} onSubmitEditing={searchPhotosOnline}/>
               <TouchableOpacity style={styles.unsplashSearchBtn} onPress={searchPhotosOnline} disabled={isSearchingImages}>
                 {isSearchingImages ? <ActivityIndicator color="#fff" size="small" /> : <FontAwesome name="search" size={16} color="#fff" />}
               </TouchableOpacity>
             </View>
 
             {isSearchingImages ? (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#2f95dc" />
-              </View>
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" color="#2f95dc" /></View>
             ) : (
               <ScrollView contentContainerStyle={styles.imageGridContainer} style={{ marginTop: 15, flex: 1 }}>
                 {fetchedImages.length === 0 ? (
                   <Text style={styles.noImagesText}>Escribe qué plato buscas y pulsa la lupa.</Text>
                 ) : (
                   fetchedImages.map((img) => (
-                    <TouchableOpacity 
-                      key={img.id} 
-                      style={styles.imageGridItem}
-                      onPress={() => {
-                        setImageUrl(img.urls.regular); 
-                        setIsImgModalVisible(false); 
-                      }}
-                    >
+                    <TouchableOpacity key={img.id} style={styles.imageGridItem} onPress={() => { setImageUrl(img.urls.regular); setIsImgModalVisible(false); }}>
                       <View style={{ width: '100%', height: '100%', borderRadius: 12, backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-                        <Image 
-                          source={{ uri: img.urls.small }} 
-                          style={{ width: '100%', height: '100%' }} 
-                          resizeMode="cover" 
-                        />
+                        <Image source={{ uri: img.urls.small }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                         <View style={{position:'absolute', bottom:4, right:4, backgroundColor:'rgba(0,0,0,0.5)', paddingHorizontal:4, paddingVertical:2, borderRadius:4}}>
-                           <Text style={{fontSize:9, color:'#fff', fontWeight: 'bold'}}>
-                             📸 {img.user.name.substring(0, 12)}
-                           </Text>
+                           <Text style={{fontSize:9, color:'#fff', fontWeight: 'bold'}}>📸 {img.user.name.substring(0, 12)}</Text>
                         </View>
                       </View>
                     </TouchableOpacity>
@@ -584,6 +616,19 @@ export default function NewRecipeScreen() {
                 )}
               </ScrollView>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={isImportModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Pegar código de receta</Text>
+            <TextInput style={styles.modalInput} placeholder="APP-RECIPE:..." value={codeToImport} onChangeText={setCodeToImport} multiline />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={[styles.modalBtn, {backgroundColor: '#cbd5e1'}]} onPress={() => setIsImportModalVisible(false)}><Text style={{fontWeight: 'bold'}}>Cancelar</Text></TouchableOpacity>
+              <TouchableOpacity style={[styles.modalBtn, {backgroundColor: '#10b981'}]} onPress={handleImportRecipe}><Text style={{color: '#fff', fontWeight: 'bold'}}>Importar</Text></TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -620,7 +665,6 @@ const styles = StyleSheet.create({
   importButton: { backgroundColor: '#0284c7', padding: 12, borderRadius: 10, marginLeft: 10, justifyContent: 'center', alignItems: 'center', height: 50, minWidth: 90 },
   importButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 
-  // --- ESTILOS DEL SELECCIONADOR DE PESTAÑAS ---
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 16 },
   modalContent: { backgroundColor: '#fff', borderRadius: 24, padding: 20, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e293b', textAlign: 'center', marginBottom: 4 },
@@ -631,7 +675,6 @@ const styles = StyleSheet.create({
   tabText: { fontSize: 13, fontWeight: '600', color: '#64748b' },
   tabTextActive: { color: '#1e293b', fontWeight: 'bold' },
 
-  // --- CUADRÍCULA DE CAMPOS ---
   gridWrapperModal: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   macroBox: { width: '48%', backgroundColor: '#f8fafc', padding: 8, borderRadius: 12, marginBottom: 10, borderWidth: 1, borderColor: '#e2e8f0' },
   macroLabel: { fontSize: 11, fontWeight: '700', color: '#64748b', marginBottom: 4, paddingLeft: 4 },
@@ -639,41 +682,13 @@ const styles = StyleSheet.create({
   confirmModalBtn: { backgroundColor: '#10b981', padding: 14, borderRadius: 14, alignItems: 'center', marginTop: 15 },
   confirmModalBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 
-  imageSelectorButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderColor: '#cbd5e1',
-  },
-  unsplashSearchBtn: {
-    backgroundColor: '#2f95dc',
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  imageGridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingBottom: 20,
-  },
-  imageGridItem: {
-    width: '31%',
-    aspectRatio: 1,
-    marginBottom: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  noImagesText: {
-    width: '100%',
-    textAlign: 'center',
-    color: '#64748b',
-    marginTop: 40,
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  imageSelectorButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderColor: '#cbd5e1' },
+  unsplashSearchBtn: { backgroundColor: '#2f95dc', width: 48, height: 48, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginLeft: 8 },
+  imageGridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingBottom: 20 },
+  imageGridItem: { width: '31%', aspectRatio: 1, marginBottom: 10, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' },
+  noImagesText: { width: '100%', textAlign: 'center', color: '#64748b', marginTop: 40, fontSize: 14, fontWeight: '500' },
+
+  modalInput: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 10, height: 100, marginBottom: 20 },
+  modalButtons: { flexDirection: 'row', gap: 10 },
+  modalBtn: { flex: 1, padding: 15, borderRadius: 8, alignItems: 'center' },
 });

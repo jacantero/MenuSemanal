@@ -1,6 +1,8 @@
 import { saveMenuToStorage, saveRecipesToStorage, saveMetadataToStorage, loadAppData } from './storage';
 import ingredientsData from './ingredientsDB.json'
 import recipesData from './recipesDB.json'
+import { doc, collection, addDoc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from './firebaseConfig'; // Ajusta la ruta si es necesario
 
 export let MOCK_RECIPES = [...recipesData];
 export let USER_CUSTOM_INGREDIENTS = {};
@@ -412,5 +414,46 @@ export const updateIngredientDatabase = async (canonicalName, updatedData) => {
     await AsyncStorage.setItem('@custom_ingredients', JSON.stringify(USER_CUSTOM_INGREDIENTS));
   } catch (e) {
     console.error("Error guardando edición de ingrediente", e);
+  }
+};
+
+// En tempData.js
+export const archiveCurrentWeek = async (currentMenu, totalCost) => { // 👈 Añadimos currentMenu aquí
+  try {
+    const householdId = await AsyncStorage.getItem('@household_id');
+    if (!householdId) {
+      console.warn("🚨 No hay hogar configurado en el almacenamiento local.");
+      return false;
+    }
+
+    // 1. Conseguimos los datos actuales de la compra desde Firebase
+    const householdRef = doc(db, "households", householdId);
+    const docSnap = await getDoc(householdRef);
+    const currentData = docSnap.exists() ? docSnap.data() : {};
+
+    // 2. Creamos el documento en la subcolección "history"
+    const historyRef = collection(db, "households", householdId, "history");
+    await addDoc(historyRef, {
+      date: new Date().toISOString(),
+      menu: currentMenu, // 👈 Ahora sí usamos el menú real que le pasamos
+      shoppingExtras: currentData.extras || [],
+      shoppingChecked: currentData.checked || [],
+      totalCost: totalCost || 0
+    });
+
+    // // 3. Limpiamos la compra en Firebase
+    // await updateDoc(householdRef, {
+    //   extras: [],
+    //   checked: [],
+    //   deleted: []
+    // });
+
+    // 4. Limpiamos el menú (asumiendo que tu objeto se llama MOCK_RECIPES o similar, 
+    // pero para Firebase lo importante es que el paso 2 ya se ha guardado en la nube).
+    
+    return true;
+  } catch (error) {
+    console.error("🚨 Error real al archivar en Firebase:", error); // Esto nos chivará el error en la terminal
+    return false;
   }
 };

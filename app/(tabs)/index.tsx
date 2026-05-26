@@ -6,6 +6,7 @@ import { weeklyMenu, MOCK_RECIPES, updateEatOutDetails, assignRecipeToMenu, week
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // IMPORTANTE AÑADIR ESTO
 import {db} from '../firebaseConfig'
+
 // --- NUEVAS IMPORTACIONES DE FIREBASE ---
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, KeyboardAvo
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import { doc, onSnapshot, updateDoc, setDoc } from 'firebase/firestore';
-import {db} from '../firebaseConfig'
+import { db } from '../firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { weeklyMenu, MOCK_RECIPES, INGREDIENTS_DB, COMMON_INGREDIENTS, normalizeToBase, getCanonicalName, registerCustomIngredient, updateIngredientDatabase } from '../tempData';
 
@@ -54,19 +54,18 @@ export default function ShoppingScreen() {
   // --- ESTADOS PARA EL MODAL DEL TICKET (PRESUPUESTO) Y SUS EDICIONES ---
   const [isBudgetModalVisible, setIsBudgetModalVisible] = useState(false);
   const [tempPrices, setTempPrices] = useState({});
-  const [ticketOverrides, setTicketOverrides] = useState({}); // Guarda las cantidades y unidades editadas en el ticket
-  const [activeUnitEditId, setActiveUnitEditId] = useState(null); // Controla qué desplegable de unidad de ticket está abierto
+  const [ticketOverrides, setTicketOverrides] = useState({});
+  const [activeUnitEditId, setActiveUnitEditId] = useState(null);
 
   const suggestions = newItemName.trim().length > 0 
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
     : [];
 
-useEffect(() => {
+  useEffect(() => {
     const setupSync = async () => {
       try {
         const householdId = await AsyncStorage.getItem('@household_id');
         
-        // Si no hay hogar configurado, cargamos de local para no romper nada
         if (!householdId) {
           const savedExtras = await AsyncStorage.getItem('@shopping_extras');
           const savedChecked = await AsyncStorage.getItem('@shopping_checked');
@@ -78,13 +77,10 @@ useEffect(() => {
           return;
         }
 
-        // --- CONEXIÓN FIREBASE EN TIEMPO REAL ---
         const docRef = doc(db, "households", householdId);
-        
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
-            // Actualizamos estados con lo que viene de la nube
             if (data.extras) setExtraItems(data.extras);
             if (data.checked) setCheckedItems(new Set(data.checked));
             if (data.deleted) setDeletedItems(new Set(data.deleted));
@@ -105,18 +101,16 @@ useEffect(() => {
 
   const syncToFirebase = async (extras, checked, deleted) => {
     const householdId = await AsyncStorage.getItem('@household_id');
-    if (!householdId) return; // Si no hay hogar, no sincronizamos
+    if (!householdId) return;
 
     const docRef = doc(db, "households", householdId);
     try {
       await updateDoc(docRef, {
         extras: extras,
-        checked: Array.from(checked), // Convertimos Set a Array para Firebase
-        deleted: Array.from(deleted)  // Convertimos Set a Array para Firebase
+        checked: Array.from(checked),
+        deleted: Array.from(deleted)
       });
-    } catch (e) {
-      console.error("Error sincronizando cambios:", e);
-    }
+    } catch (e) { console.error("Error sincronizando cambios:", e); }
   };
 
   const calculateList = () => {
@@ -168,14 +162,17 @@ useEffect(() => {
     setShoppingItems(finalFlatList);
   };
 
-  // --- LÓGICA DE PRESUPUESTO MEJORADA CON OVERRIDES DEL USUARIO ---
+  // --- LÓGICA DE PRESUPUESTO BLINDADA ---
   const budgetDetails = useMemo(() => {
     let total = 0;
     const items = shoppingItems.map(item => {
       const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === item.name);
       const dbItem = dbKey ? INGREDIENTS_DB[dbKey] : null;
       
-      let unitPrice = dbItem ? (tempPrices[item.name] !== undefined ? tempPrices[item.name] : dbItem.purchasePrice) : 0;
+      // PARCHE 1: Aseguramos que el unitPrice nunca sea undefined
+      let unitPrice = dbItem ? (tempPrices[item.name] !== undefined ? tempPrices[item.name] : (dbItem.purchasePrice || 0)) : 0;
+      unitPrice = Number(unitPrice) || 0; // Doble seguridad
+
       let pAmount = 1;
       let lots = 1;
       let pUnit = 'ud';
@@ -200,7 +197,6 @@ useEffect(() => {
         }
       }
 
-      // Aplicamos las ediciones en vivo del ticket (Overrides) si existen
       const override = ticketOverrides[item.id];
       const currentLotsStr = override ? override.lotsStr : String(lots);
       const currentLotsNum = parseFloat(currentLotsStr) || 0;
@@ -224,10 +220,10 @@ useEffect(() => {
     return { total, items };
   }, [shoppingItems, tempPrices, ticketOverrides]);
 
-    // --- GUARDADO AUTOMÁTICO DEL PRESUPUESTO EN SEGUNDO PLANO ---
+  // PARCHE 2: GUARDADO SEGURO
   useEffect(() => {
-    // Cada vez que el total cambie, lo guardamos en la memoria interna
-    AsyncStorage.setItem('@estimated_shopping_cost', budgetDetails.total.toString())
+    const safeTotal = budgetDetails.total || 0; // Si es NaN o undefined, será 0
+    AsyncStorage.setItem('@estimated_shopping_cost', safeTotal.toString())
       .catch(e => console.error("Error guardando el presupuesto:", e));
   }, [budgetDetails.total]);
 
@@ -406,7 +402,7 @@ useEffect(() => {
       <TouchableOpacity style={styles.budgetCard} activeOpacity={0.8} onPress={() => setIsBudgetModalVisible(true)}>
         <View style={styles.budgetTextContainer}>
           <Text style={styles.budgetLabel}>Presupuesto Estimado</Text>
-          <Text style={styles.budgetValue}>{budgetDetails.total.toFixed(2)} €</Text>
+          <Text style={styles.budgetValue}>{(budgetDetails.total || 0).toFixed(2)} €</Text>
         </View>
         <View style={{ alignItems: 'center' }}>
           <FontAwesome name="calculator" size={24} color="#0284c7" style={{ opacity: 0.8, marginBottom: 4 }} />
@@ -567,10 +563,11 @@ useEffect(() => {
                       <TextInput
                         style={styles.ticketPriceInput}
                         keyboardType="decimal-pad"
-                        value={item.unitPrice.toString()}
+                        // PARCHE 3: Protección brutal para el TextInput
+                        value={String(item.unitPrice ?? 0)}
                         onChangeText={(val) => updatePriceInTicket(item.name, item.dbKey, val)}
                       />
-                      <Text style={styles.ticketSubtotalText}>= {item.itemTotalCost.toFixed(2)}€</Text>
+                      <Text style={styles.ticketSubtotalText}>= {(item.itemTotalCost || 0).toFixed(2)}€</Text>
                     </View>
                   </View>
 
@@ -599,7 +596,7 @@ useEffect(() => {
 
             <View style={styles.ticketFooter}>
               <Text style={styles.ticketFooterLabel}>TOTAL APROXIMADO</Text>
-              <Text style={styles.ticketFooterTotal}>{budgetDetails.total.toFixed(2)} €</Text>
+              <Text style={styles.ticketFooterTotal}>{(budgetDetails.total || 0).toFixed(2)} €</Text>
             </View>
             <TouchableOpacity style={[styles.confirmButton, { marginTop: 15 }]} onPress={() => { setIsBudgetModalVisible(false); setActiveUnitEditId(null); }}>
               <Text style={styles.confirmButtonText}>Cerrar Ticket</Text>
@@ -658,6 +655,8 @@ useEffect(() => {
                     <View style={styles.macroBox}><Text style={styles.macroLabel}>Azúcares (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.carbsSugars} onChangeText={t => setFormMacros({...formMacros, carbsSugars: t})} /></View>
                     <View style={styles.macroBox}><Text style={styles.macroLabel}>Grasas (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsTotal} onChangeText={t => setFormMacros({...formMacros, fatsTotal: t})} /></View>
                     <View style={styles.macroBox}><Text style={styles.macroLabel}>Saturadas (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsSat} onChangeText={t => setFormMacros({...formMacros, fatsSat: t})} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Monoinsat. (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsMono} onChangeText={t => setFormMacros({...formMacros, fatsMono: t})} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Poliinsat. (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsPoly} onChangeText={t => setFormMacros({...formMacros, fatsPoly: t})} /></View>
                     <View style={styles.macroBox}><Text style={styles.macroLabel}>Fibra (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fiber} onChangeText={t => setFormMacros({...formMacros, fiber: t})} /></View>
                     <View style={styles.macroBox}><Text style={styles.macroLabel}>Sal (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.salt} onChangeText={t => setFormMacros({...formMacros, salt: t})} /></View>
                   </View>
@@ -749,7 +748,6 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 18, fontWeight: 'bold', color: '#555', marginBottom: 8 },
   emptySubText: { fontSize: 16, color: '#888', textAlign: 'center' },
 
-  // --- ESTILOS DEL MODAL TICKET REAJUSTADOS ---
   ticketHeaderRow: { flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: '#e2e8f0', paddingBottom: 8, marginBottom: 10 },
   ticketHeaderCol: { fontSize: 11, fontWeight: 'bold', color: '#64748b' },
   ticketRow: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingVertical: 12 },
