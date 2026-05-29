@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Modal, Image } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router'; 
 import { FontAwesome } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker'; // <-- NUEVA LIBRERÍA
+import * as ImagePicker from 'expo-image-picker'; 
 import { decode } from 'base-64';
 import { addRecipe, MOCK_RECIPES, updateRecipe, deleteRecipe, registerCustomIngredient, COMMON_INGREDIENTS, INGREDIENTS_DB, getCanonicalName } from '../tempData'; 
 
@@ -13,6 +13,13 @@ export default function NewRecipeScreen() {
   const { editId } = useLocalSearchParams();
   const isEditing = !!editId;
 
+  // --- ESTADOS PARA GESTIONAR EL MODAL DE INGREDIENTES ---
+  const [isIngModalVisible, setIsIngModalVisible] = useState(false);
+  const [editingIndex, setEditingIndex] = useState(null); // null si es nuevo, número si estamos editando
+  
+  // --- ESTADO PARA CONTROLAR SI AÑADIMOS/EDITAMOS 1 INGREDIENTE O GUARDAMOS RECETA ---
+  const [pendingAction, setPendingAction] = useState(null); // 'ADD_SINGLE' | 'EDIT_SINGLE' | 'SAVE_RECIPE'
+
   const [isImportModalVisible, setIsImportModalVisible] = useState(false);
   const [codeToImport, setCodeToImport] = useState('');
 
@@ -20,23 +27,26 @@ export default function NewRecipeScreen() {
   const [baseDiners, setBaseDiners] = useState('2');
   const [imageUrl, setImageUrl] = useState('');
   const [ingredients, setIngredients] = useState([]);
+  
+  // Estados de los inputs del modal de ingredientes
   const [ingName, setIngName] = useState('');
   const [ingAmount, setIngAmount] = useState('1');
   const [ingUnit, setIngUnit] = useState('g'); 
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [hasManuallySelectedUnit, setHasManuallySelectedUnit] = useState(false);
+
   const [instructions, setInstructions] = useState([]);
   const [instructionText, setInstructionText] = useState('');
   const [importUrl, setImportUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [hasManuallySelectedUnit, setHasManuallySelectedUnit] = useState(false);
-
   const [isImgModalVisible, setIsImgModalVisible] = useState(false);
   const [imgQuery, setImgQuery] = useState('');
   const [fetchedImages, setFetchedImages] = useState([]);
   const [isSearchingImages, setIsSearchingImages] = useState(false);
 
+  // Estados del modal de ficha técnica
   const [pendingIngredients, setPendingIngredients] = useState([]);
   const [currentPendingIndex, setCurrentPendingIndex] = useState(0);
   const [isRegisterModalVisible, setIsRegisterModalVisible] = useState(false);
@@ -85,38 +95,19 @@ export default function NewRecipeScreen() {
     setShowSuggestions(false);
   };
 
-  // --- NUEVA LÓGICA: SELECCIÓN DE IMÁGENES LOCALES ---
   const pickImageFromGallery = async () => {
     try {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-      });
-      if (!result.canceled) {
-        setImageUrl(result.assets[0].uri);
-        setIsImgModalVisible(false);
-      }
+      let result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [4, 3], quality: 0.8 });
+      if (!result.canceled) { setImageUrl(result.assets[0].uri); setIsImgModalVisible(false); }
     } catch (e) { Alert.alert("Error", "No se pudo acceder a la galería."); }
   };
 
   const takePhotoWithCamera = async () => {
     try {
       const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-      if (permissionResult.granted === false) {
-        Alert.alert("Permiso denegado", "Necesitas dar permiso para usar la cámara.");
-        return;
-      }
-      let result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-      });
-      if (!result.canceled) {
-        setImageUrl(result.assets[0].uri);
-        setIsImgModalVisible(false);
-      }
+      if (permissionResult.granted === false) { Alert.alert("Permiso denegado", "Necesitas dar permiso para usar la cámara."); return; }
+      let result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.8 });
+      if (!result.canceled) { setImageUrl(result.assets[0].uri); setIsImgModalVisible(false); }
     } catch (e) { Alert.alert("Error", "No se pudo abrir la cámara."); }
   };
 
@@ -131,7 +122,6 @@ export default function NewRecipeScreen() {
     finally { setIsSearchingImages(false); }
   };
 
-  // --- NUEVA LÓGICA: CONVERSIÓN DE UNIDADES (UD -> GRAMOS) ---
   const normalizeToGramsIfUnit = (name, amount, unit) => {
     if (unit.toLowerCase() === 'ud') {
       const canonical = getCanonicalName(name.trim());
@@ -140,12 +130,67 @@ export default function NewRecipeScreen() {
         return {
           name: name.trim(),
           amount: Math.round(amount * INGREDIENTS_DB[dbKey].weightPerUnit),
-          unit: 'g', // Pasamos automáticamente a gramos
-          originalUd: amount // Guardamos la unidad original para la interfaz visual
+          unit: 'g', 
+          originalUd: amount 
         };
       }
     }
     return { name: name.trim(), amount, unit, originalUd: null };
+  };
+
+  // --- LÓGICA DE GESTIÓN DEL MODAL DE INGREDIENTES ---
+  const openAddIngredientModal = () => {
+    setEditingIndex(null);
+    setIngName('');
+    setIngAmount('1');
+    setIngUnit('g');
+    setHasManuallySelectedUnit(false);
+    setIsIngModalVisible(true);
+  };
+
+  const openEditIngredientModal = (index) => {
+    const ing = ingredients[index];
+    setEditingIndex(index);
+    setIngName(ing.name);
+    setIngAmount(ing.originalUd ? String(ing.originalUd) : String(ing.amount));
+    setIngUnit(ing.originalUd ? 'ud' : ing.unit);
+    setHasManuallySelectedUnit(true);
+    setIsIngModalVisible(true);
+  };
+
+  const handleRemoveIngredient = (indexToRemove) => {
+    setIngredients(ingredients.filter((_, index) => index !== indexToRemove));
+  };
+
+  const saveIngredientFromModal = () => {
+    if (!ingName.trim()) return;
+    const parsedAmount = parseFloat(ingAmount) || 1;
+    const rawName = ingName.trim();
+    const canonical = getCanonicalName(rawName);
+
+    const alreadyExists = Object.keys(INGREDIENTS_DB).some(k => INGREDIENTS_DB[k].name === canonical);
+
+    if (!alreadyExists) {
+      // Ocultamos el modal de ingrediente y mostramos el de ficha técnica
+      setIsIngModalVisible(false);
+      setPendingAction(editingIndex !== null ? 'EDIT_SINGLE' : 'ADD_SINGLE');
+      setPendingIngredients([{ name: rawName, amount: parsedAmount, unit: ingUnit.trim() }]);
+      setCurrentPendingIndex(0);
+      setIsRegisterModalVisible(true);
+      fetchNutrientsFromAPI(rawName, ingUnit.trim());
+    } else {
+      // Lo añadimos o actualizamos directamente
+      const newIng = normalizeToGramsIfUnit(rawName, parsedAmount, ingUnit.trim());
+      
+      if (editingIndex !== null) {
+        const updatedIngs = [...ingredients];
+        updatedIngs[editingIndex] = newIng;
+        setIngredients(updatedIngs);
+      } else {
+        setIngredients([...ingredients, newIng]);
+      }
+      setIsIngModalVisible(false);
+    }
   };
 
   const handleImportUrl = async () => {
@@ -204,7 +249,6 @@ export default function NewRecipeScreen() {
               parsedName = (matchIng[4] || rawStr).trim();
             }
             parsedName = parsedName.charAt(0).toUpperCase() + parsedName.slice(1);
-            // Aplicamos la conversión si viene en "ud" desde la web
             return normalizeToGramsIfUnit(parsedName, amount, unit);
           }).filter(i => i !== null);
           setIngredients(newIngs);
@@ -229,35 +273,12 @@ export default function NewRecipeScreen() {
         const importedRecipe = JSON.parse(jsonString);
         
         addRecipe(importedRecipe);
-        
         setIsImportModalVisible(false);
         setCodeToImport('');
         Alert.alert("¡Éxito!", `Receta "${importedRecipe.name}" importada.`);
         router.back();
       } else { Alert.alert("Error", "El código no parece ser válido."); }
     } catch (e) { Alert.alert("Error", "No se pudo descifrar la receta."); }
-  };
-
-  const handleAddIngredient = () => {
-    if (!ingName.trim()) return;
-    const parsedAmount = parseFloat(ingAmount) || 1;
-    // Aplicamos la conversión si la añaden a mano con "ud"
-    const newIng = normalizeToGramsIfUnit(ingName, parsedAmount, ingUnit.trim());
-    setIngredients([...ingredients, newIng]);
-    setIngName(''); setIngAmount('1'); setHasManuallySelectedUnit(false); setShowSuggestions(false);
-  };
-
-  const handleRemoveIngredient = (indexToRemove) => setIngredients(ingredients.filter((_, index) => index !== indexToRemove));
-
-  // --- NUEVA LÓGICA: EDITAR INGREDIENTE (LONG PRESS) ---
-  const handleEditIngredient = (index) => {
-    const ing = ingredients[index];
-    setIngName(ing.name);
-    // Si tenía unidad original, devolvemos las uds al input, si no, devolvemos los gramos
-    setIngAmount(ing.originalUd ? String(ing.originalUd) : String(ing.amount));
-    setIngUnit(ing.originalUd ? 'ud' : ing.unit);
-    setHasManuallySelectedUnit(true);
-    handleRemoveIngredient(index); // Lo borramos temporalmente para que se reemplace al guardar
   };
 
   const handleAddInstruction = () => { if (!instructionText.trim()) return; setInstructions([...instructions, instructionText.trim()]); setInstructionText(''); };
@@ -300,10 +321,11 @@ export default function NewRecipeScreen() {
     if (name.trim() === '') return;
     const unknownIngs = ingredients.filter(ing => {
       const canonical = getCanonicalName(ing.name);
-      return canonical === ing.name.charAt(0).toUpperCase() + ing.name.slice(1).toLowerCase() && !Object.keys(INGREDIENTS_DB).some(k => INGREDIENTS_DB[k].name === canonical);
+      return !Object.keys(INGREDIENTS_DB).some(k => INGREDIENTS_DB[k].name === canonical);
     });
 
     if (unknownIngs.length > 0) {
+      setPendingAction('SAVE_RECIPE');
       setPendingIngredients(unknownIngs);
       setCurrentPendingIndex(0);
       setIsRegisterModalVisible(true);
@@ -315,6 +337,11 @@ export default function NewRecipeScreen() {
 
   const confirmPendingIngredient = async () => {
     const currentIng = pendingIngredients[currentPendingIndex];
+    if (!currentIng) {
+      setIsRegisterModalVisible(false);
+      return;
+    }
+
     const advancedIngredientObject = {
       name: getCanonicalName(currentIng.name), unit: formUnit, emoji: formEmoji.trim() || '🛒', purchaseUnit: formFormat.trim() || `1 ${formUnit}`, purchasePrice: parseFloat(formPrice) || 0,
       macros: { kcals: parseFloat(formMacros.kcals) || 0, protein: parseFloat(formMacros.protein) || 0, carbs: { total: parseFloat(formMacros.carbsTotal) || 0, sugars: parseFloat(formMacros.carbsSugars) || 0 }, fats: { total: parseFloat(formMacros.fatsTotal) || 0, saturated: parseFloat(formMacros.fatsSat) || 0, monounsaturated: parseFloat(formMacros.fatsMono) || 0, polyunsaturated: parseFloat(formMacros.fatsPoly) || 0 }, fiber: parseFloat(formMacros.fiber) || 0, salt: parseFloat(formMacros.salt) || 0 },
@@ -324,12 +351,28 @@ export default function NewRecipeScreen() {
 
     await registerCustomIngredient(currentIng.name, formUnit, advancedIngredientObject);
 
-    if (currentPendingIndex + 1 < pendingIngredients.length) {
-      setCurrentPendingIndex(prev => prev + 1);
-      fetchNutrientsFromAPI(pendingIngredients[currentPendingIndex + 1].name, pendingIngredients[currentPendingIndex + 1].unit);
-    } else {
+    // Si estábamos editando o añadiendo UN solo ingrediente
+    if (pendingAction === 'ADD_SINGLE' || pendingAction === 'EDIT_SINGLE') {
+      const newIng = normalizeToGramsIfUnit(currentIng.name, currentIng.amount, currentIng.unit);
+      
+      if (pendingAction === 'EDIT_SINGLE' && editingIndex !== null) {
+        const updatedIngs = [...ingredients];
+        updatedIngs[editingIndex] = newIng;
+        setIngredients(updatedIngs);
+      } else {
+        setIngredients(prev => [...prev, newIng]);
+      }
+      
       setIsRegisterModalVisible(false);
-      executeFinalSave();
+    } else {
+      // Loop de guardado final de toda la receta
+      if (currentPendingIndex + 1 < pendingIngredients.length) {
+        setCurrentPendingIndex(prev => prev + 1);
+        fetchNutrientsFromAPI(pendingIngredients[currentPendingIndex + 1].name, pendingIngredients[currentPendingIndex + 1].unit);
+      } else {
+        setIsRegisterModalVisible(false);
+        executeFinalSave();
+      }
     }
   };
 
@@ -337,13 +380,11 @@ export default function NewRecipeScreen() {
     setIsSaving(true);
     try {
       const processedIngredients = await Promise.all(ingredients.map(async (ing) => {
-        const canonicalName = await registerCustomIngredient(ing.name, ing.unit);
-        
-        let finalAmt = ing.amount;
-        let finalUnit = ing.unit;
-        let origUd = ing.originalUd;
+        const canonicalName = getCanonicalName(ing.name);
+        let finalAmt = ing.amount || 0;
+        let finalUnit = ing.unit || 'g';
+        let origUd = ing.originalUd || null;
 
-        // FILTRO DE SEGURIDAD FINAL: Si por algún motivo se coló alguna 'ud', la fulminamos aquí.
         if (finalUnit.toLowerCase() === 'ud') {
           const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName);
           if (dbKey && INGREDIENTS_DB[dbKey].weightPerUnit) {
@@ -351,7 +392,6 @@ export default function NewRecipeScreen() {
             finalAmt = Math.round(finalAmt * INGREDIENTS_DB[dbKey].weightPerUnit);
             finalUnit = 'g';
           } else {
-            // Si es un ingrediente Custom sin peso registrado, forzamos la conversión a 100g por unidad
             origUd = finalAmt;
             finalAmt = finalAmt * 100; 
             finalUnit = 'g';
@@ -369,7 +409,11 @@ export default function NewRecipeScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView 
+        style={styles.container} 
+        contentContainerStyle={styles.scrollContent} 
+        keyboardShouldPersistTaps="handled"
+      >
         <Stack.Screen options={{ title: isEditing ? 'Editar Receta' : 'Nueva Receta' }} />
         
         {!isEditing && (
@@ -416,56 +460,30 @@ export default function NewRecipeScreen() {
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>🛒 Ingredientes</Text>
-          <Text style={{fontSize: 12, color: '#94a3b8', marginBottom: 10}}>Mantén pulsado un ingrediente para editarlo.</Text>
           
           {ingredients.map((ing, idx) => (
-            <TouchableOpacity 
-              key={idx} 
-              style={styles.addedItemRow}
-              onLongPress={() => handleEditIngredient(idx)}
-              delayLongPress={300}
-            >
-              {/* INTERFAZ VISUAL INTELIGENTE PARA MOSTRAR UDS CONVERTIDAS */}
+            <View key={idx} style={styles.addedItemRow}>
               <Text style={[styles.addedItemText, { flex: 1 }]}>
                 • {ing.originalUd ? `${ing.originalUd} uds (${ing.amount}${ing.unit})` : `${ing.amount} ${ing.unit}`} de {ing.name}
               </Text>
-              <TouchableOpacity onPress={() => handleRemoveIngredient(idx)} style={{ padding: 5 }}>
-                <FontAwesome name="trash" size={18} color="#ff5252" />
-              </TouchableOpacity>
-            </TouchableOpacity>
+              <View style={styles.row}>
+                {/* BOTÓN LÁPIZ PARA EDITAR */}
+                <TouchableOpacity onPress={() => openEditIngredientModal(idx)} style={{ padding: 5, marginRight: 10 }}>
+                  <FontAwesome name="pencil" size={18} color="#2f95dc" />
+                </TouchableOpacity>
+                {/* BOTÓN BASURA PARA BORRAR */}
+                <TouchableOpacity onPress={() => handleRemoveIngredient(idx)} style={{ padding: 5 }}>
+                  <FontAwesome name="trash" size={18} color="#ff5252" />
+                </TouchableOpacity>
+              </View>
+            </View>
           ))}
           
-          <View style={styles.addBlock}>
-            <View style={[styles.row, { zIndex: 10, position: 'relative' }]}>
-              <View style={{ flex: 2, marginRight: 8 }}>
-                <TextInput style={[styles.input, { marginBottom: 0 }]} placeholder="Ingrediente..." value={ingName} onChangeText={(text) => { setIngName(text); setShowSuggestions(true); }} onFocus={() => setShowSuggestions(true)} />
-                {showSuggestions && suggestions.length > 0 && (
-                  <View style={styles.suggestionsBox}>
-                    {suggestions.map((s, idx) => (
-                      <TouchableOpacity key={idx} style={styles.suggestionItem} onPress={() => handleSelectSuggestion(s)}>
-                        <Text style={styles.suggestionText}>{s.name} <Text style={{ color: '#888', fontSize: 12 }}>({s.unit})</Text></Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-              <TextInput style={[styles.input, { flex: 1, marginBottom: 0, textAlign: 'center' }]} placeholder="Cant." keyboardType="numeric" value={ingAmount} onChangeText={setIngAmount} />
-            </View>
-            <View style={{ marginTop: 15, marginBottom: 5 }}>
-              <Text style={styles.label}>Unidad:</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.unitsScroll}>
-                {STANDARD_UNITS.map((u) => (
-                  <TouchableOpacity key={u} style={[styles.unitChip, ingUnit === u && styles.unitChipSelected]} onPress={() => { setIngUnit(u); setHasManuallySelectedUnit(true); }}>
-                    <Text style={[styles.unitChipText, ingUnit === u && styles.unitChipTextSelected]}>{u}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-            <TouchableOpacity style={styles.secondaryButton} onPress={handleAddIngredient}>
-              <FontAwesome name="plus" size={14} color="#fff" style={{ marginRight: 6 }} />
-              <Text style={styles.secondaryButtonText}>Añadir a la receta</Text>
-            </TouchableOpacity>
-          </View>
+          {/* BOTÓN PARA ABRIR MODAL DE AÑADIR */}
+          <TouchableOpacity style={[styles.secondaryButton, { marginTop: 8 }]} onPress={openAddIngredientModal}>
+            <FontAwesome name="plus" size={14} color="#fff" style={{ marginRight: 6 }} />
+            <Text style={styles.secondaryButtonText}>Añadir ingrediente</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.card}>
@@ -499,7 +517,58 @@ export default function NewRecipeScreen() {
         )}
       </ScrollView>
 
-      {/* --- MODAL DE FICHA TÉCNICA (Se mantiene igual) --- */}
+      {/* ========================================================
+          🛒 MODAL DE AÑADIR/EDITAR INGREDIENTE 
+          ======================================================== */}
+      <Modal visible={isIngModalVisible} animationType="slide" transparent={true}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { minHeight: 300 }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={styles.modalTitle}>{editingIndex !== null ? '✏️ Editar Ingrediente' : '➕ Nuevo Ingrediente'}</Text>
+              <TouchableOpacity onPress={() => setIsIngModalVisible(false)} style={{ padding: 4 }}>
+                <FontAwesome name="times" size={24} color="#888" />
+              </TouchableOpacity>
+            </View>
+
+          <View style={{ flexDirection: 'row', gap: 15, marginTop: 10 }}>
+              
+            <View style={{ flex:3 }}>
+              <Text style={styles.label}>¿Qué ingrediente?</Text>
+              <TextInput style={styles.input} placeholder="Ej: Tomate, Harina..." value={ingName} onChangeText={(text) => { setIngName(text); setShowSuggestions(true); }} onFocus={() => setShowSuggestions(true)} autoFocus={true} />
+              
+              {showSuggestions && suggestions.length > 0 && (
+                <View style={[styles.suggestionsBox, { top: 75 }]}>
+                  {suggestions.map((s, idx) => (
+                    <TouchableOpacity key={idx} style={styles.suggestionItem} onPress={() => handleSelectSuggestion(s)}>
+                      <Text style={styles.suggestionText}>{s.name} <Text style={{ color: '#888', fontSize: 12 }}>({s.unit})</Text></Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+              <View style={{ flex: 1}}>
+                <Text style={[styles.label, {textAlign: 'center'}]}>Cantidad</Text>
+                <TextInput style={[styles.input, { textAlign: 'center' }]} keyboardType="numeric" value={ingAmount} onChangeText={setIngAmount} />
+              </View>
+          </View>
+            <View>
+                <Text style={styles.label}>Unidad</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.unitsScroll}>
+                  {STANDARD_UNITS.map((u) => (
+                    <TouchableOpacity key={u} style={[styles.unitChip, ingUnit === u && styles.unitChipSelected]} onPress={() => { setIngUnit(u); setHasManuallySelectedUnit(true); }}>
+                      <Text style={[styles.unitChipText, ingUnit === u && styles.unitChipTextSelected]}>{u}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+            </View>
+            <TouchableOpacity style={[styles.saveButton, !ingName.trim() && { opacity: 0.5 }]} onPress={saveIngredientFromModal} disabled={!ingName.trim()}>
+              <Text style={styles.saveButtonText}>Confirmar</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* --- MODAL DE FICHA TÉCNICA --- */}
       <Modal visible={isRegisterModalVisible} animationType="slide" transparent={true}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -571,7 +640,6 @@ export default function NewRecipeScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* BOTONES DE DISPOSITIVO LOCAL */}
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 15 }}>
               <TouchableOpacity style={[styles.secondaryButton, { flex: 1, marginTop: 0, backgroundColor: '#10b981' }]} onPress={takePhotoWithCamera}>
                 <FontAwesome name="camera" size={16} color="#fff" style={{ marginRight: 6 }} />

@@ -21,7 +21,6 @@ export default function RecipeDetailScreen() {
   // --- NUEVO ESTADO PARA EL MODAL DE DETALLE ---
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
 
-  // --- CÁLCULO EN TIEMPO REAL: COSTE TOTAL vs MACROS POR RACIÓN + DETALLE POR INGREDIENTE ---
   const recipeStats = useMemo(() => {
     if (!recipe) return { cost: 0, kcals: 0, protein: 0, carbs: 0, fats: 0, details: [] };
 
@@ -30,20 +29,34 @@ export default function RecipeDetailScreen() {
     let detailedItems = [];
 
     recipe.ingredients.forEach(ing => {
-      // 1. Cantidad para TODA la olla (depende de 'diners' para el coste)
-      const totalAmount = (ing.amount / recipe.baseDiners) * diners;
-      
-      // 2. Cantidad para 1 SOLA PERSONA (para los macros)
-      const amountPerPerson = ing.amount / recipe.baseDiners;
-      
-      const normalizedTotal = normalizeToBase(totalAmount, ing.unit);
-      const normalizedPerPerson = normalizeToBase(amountPerPerson, ing.unit);
-      
-      const amountIn100gPerPerson = normalizedPerPerson.amount / 100;
+      {/*REVISAAAR*/}
+      const canonicalName = getCanonicalName(ing.name || '').toLowerCase();
 
-      const canonicalName = getCanonicalName(ing.name);
-      const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName);
-      const dbItem = dbKey ? INGREDIENTS_DB[dbKey] : null;
+      const dbKey = Object.keys(INGREDIENTS_DB).find(k => {
+        const dbName = INGREDIENTS_DB[k]?.name;
+        if (!dbName) return false;
+
+        // Divide "Cuscús / Cous cous/ Semola" en ["cuscús", "cous cous", "semola"]
+        const synonyms = dbName.toLowerCase().split('/').map(name => name.trim());
+        
+        return synonyms.includes(canonicalName);
+      });
+
+      const dbItem = INGREDIENTS_DB[dbKey];
+
+      console.log(ing.name, dbItem)
+
+      // 1. OBTENER PESO REAL EN GRAMOS (Independientemente de si es 'ud' o 'g')
+      // Si es 'ud', multiplicamos por weightPerUnit. Si es 'g', es el mismo valor.
+      let weightInGramsTotal = ing.amount;
+      if (ing.unit === 'ud' && dbItem?.weightPerUnit) {
+        weightInGramsTotal = ing.amount * dbItem.weightPerUnit;
+      } else if (ing.unit === 'kg') {
+        weightInGramsTotal = ing.amount * 1000;
+      }
+      
+      const weightInGramsPerPerson = (weightInGramsTotal / recipe.baseDiners) * diners;
+      const weightInGramsPerPersonRatio = weightInGramsPerPerson / 100; // Para calcular macros (por cada 100g)
 
       let itemCost = 0;
       let itemKcals = 0;
@@ -52,40 +65,47 @@ export default function RecipeDetailScreen() {
       let itemF = 0;
 
       if (dbItem) {
-        // --- CÁLCULO DE MACROS (POR COMENSAL) ---
+        // --- CÁLCULO DE MACROS (Por persona) ---
         if (dbItem.macros) {
-          itemKcals = (dbItem.macros.kcals || 0) * amountIn100gPerPerson;
-          itemP = (dbItem.macros.protein || 0) * amountIn100gPerPerson;
-          itemC = (dbItem.macros.carbs?.total || 0) * amountIn100gPerPerson;
-          itemF = (dbItem.macros.fats?.total || 0) * amountIn100gPerPerson;
+          itemKcals = (dbItem.macros.kcals || 0) * weightInGramsPerPersonRatio;
+          itemP = (dbItem.macros.protein || 0) * weightInGramsPerPersonRatio;
+          itemC = (dbItem.macros.carbs?.total || 0) * weightInGramsPerPersonRatio;
+          itemF = (dbItem.macros.fats?.total || 0) * weightInGramsPerPersonRatio;
 
           perPerson.kcals += itemKcals;
           perPerson.protein += itemP;
           perPerson.carbs += itemC;
           perPerson.fats += itemF;
+          console.log(dbItem.macros, itemKcals, weightInGramsPerPersonRatio)
         }
 
-        // --- CÁLCULO DE COSTE (TOTAL DE LA OLLA) ---
+        // --- CÁLCULO DE COSTE (Total olla) ---
         if (dbItem.purchasePrice && dbItem.purchaseUnit) {
-          // Eliminamos el símbolo '^' inicial y añadimos soporte para comas ([\d.,]+)
           const match = dbItem.purchaseUnit.match(/([\d.,]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
-          let pkgAmt = 1;
+          let pkgWeightInGrams = 1;
           
           if (match) {
-            pkgAmt = parseFloat(match[1].replace(',', '.')) || 1;
+            let pkgVal = parseFloat(match[1].replace(',', '.')) || 1;
             const pUnit = match[2].toLowerCase();
-            if (pUnit === 'kg' || pUnit === 'l') pkgAmt *= 1000;
-            if (pUnit === 'docena') pkgAmt = 12;
+            
+            // Convertir el paquete a gramos
+            if (pUnit === 'kg' || pUnit === 'l') pkgWeightInGrams = pkgVal * 1000;
+            else if (['ud', 'lata', 'bote', 'pack', 'paquete', 'malla'].includes(pUnit)) {
+               pkgWeightInGrams = pkgVal * (dbItem.weightPerUnit || 100); 
+            } else {
+               pkgWeightInGrams = pkgVal; // Es gramos o ml
+            }
           }
           
-          itemCost = (normalizedTotal.amount / pkgAmt) * dbItem.purchasePrice;
-          console.log(normalizedTotal.amount, pkgAmt, dbItem.purchasePrice) 
+          // Coste = (Peso total ingrediente / Peso total del paquete) * Precio del paquete
+          itemCost = (weightInGramsPerPerson / pkgWeightInGrams) * dbItem.purchasePrice;
+          console.log(weightInGramsPerPerson, pkgWeightInGrams, dbItem.purchasePrice, itemCost)
           totalCost += itemCost;
         }
       }
 
       detailedItems.push({
-        name: canonicalName,
+        name: dbItem?.name || ing.name,
         cost: itemCost,
         kcals: itemKcals,
         protein: itemP,
@@ -94,7 +114,6 @@ export default function RecipeDetailScreen() {
       });
     });
 
-    // Ordenar detalles: de mayor a menor coste para ver rápido qué encarece el plato
     detailedItems.sort((a, b) => b.cost - a.cost);
 
     return {

@@ -244,7 +244,7 @@
       { "name": "Ajo", "amount": 2.0, "unit": "ud" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
-      { "name": "Caldo base (Pollo/Verdura/Carne)", "amount": 1.0, "unit": "ud" },
+      { "name": "Caldo de verduras", "amount": 1.0, "unit": "l" },
       { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
@@ -575,5 +575,163 @@
       "Dar la vuelta a la tortilla con un movimiento rápido y seguro usando un plato llano o un vuelve-tortillas. Cuajar por el otro lado durante 2 minutos más (o el tiempo necesario según te guste de hecha por dentro).",
       "Deslizar sobre un plato limpio y servir."
     ]
+  },
+  {
+    "id": "c001",
+    "name": "Cuscús con verduras",
+    "imageUrl": "https://danzadefogones.com/wp-content/uploads/2024/10/cuscus-con-verduras-facil.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      { "name": "Cuscús", "amount": 200.0, "unit": "g" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
+      { "name": "Calabacín", "amount": 1.0, "unit": "ud" },
+      { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 30.0, "unit": "ml" },
+      { "name": "Sal común", "amount": 5.0, "unit": "g" }
+    ],
+    "instructions": [
+      "Picar la cebolla, el pimiento, el calabacín y la zanahoria en dados pequeños.",
+      "En una sartén con aceite de oliva, sofreír las verduras a fuego medio hasta que estén tiernas.",
+      "Mientras tanto, preparar el cuscús hidratándolo con agua hirviendo (misma cantidad de agua que de cuscús), tapar y dejar reposar 5 minutos.",
+      "Añadir el cuscús a la sartén con las verduras, mezclar bien, rectificar de sal y saltear todo junto un par de minutos antes de servir."
+    ]
+  },
+  {
+    "id": "c002",
+    "name": "Nidos de verduras con huevo",
+    "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5XIdmc4-Uaw4jNujnnjGNYCLth9PivDwXXw&s",
+    "baseDiners": 2,
+    "ingredients": [
+      { "name": "Huevo de gallina", "amount": 2.0, "unit": "ud" },
+      { "name": "Calabacín", "amount": 120, "unit": "g" },
+      { "name": "Zanahoria", "amount": 2.0, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 20.0, "unit": "ml" },
+      { "name": "Sal común", "amount": 2.0, "unit": "g" }
+    ],
+    "instructions": [
+      "Usar un pelapatatas para sacar tiras largas y finas de calabacín y zanahoria.",
+      "Saltear las tiras de verdura en una sartén con un poco de aceite durante 3-4 minutos hasta que se ablanden pero sigan crujientes.",
+      "Formar 2 nidos con la verdura en la sartén y cascar un huevo encima de cada nido.",
+      "Echar sal y queso rallado al gusto. Cocinar a fuego lento y tapar la sartén hasta que la clara esté cuajada pero la yema siga líquida."
+    ]
+  },
+  {
+    "id": "c003",
+    "name": "Merluza con verduras",
+    "imageUrl": "https://img.freepik.com/foto-gratis/filete-pescado-blanco-horno-verduras-frescas-mesa-madera_1150-26402.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      { "name": "Merluza", "amount": 300.0, "unit": "g" },
+      { "name": "Pimiento", "amount": 0.5, "unit": "ud" },
+      { "name": "Calabacín", "amount": 0.5, "unit": "ud" },
+      { "name": "Berenjena", "amount": 0.5, "unit": "ud" },
+      { "name": "Cebolla", "amount": 0.5, "unit": "ud" },
+      { "name": "Aceite de Oliva", "amount": 20.0, "unit": "ml" },
+      { "name": "Sal común", "amount": 2.0, "unit": "g" }
+    ],
+    "instructions": [
+      "Cortar el pimiento, el calabacín, la berenjena y la cebolla en dados o tiras.",
+      "En una sartén grande o wok, sofreír la cebolla y el pimiento primero. Cuando estén dorados, añadir el calabacín y la berenjena.",
+      "Cocinar las verduras hasta que estén en su punto. Salpimentar.",
+      "Añadir los lomos de merluza a la sartén, tapar y cocinar unos 4-5 minutos por cada lado (o hasta que la carne esté blanca y tierna)."
+    ]
+  },
+  {
+    "id": "c004",
+    "name": "Pizza de alcachofas con jamón",
+    "imageUrl": "https://i.blogs.es/d712ec/pizza_alcachofa/450_1000.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      { "name": "Masa de pizza", "amount": 260.0, "unit": "g" },
+      { "name": "Tomate / Concentrado", "amount": 150.0, "unit": "g" },
+      { "name": "Queso mozzarella rallado para pizzas", "amount": 150.0, "unit": "g" },
+      { "name": "Alcachofas", "amount": 100.0, "unit": "g" },
+      { "name": "Tacos de jamón", "amount": 30, "unit": "g" }
+    ],
+    "instructions": [
+      "Precalentar el horno a 220°C.",
+      "Extender la masa de pizza sobre papel de horno. Extender el tomate triturado por encima.",
+      "Esparcir la mozzarella rallada y colocar las alcachofas (previamente escurridas) sobre el queso.",
+      "Hornear durante unos 10-12 minutos hasta que la masa esté dorada y el queso burbujee.",
+      "Al sacar la pizza del horno, colocar las lonchas de jamón serrano por encima justo antes de servir."
+    ]
+  },
+  {
+    "id": "c005",
+    "name": "Hamburguesas caseras",
+    "imageUrl": "https://imag.bonviveur.com/hamburguesa-clasica.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      { "name": "Carne picada", "amount": 300.0, "unit": "g" },
+      { "name": "Pan de hamburguesa", "amount": 2.0, "unit": "ud" },
+      { "name": "Tomate", "amount": 100.0, "unit": "g" },
+      { "name": "Lechuga", "amount": 50.0, "unit": "g" },
+      { "name": "Queso", "amount": 40.0, "unit": "g" }
+    ],
+    "instructions": [
+      "Dar forma de hamburguesa a la carne picada y salpimentar al gusto.",
+      "Cocinar la carne en una plancha bien caliente hasta que esté al punto deseado.",
+      "Tostar ligeramente el pan de hamburguesa en la misma plancha.",
+      "Montar la hamburguesa poniendo la carne, una loncha de queso encima para que se funda, tomate en rodajas y lechuga fresca."
+    ]
+  },
+  {
+    "id": "c006",
+    "name": "Fajitas de pollo",
+    "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2024/12/fajitas-de-pollo.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      { "name": "Tortilla de trigo integral", "amount": 4.0, "unit": "ud" },
+      { "name": "Pollo", "amount": 300.0, "unit": "g" },
+      { "name": "Pimiento", "amount": 2.0, "unit": "ud" },
+      { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
+      { "name": "Curry en polvo", "amount": 5.0, "unit": "g" }
+    ],
+    "instructions": [
+      "Cortar el pollo, el pimiento y la cebolla en tiras finas.",
+      "Saltear el pollo en una sartén con aceite. Cuando empiece a dorarse, añadir el pimiento y la cebolla.",
+      "Añadir el curry y cocinar a fuego medio hasta que las verduras estén blandas.",
+      "Calentar las tortillas de trigo en una sartén seca unos segundos por cada lado y rellenar con la mezcla de pollo."
+    ]
+  },
+  {
+    "id": "c007",
+    "name": "Pastel de verduras",
+    "imageUrl": "https://imag.bonviveur.com/pastel-de-verduras.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      { "name": "Brócoli", "amount": 300.0, "unit": "g" },
+      { "name": "Zanahoria", "amount": 2.0, "unit": "ud" },
+      { "name": "Champiñones", "amount": 200.0, "unit": "g" },
+      { "name": "Mozzarella", "amount": 150.0, "unit": "g" },
+      { "name": "Huevo de gallina", "amount": 4.0, "unit": "ud" }
+    ],
+    "instructions": [
+      "Trocear el brócoli, la zanahoria y los champiñones. Saltear ligeramente en la sartén para que suelten el agua.",
+      "En un bol, batir los huevos y añadir la mozzarella rallada.",
+      "Mezclar las verduras con el huevo y el queso.",
+      "Verter la mezcla en un molde apto para horno y hornear a 180°C durante unos 25-30 minutos, o hasta que al pinchar con un cuchillo salga limpio."
+    ]
+  },
+  {
+    "id": "c008",
+    "name": "Fideuà de marisco con preparado",
+    "imageUrl": "https://imag.bonviveur.com/fideua-con-sepia.jpg",
+    "baseDiners": 4,
+    "ingredients": [
+      { "name": "Fideos para fideuà", "amount": 400.0, "unit": "g" },
+      { "name": "Preparado de paella y sopa", "amount": 680, "unit": "g" },
+      { "name": "Caldo de pescado", "amount": 800.0, "unit": "ml" },
+      { "name": "Aceite de Oliva", "amount": 50.0, "unit": "ml" },
+      { "name": "Pimiento", "amount": 1.0, "unit": "ud" }
+    ],
+    "instructions": [
+      "En una paellera o sartén amplia, sofreír el pimiento picado y las gambas. Reservar las gambas.",
+      "Añadir los fideos a la paellera y tostarlos ligeramente con el aceite y el sofrito de pimiento.",
+      "Añadir el caldo de pescado caliente y cocinar a fuego medio durante unos 10-12 minutos hasta que el caldo se evapore y el fideo esté en su punto.",
+      "Colocar las gambas por encima los últimos minutos de cocción y dejar reposar 5 minutos antes de servir."
+    ]
   }
+  
 ]

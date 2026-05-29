@@ -90,7 +90,7 @@
     "source": "BEDCA"
   },
   "sake": {
-    "name": "Sake / Vino blanco", "unit": "cuch.", "emoji": "🍾", "purchaseUnit": "Botella 75cl", "purchasePrice": 3.50, "weightPerUnit": 15,
+    "name": "Sake / Vino blanco", "unit": "cuch.", "emoji": "🍾", "purchaseUnit": "Botella 750l", "purchasePrice": 3.50, "weightPerUnit": 15,
     "macros": { "kcals": 73.0, "protein": 0.1, "carbs": { "total": 2.6, "sugars": 0.2 }, "fats": { "total": 0.0, "saturated": 0.0, "monounsaturated": 0.0, "polyunsaturated": 0.0 }, "fiber": 0.0, "salt": 0.01 },
     "micros": { "calcium_mg": 9.0, "iron_mg": 0.3, "magnesium_mg": 10.0, "potassium_mg": 71.0, "phosphorus_mg": 18.0, "zinc_mg": 0.1, "vitA_mcg": 0.0, "vitB1_mg": 0.01, "vitB2_mg": 0.01, "vitB3_mg": 0.1, "vitB6_mg": 0.04, "vitB9_mcg": 1.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.0 },
     "source": "BEDCA"
@@ -354,7 +354,7 @@
     "source": "BEDCA"
   },
   "merluza": {
-    "name": "Merluza", "unit": "g", "emoji": "🐟", "purchaseUnit": "Bandeja 500g", "purchasePrice": 5.90, "weightPerUnit": 1,
+    "name": "Merluza", "unit": "g", "emoji": "🐟", "purchaseUnit": "Bandeja 600g", "purchasePrice": 5.60, "weightPerUnit": 1,
     "macros": { "kcals": 79.0, "protein": 15.9, "carbs": { "total": 0.0, "sugars": 0.0 }, "fats": { "total": 1.8, "saturated": 0.3, "monounsaturated": 0.6, "polyunsaturated": 0.6 }, "fiber": 0.0, "salt": 0.1 },
     "micros": { "calcium_mg": 33.0, "iron_mg": 1.1, "magnesium_mg": 26.0, "potassium_mg": 294.0, "phosphorus_mg": 190.0, "zinc_mg": 0.4, "vitA_mcg": 11.0, "vitB1_mg": 0.09, "vitB2_mg": 0.1, "vitB3_mg": 6.8, "vitB6_mg": 0.3, "vitB9_mcg": 12.0, "vitB12_mcg": 1.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.3, "vitK_mcg": 0.1 },
     "source": "BEDCA"
@@ -418,5 +418,155 @@
     "macros": { "kcals": 356.0, "protein": 12.8, "carbs": { "total": 72.4, "sugars": 1.5 }, "fats": { "total": 0.6, "saturated": 0.1, "monounsaturated": 0.1, "polyunsaturated": 0.3 }, "fiber": 5.0, "salt": 0.03 },
     "micros": { "calcium_mg": 24.0, "iron_mg": 1.1, "magnesium_mg": 44.0, "potassium_mg": 166.0, "phosphorus_mg": 170.0, "zinc_mg": 0.8, "vitA_mcg": 0.0, "vitB1_mg": 0.16, "vitB2_mg": 0.06, "vitB3_mg": 3.5, "vitB6_mg": 0.11, "vitB9_mcg": 20.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.1, "vitK_mcg": 0.1 },
     "source": "BEDCA"
+  },
+  "conejo": {
+    "name": "Conejo", "unit": "g", "emoji": "🐇", "purchaseUnit": "Bandeja 500g", "purchasePrice": 3.25, "weightPerUnit": 1,
+    "macros": { "kcals": 150.0, "protein": 21.0, "carbs": { "total": 0.0, "sugars": 0.0 }, "fats": { "total": 7.0, "saturated": 2.5, "monounsaturated": 2.5, "polyunsaturated": 2.0 }, "fiber": 0.0, "salt": 0.1 },
+    "micros": { "calcium_mg": 18.0, "iron_mg": 2.0, "magnesium_mg": 25.0, "potassium_mg": 360.0, "phosphorus_mg": 220.0, "zinc_mg": 2.0, "vitA_mcg": 0.0, "vitB1_mg": 0.1, "vitB2_mg": 0.2, "vitB3_mg": 7.0, "vitB6_mg": 0.4, "vitB9_mcg": 5.0, "vitB12_mcg": 4.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.5, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "emperador": {
+    "name": "Emperador", "unit": "g", "emoji": "🐟", "purchaseUnit": "Bandeja 400g", "purchasePrice": 5.60, "weightPerUnit": 1,
+    "macros": { "kcals": 110.0, "protein": 20.0, "carbs": { "total": 0.0, "sugars": 0.0 }, "fats": { "total": 3.5, "saturated": 0.8, "monounsaturated": 1.0, "polyunsaturated": 1.7 }, "fiber": 0.0, "salt": 0.15 },
+    "micros": { "calcium_mg": 15.0, "iron_mg": 0.5, "magnesium_mg": 28.0, "potassium_mg": 350.0, "phosphorus_mg": 210.0, "zinc_mg": 0.5, "vitA_mcg": 5.0, "vitB1_mg": 0.05, "vitB2_mg": 0.06, "vitB3_mg": 7.0, "vitB6_mg": 0.5, "vitB9_mcg": 8.0, "vitB12_mcg": 2.5, "vitC_mg": 0.0, "vitD_mcg": 0.5, "vitE_mg": 0.3, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "garrofon": {
+    "name": "Garrofón", "unit": "g", "emoji": "🫘", "purchaseUnit": "Bote 400g", "purchasePrice": 2.50, "weightPerUnit": 1,
+    "macros": { "kcals": 105.0, "protein": 6.0, "carbs": { "total": 15.0, "sugars": 1.0 }, "fats": { "total": 0.5, "saturated": 0.1, "monounsaturated": 0.1, "polyunsaturated": 0.3 }, "fiber": 5.0, "salt": 0.05 },
+    "micros": { "calcium_mg": 40.0, "iron_mg": 1.5, "magnesium_mg": 45.0, "potassium_mg": 300.0, "phosphorus_mg": 120.0, "zinc_mg": 0.8, "vitA_mcg": 0.0, "vitB1_mg": 0.1, "vitB2_mg": 0.05, "vitB3_mg": 1.0, "vitB6_mg": 0.2, "vitB9_mcg": 40.0, "vitB12_mcg": 0.0, "vitC_mg": 2.0, "vitD_mcg": 0.0, "vitE_mg": 0.2, "vitK_mcg": 2.0 },
+    "source": "BEDCA"
+  },
+  "judias verdes": {
+    "name": "Judías verdes", "unit": "g", "emoji": "🫛", "purchaseUnit": "Bandeja 500g", "purchasePrice": 2.00, "weightPerUnit": 1,
+    "macros": { "kcals": 31.0, "protein": 1.8, "carbs": { "total": 4.0, "sugars": 2.0 }, "fats": { "total": 0.2, "saturated": 0.0, "monounsaturated": 0.0, "polyunsaturated": 0.1 }, "fiber": 2.7, "salt": 0.01 },
+    "micros": { "calcium_mg": 37.0, "iron_mg": 1.0, "magnesium_mg": 25.0, "potassium_mg": 211.0, "phosphorus_mg": 38.0, "zinc_mg": 0.2, "vitA_mcg": 35.0, "vitB1_mg": 0.08, "vitB2_mg": 0.1, "vitB3_mg": 0.7, "vitB6_mg": 0.14, "vitB9_mcg": 33.0, "vitB12_mcg": 0.0, "vitC_mg": 12.0, "vitD_mcg": 0.0, "vitE_mg": 0.4, "vitK_mcg": 14.0 },
+    "source": "BEDCA"
+  },
+  "romero": {
+    "name": "Romero fresco", "unit": "ud", "emoji": "🌿", "purchaseUnit": "Manojo", "purchasePrice": 0.90, "weightPerUnit": 10,
+    "macros": { "kcals": 131.0, "protein": 3.3, "carbs": { "total": 20.7, "sugars": 0.0 }, "fats": { "total": 5.9, "saturated": 2.8, "monounsaturated": 1.0, "polyunsaturated": 1.5 }, "fiber": 14.1, "salt": 0.1 },
+    "micros": { "calcium_mg": 317.0, "iron_mg": 6.7, "magnesium_mg": 91.0, "potassium_mg": 955.0, "phosphorus_mg": 70.0, "zinc_mg": 0.9, "vitA_mcg": 150.0, "vitB1_mg": 0.1, "vitB2_mg": 0.4, "vitB3_mg": 1.0, "vitB6_mg": 0.3, "vitB9_mcg": 100.0, "vitB12_mcg": 0.0, "vitC_mg": 21.0, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "alcachofas": {
+    "name": "Alcachofas", "unit": "ud", "emoji": "🌿", "purchaseUnit": "Bote 400g", "purchasePrice": 1.50, "weightPerUnit": 150,
+    "macros": { "kcals": 47.0, "protein": 3.3, "carbs": { "total": 10.5, "sugars": 0.9 }, "fats": { "total": 0.4, "saturated": 0.1, "monounsaturated": 0.0, "polyunsaturated": 0.1 }, "fiber": 5.4, "salt": 0.01 },
+    "micros": { "calcium_mg": 44.0, "iron_mg": 1.3, "magnesium_mg": 60.0, "potassium_mg": 370.0, "phosphorus_mg": 90.0, "zinc_mg": 0.5, "vitA_mcg": 0.0, "vitB1_mg": 0.07, "vitB2_mg": 0.06, "vitB3_mg": 1.1, "vitB6_mg": 0.1, "vitB9_mcg": 68.0, "vitB12_mcg": 0.0, "vitC_mg": 11.7, "vitD_mcg": 0.0, "vitE_mg": 0.2, "vitK_mcg": 14.8 },
+    "source": "BEDCA"
+  },
+  "jamon": {
+    "name": "Jamón serrano", "unit": "g", "emoji": "🍖", "purchaseUnit": "Bandeja 100g", "purchasePrice": 2.50, "weightPerUnit": 1,
+    "macros": { "kcals": 240.0, "protein": 30.0, "carbs": { "total": 0.0, "sugars": 0.0 }, "fats": { "total": 13.0, "saturated": 4.5, "monounsaturated": 6.0, "polyunsaturated": 1.5 }, "fiber": 0.0, "salt": 5.5 },
+    "micros": { "calcium_mg": 15.0, "iron_mg": 1.3, "magnesium_mg": 20.0, "potassium_mg": 300.0, "phosphorus_mg": 200.0, "zinc_mg": 2.3, "vitA_mcg": 0.0, "vitB1_mg": 0.5, "vitB2_mg": 0.2, "vitB3_mg": 7.0, "vitB6_mg": 0.6, "vitB9_mcg": 5.0, "vitB12_mcg": 0.7, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.1, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "oregano": {
+    "name": "Orégano", "unit": "ud", "emoji": "🌿", "purchaseUnit": "Bote 20g", "purchasePrice": 1.10, "weightPerUnit": 20,
+    "macros": { "kcals": 265.0, "protein": 9.0, "carbs": { "total": 68.9, "sugars": 4.0 }, "fats": { "total": 4.3, "saturated": 1.5, "monounsaturated": 0.5, "polyunsaturated": 1.0 }, "fiber": 42.5, "salt": 0.05 },
+    "micros": { "calcium_mg": 1597.0, "iron_mg": 44.0, "magnesium_mg": 270.0, "potassium_mg": 1260.0, "phosphorus_mg": 148.0, "zinc_mg": 2.7, "vitA_mcg": 345.0, "vitB1_mg": 0.2, "vitB2_mg": 0.3, "vitB3_mg": 6.2, "vitB6_mg": 1.0, "vitB9_mcg": 236.0, "vitB12_mcg": 0.0, "vitC_mg": 2.0, "vitD_mcg": 0.0, "vitE_mg": 18.0, "vitK_mcg": 621.7 },
+    "source": "BEDCA"
+  },
+  "mozzarella": {
+    "name": "Mozzarella", "unit": "g", "emoji": "🧀", "purchaseUnit": "Bolsa 200g", "purchasePrice": 1.80, "weightPerUnit": 1,
+    "macros": { "kcals": 280.0, "protein": 22.0, "carbs": { "total": 3.0, "sugars": 1.0 }, "fats": { "total": 20.0, "saturated": 13.0, "monounsaturated": 5.0, "polyunsaturated": 0.5 }, "fiber": 0.0, "salt": 0.8 },
+    "micros": { "calcium_mg": 505.0, "iron_mg": 0.4, "magnesium_mg": 20.0, "potassium_mg": 76.0, "phosphorus_mg": 354.0, "zinc_mg": 2.1, "vitA_mcg": 180.0, "vitB1_mg": 0.03, "vitB2_mg": 0.3, "vitB3_mg": 0.1, "vitB6_mg": 0.1, "vitB9_mcg": 7.0, "vitB12_mcg": 2.3, "vitC_mg": 0.0, "vitD_mcg": 0.2, "vitE_mg": 0.1, "vitK_mcg": 2.0 },
+    "source": "BEDCA"
+  },
+  "masa pizza": {
+    "name": "Masa de pizza", "unit": "ud", "emoji": "🍕", "purchaseUnit": "Pack 2ud", "purchasePrice": 2.50, "weightPerUnit": 260,
+    "macros": { "kcals": 250.0, "protein": 8.0, "carbs": { "total": 45.0, "sugars": 2.0 }, "fats": { "total": 5.0, "saturated": 0.6, "monounsaturated": 2.5, "polyunsaturated": 1.5 }, "fiber": 2.0, "salt": 1.5 },
+    "micros": { "calcium_mg": 15.0, "iron_mg": 2.5, "magnesium_mg": 25.0, "potassium_mg": 120.0, "phosphorus_mg": 100.0, "zinc_mg": 0.8, "vitA_mcg": 0.0, "vitB1_mg": 0.2, "vitB2_mg": 0.1, "vitB3_mg": 2.5, "vitB6_mg": 0.1, "vitB9_mcg": 20.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.5, "vitK_mcg": 0.5 },
+    "source": "BEDCA"
+  },
+  "atun": {
+    "name": "Atún claro al natural", "unit": "g", "emoji": "🐟", "purchaseUnit": "480g", "purchasePrice": 4.20, "weightPerUnit": 80,
+    "macros": { "kcals": 110.0, "protein": 25.0, "carbs": { "total": 0.0, "sugars": 0.0 }, "fats": { "total": 1.0, "saturated": 0.3, "monounsaturated": 0.3, "polyunsaturated": 0.4 }, "fiber": 0.0, "salt": 1.0 },
+    "micros": { "calcium_mg": 10.0, "iron_mg": 1.5, "magnesium_mg": 28.0, "potassium_mg": 300.0, "phosphorus_mg": 200.0, "zinc_mg": 0.8, "vitA_mcg": 20.0, "vitB1_mg": 0.05, "vitB2_mg": 0.06, "vitB3_mg": 15.0, "vitB6_mg": 0.4, "vitB9_mcg": 5.0, "vitB12_mcg": 3.0, "vitC_mg": 0.0, "vitD_mcg": 0.5, "vitE_mg": 0.2, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "manzana": {
+    "name": "Manzana", "unit": "ud", "emoji": "🍎", "purchaseUnit": "1kg", "purchasePrice": 2.20, "weightPerUnit": 180,
+    "macros": { "kcals": 52.0, "protein": 0.3, "carbs": { "total": 13.8, "sugars": 10.4 }, "fats": { "total": 0.2, "saturated": 0.0, "monounsaturated": 0.0, "polyunsaturated": 0.1 }, "fiber": 2.4, "salt": 0.00 },
+    "micros": { "calcium_mg": 6.0, "iron_mg": 0.1, "magnesium_mg": 5.0, "potassium_mg": 107.0, "phosphorus_mg": 11.0, "zinc_mg": 0.04, "vitA_mcg": 3.0, "vitB1_mg": 0.02, "vitB2_mg": 0.02, "vitB3_mg": 0.1, "vitB6_mg": 0.04, "vitB9_mcg": 3.0, "vitB12_mcg": 0.0, "vitC_mg": 4.6, "vitD_mcg": 0.0, "vitE_mg": 0.2, "vitK_mcg": 2.2 },
+    "source": "BEDCA"
+  },
+  "curry": {
+    "name": "Curry en polvo", "unit": "g", "emoji": "🍛", "purchaseUnit": "Bote 50g", "purchasePrice": 1.50, "weightPerUnit": 1,
+    "macros": { "kcals": 325.0, "protein": 12.7, "carbs": { "total": 55.7, "sugars": 2.5 }, "fats": { "total": 13.8, "saturated": 2.5, "monounsaturated": 4.0, "polyunsaturated": 6.5 }, "fiber": 33.0, "salt": 0.1 },
+    "micros": { "calcium_mg": 400.0, "iron_mg": 30.0, "magnesium_mg": 150.0, "potassium_mg": 1100.0, "phosphorus_mg": 250.0, "zinc_mg": 3.5, "vitA_mcg": 100.0, "vitB1_mg": 0.3, "vitB2_mg": 0.4, "vitB3_mg": 5.0, "vitB6_mg": 0.8, "vitB9_mcg": 150.0, "vitB12_mcg": 0.0, "vitC_mg": 15.0, "vitD_mcg": 0.0, "vitE_mg": 5.0, "vitK_mcg": 20.0 },
+    "source": "BEDCA"
+  },
+  "brocoli": {
+    "name": "Brócoli", "unit": "g", "emoji": "🥦", "purchaseUnit": "Bandeja 500g", "purchasePrice": 1.75, "weightPerUnit": 1,
+    "macros": { "kcals": 34.0, "protein": 2.8, "carbs": { "total": 6.6, "sugars": 1.7 }, "fats": { "total": 0.4, "saturated": 0.1, "monounsaturated": 0.0, "polyunsaturated": 0.2 }, "fiber": 2.6, "salt": 0.01 },
+    "micros": { "calcium_mg": 47.0, "iron_mg": 0.7, "magnesium_mg": 21.0, "potassium_mg": 316.0, "phosphorus_mg": 66.0, "zinc_mg": 0.4, "vitA_mcg": 31.0, "vitB1_mg": 0.07, "vitB2_mg": 0.1, "vitB3_mg": 0.6, "vitB6_mg": 0.18, "vitB9_mcg": 63.0, "vitB12_mcg": 0.0, "vitC_mg": 89.2, "vitD_mcg": 0.0, "vitE_mg": 0.8, "vitK_mcg": 101.6 },
+    "source": "BEDCA"
+  },
+  "tortilla trigo integral": {
+    "name": "Tortilla trigo integral", "unit": "ud", "emoji": "🌮", "purchaseUnit": "Pack 10ud", "purchasePrice": 1.50, "weightPerUnit": 40,
+    "macros": { "kcals": 290.0, "protein": 8.5, "carbs": { "total": 45.0, "sugars": 1.5 }, "fats": { "total": 6.0, "saturated": 1.5, "monounsaturated": 3.0, "polyunsaturated": 1.5 }, "fiber": 8.0, "salt": 1.2 },
+    "micros": { "calcium_mg": 100.0, "iron_mg": 2.0, "magnesium_mg": 40.0, "potassium_mg": 150.0, "phosphorus_mg": 130.0, "zinc_mg": 1.0, "vitA_mcg": 0.0, "vitB1_mg": 0.2, "vitB2_mg": 0.1, "vitB3_mg": 3.0, "vitB6_mg": 0.1, "vitB9_mcg": 20.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.5, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "nata para cocinar": {
+    "name": "Nata para cocinar", "unit": "ml", "emoji": "🥛", "purchaseUnit": "Brik 200ml", "purchasePrice": 1.10, "weightPerUnit": 1,
+    "macros": { "kcals": 200.0, "protein": 2.5, "carbs": { "total": 3.5, "sugars": 3.5 }, "fats": { "total": 20.0, "saturated": 12.0, "monounsaturated": 6.0, "polyunsaturated": 1.0 }, "fiber": 0.0, "salt": 0.07 },
+    "micros": { "calcium_mg": 80.0, "iron_mg": 0.0, "magnesium_mg": 8.0, "potassium_mg": 100.0, "phosphorus_mg": 70.0, "zinc_mg": 0.3, "vitA_mcg": 180.0, "vitB1_mg": 0.02, "vitB2_mg": 0.1, "vitB3_mg": 0.1, "vitB6_mg": 0.03, "vitB9_mcg": 5.0, "vitB12_mcg": 0.2, "vitC_mg": 0.0, "vitD_mcg": 0.1, "vitE_mg": 0.2, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "carne picada pollo": {
+    "name": "Carne picada de pollo", "unit": "g", "emoji": "🍗", "purchaseUnit": "Bandeja 500g", "purchasePrice": 3.50, "weightPerUnit": 1,
+    "macros": { "kcals": 120.0, "protein": 20.0, "carbs": { "total": 0.0, "sugars": 0.0 }, "fats": { "total": 4.0, "saturated": 1.2, "monounsaturated": 1.5, "polyunsaturated": 1.0 }, "fiber": 0.0, "salt": 0.2 },
+    "micros": { "calcium_mg": 15.0, "iron_mg": 1.0, "magnesium_mg": 22.0, "potassium_mg": 230.0, "phosphorus_mg": 190.0, "zinc_mg": 1.2, "vitA_mcg": 10.0, "vitB1_mg": 0.08, "vitB2_mg": 0.1, "vitB3_mg": 8.0, "vitB6_mg": 0.5, "vitB9_mcg": 5.0, "vitB12_mcg": 0.3, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.2, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "pan hamburguesa": {
+    "name": "Pan de hamburguesa", "unit": "ud", "emoji": "🍔", "purchaseUnit": "Pack 4ud", "purchasePrice": 1.20, "weightPerUnit": 70,
+    "macros": { "kcals": 270.0, "protein": 8.5, "carbs": { "total": 50.0, "sugars": 6.0 }, "fats": { "total": 3.0, "saturated": 0.5, "monounsaturated": 1.0, "polyunsaturated": 1.0 }, "fiber": 2.5, "salt": 1.1 },
+    "micros": { "calcium_mg": 80.0, "iron_mg": 2.5, "magnesium_mg": 25.0, "potassium_mg": 150.0, "phosphorus_mg": 100.0, "zinc_mg": 0.8, "vitA_mcg": 0.0, "vitB1_mg": 0.2, "vitB2_mg": 0.1, "vitB3_mg": 3.0, "vitB6_mg": 0.1, "vitB9_mcg": 40.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.2, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "lechuga": {
+    "name": "Lechuga", "unit": "ud", "emoji": "🥬", "purchaseUnit": "1ud", "purchasePrice": 1.00, "weightPerUnit": 400,
+    "macros": { "kcals": 15.0, "protein": 1.3, "carbs": { "total": 1.5, "sugars": 0.8 }, "fats": { "total": 0.2, "saturated": 0.0, "monounsaturated": 0.0, "polyunsaturated": 0.1 }, "fiber": 1.1, "salt": 0.01 },
+    "micros": { "calcium_mg": 35.0, "iron_mg": 0.9, "magnesium_mg": 13.0, "potassium_mg": 240.0, "phosphorus_mg": 25.0, "zinc_mg": 0.2, "vitA_mcg": 300.0, "vitB1_mg": 0.05, "vitB2_mg": 0.05, "vitB3_mg": 0.4, "vitB6_mg": 0.07, "vitB9_mcg": 73.0, "vitB12_mcg": 0.0, "vitC_mg": 4.0, "vitD_mcg": 0.0, "vitE_mg": 0.1, "vitK_mcg": 120.0 },
+    "source": "BEDCA"
+  },
+  "fideos fideua": {
+    "name": "Fideos para fideuà", "unit": "g", "emoji": "🍝", "purchaseUnit": "Bolsa 500g", "purchasePrice": 1.50, "weightPerUnit": 1,
+    "macros": { "kcals": 350.0, "protein": 12.0, "carbs": { "total": 72.0, "sugars": 2.0 }, "fats": { "total": 1.5, "saturated": 0.3, "monounsaturated": 0.2, "polyunsaturated": 0.5 }, "fiber": 3.0, "salt": 0.01 },
+    "micros": { "calcium_mg": 20.0, "iron_mg": 1.5, "magnesium_mg": 45.0, "potassium_mg": 180.0, "phosphorus_mg": 170.0, "zinc_mg": 1.0, "vitA_mcg": 0.0, "vitB1_mg": 0.2, "vitB2_mg": 0.1, "vitB3_mg": 3.0, "vitB6_mg": 0.1, "vitB9_mcg": 20.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "fideos finos": {
+    "name": "Fideos finos", "unit": "g", "emoji": "🍜", "purchaseUnit": "Bolsa 500g", "purchasePrice": 1.30, "weightPerUnit": 1,
+    "macros": { "kcals": 350.0, "protein": 12.0, "carbs": { "total": 72.0, "sugars": 2.0 }, "fats": { "total": 1.5, "saturated": 0.3, "monounsaturated": 0.2, "polyunsaturated": 0.5 }, "fiber": 3.0, "salt": 0.01 },
+    "micros": { "calcium_mg": 20.0, "iron_mg": 1.5, "magnesium_mg": 45.0, "potassium_mg": 180.0, "phosphorus_mg": 170.0, "zinc_mg": 1.0, "vitA_mcg": 0.0, "vitB1_mg": 0.2, "vitB2_mg": 0.1, "vitB3_mg": 3.0, "vitB6_mg": 0.1, "vitB9_mcg": 20.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "caldo pescado": {
+    "name": "Caldo de pescado", "unit": "ml", "emoji": "🥣", "purchaseUnit": "Brik 1L", "purchasePrice": 2.00, "weightPerUnit": 1,
+    "macros": { "kcals": 12.0, "protein": 1.5, "carbs": { "total": 0.5, "sugars": 0.2 }, "fats": { "total": 0.5, "saturated": 0.1, "monounsaturated": 0.2, "polyunsaturated": 0.1 }, "fiber": 0.0, "salt": 0.9 },
+    "micros": { "calcium_mg": 10.0, "iron_mg": 0.1, "magnesium_mg": 5.0, "potassium_mg": 50.0, "phosphorus_mg": 30.0, "zinc_mg": 0.1, "vitA_mcg": 0.0, "vitB1_mg": 0.01, "vitB2_mg": 0.01, "vitB3_mg": 0.5, "vitB6_mg": 0.01, "vitB9_mcg": 2.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "caldo verduras": {
+    "name": "Caldo de verduras", "unit": "ml", "emoji": "🥣", "purchaseUnit": "Brik 1L", "purchasePrice": 1.80, "weightPerUnit": 1,
+    "macros": { "kcals": 8.0, "protein": 0.2, "carbs": { "total": 1.5, "sugars": 0.8 }, "fats": { "total": 0.1, "saturated": 0.0, "monounsaturated": 0.0, "polyunsaturated": 0.0 }, "fiber": 0.1, "salt": 0.8 },
+    "micros": { "calcium_mg": 5.0, "iron_mg": 0.1, "magnesium_mg": 3.0, "potassium_mg": 60.0, "phosphorus_mg": 10.0, "zinc_mg": 0.05, "vitA_mcg": 5.0, "vitB1_mg": 0.01, "vitB2_mg": 0.01, "vitB3_mg": 0.1, "vitB6_mg": 0.02, "vitB9_mcg": 5.0, "vitB12_mcg": 0.0, "vitC_mg": 2.0, "vitD_mcg": 0.0, "vitE_mg": 0.1, "vitK_mcg": 2.0 },
+    "source": "BEDCA"
+  },
+  "caldo pollo": {
+    "name": "Caldo de pollo", "unit": "ml", "emoji": "🥣", "purchaseUnit": "Brik 1L", "purchasePrice": 1.80, "weightPerUnit": 1,
+    "macros": { "kcals": 10.0, "protein": 0.8, "carbs": { "total": 1.0, "sugars": 0.5 }, "fats": { "total": 0.5, "saturated": 0.1, "monounsaturated": 0.2, "polyunsaturated": 0.1 }, "fiber": 0.0, "salt": 0.9 },
+    "micros": { "calcium_mg": 5.0, "iron_mg": 0.1, "magnesium_mg": 4.0, "potassium_mg": 40.0, "phosphorus_mg": 20.0, "zinc_mg": 0.1, "vitA_mcg": 0.0, "vitB1_mg": 0.01, "vitB2_mg": 0.01, "vitB3_mg": 0.3, "vitB6_mg": 0.02, "vitB9_mcg": 2.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.1, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "preparado paella sopa": {
+    "name": "Preparado paella y sopa (Mercadona)", "unit": "g", "emoji": "🥘", "purchaseUnit": "Bolsa 685g", "purchasePrice": 6.00, "weightPerUnit": 685,
+    "macros": { "kcals": 90.0, "protein": 18.0, "carbs": { "total": 3.0, "sugars": 0.8 }, "fats": { "total": 1.5, "saturated": 0.3, "monounsaturated": 0.5, "polyunsaturated": 0.5 }, "fiber": 0.0, "salt": 1.0 },
+    "micros": { "calcium_mg": 30.0, "iron_mg": 2.0, "magnesium_mg": 25.0, "potassium_mg": 200.0, "phosphorus_mg": 180.0, "zinc_mg": 1.5, "vitA_mcg": 10.0, "vitB1_mg": 0.05, "vitB2_mg": 0.1, "vitB3_mg": 2.0, "vitB6_mg": 0.2, "vitB9_mcg": 10.0, "vitB12_mcg": 1.0, "vitC_mg": 1.0, "vitD_mcg": 0.0, "vitE_mg": 0.1, "vitK_mcg": 0.0 },
+    "source": "USER_CUSTOM"
   }
 }
