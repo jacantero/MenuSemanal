@@ -29,17 +29,27 @@ export default function RecipeDetailScreen() {
     let detailedItems = [];
 
     recipe.ingredients.forEach(ing => {
-      {/*REVISAAAR*/}
-      const canonicalName = getCanonicalName(ing.name || '').toLowerCase();
+      {/*Búsqueda de los ingredientes de la receta en la base de datos*/}
+      const canonicalName = getCanonicalName(ing.name || '').toLowerCase().trim();
 
       const dbKey = Object.keys(INGREDIENTS_DB).find(k => {
+        const cleanKey = k.toLowerCase();
+        
+        // 1. Comprobación por la clave del objeto (ej: si la clave es "bacon")
+        if (cleanKey === canonicalName || canonicalName.includes(cleanKey)) {
+          return true;
+        }
+
         const dbName = INGREDIENTS_DB[k]?.name;
         if (!dbName) return false;
 
-        // Divide "Cuscús / Cous cous/ Semola" en ["cuscús", "cous cous", "semola"]
+        // 2. Tu lógica de separar los sinónimos por barra
         const synonyms = dbName.toLowerCase().split('/').map(name => name.trim());
         
-        return synonyms.includes(canonicalName);
+        // 3. ¡El truco! Usamos .some() para permitir búsquedas parciales cruzadas
+        return synonyms.some(syn => 
+          syn.includes(canonicalName) || canonicalName.includes(syn)
+        );
       });
 
       const dbItem = INGREDIENTS_DB[dbKey];

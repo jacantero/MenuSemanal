@@ -61,6 +61,26 @@ export default function ShoppingScreen() {
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
     : [];
 
+  // Dentro de tu componente:
+  const [pantryItems, setPantryItems] = useState([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadPantryForShopping = async () => {
+        try {
+          const savedPantry = await AsyncStorage.getItem('@pantry_items');
+          if (savedPantry) {
+            setPantryItems(JSON.parse(savedPantry));
+          }
+        } catch (e) {
+          console.error("Error cargando la despensa para la lista:", e);
+        }
+      };
+
+      loadPantryForShopping();
+    }, [])
+  );
+
   useEffect(() => {
     const setupSync = async () => {
       try {
@@ -97,7 +117,7 @@ export default function ShoppingScreen() {
     setupSync();
   }, []);
 
-  useFocusEffect(useCallback(() => { if (isReady) calculateList(); }, [isReady, extraItems, checkedItems, deletedItems]));
+  useFocusEffect(useCallback(() => { if (isReady) calculateList(); }, [isReady, extraItems, checkedItems, deletedItems, pantryItems]));
 
   const syncToFirebase = async (extras, checked, deleted) => {
     const householdId = await AsyncStorage.getItem('@household_id');
@@ -126,21 +146,32 @@ export default function ShoppingScreen() {
           const recipe = MOCK_RECIPES.find(r => r && String(r.id) === String(actualRecipeId));
           if (recipe) {
             const currentDiners = plannedDiners || recipe.baseDiners || 1;
+            
             recipe.ingredients.forEach(ing => {
               const canonicalName = getCanonicalName(ing.name);
               const cleanSafeId = canonicalName.toLowerCase().replace(/[^a-z0-9]/g, '');
               const itemId = `menu-${cleanSafeId}`; 
 
               if (deletedItems.has(itemId)) return; 
+              
+              // 1. Calcular cantidad requerida por la receta
               let adjustedAmount = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
-              const normalized = normalizeToBase(adjustedAmount, ing.unit);
+              let normalized = normalizeToBase(adjustedAmount, ing.unit);
 
+              // 2. Acumular en el mapa temporalmente (Aún NO restamos la despensa aquí para poder sumar todas las recetas primero)
               if (ingredientMap[canonicalName]) {
                 ingredientMap[canonicalName].amount += normalized.amount; 
-                ingredientMap[canonicalName].amount = Math.round(ingredientMap[canonicalName].amount * 100) / 100;
                 ingredientMap[canonicalName].days.add(day); 
               } else {
-                ingredientMap[canonicalName] = { id: itemId, name: canonicalName, amount: Math.round(normalized.amount * 100) / 100, unit: normalized.unit, days: new Set([day]), checked: checkedItems.has(itemId), isExtra: false };
+                ingredientMap[canonicalName] = { 
+                  id: itemId, 
+                  name: canonicalName, 
+                  amount: normalized.amount, 
+                  unit: normalized.unit, 
+                  days: new Set([day]), 
+                  checked: checkedItems.has(itemId), 
+                  isExtra: false 
+                };
               }
             });
           }
@@ -148,12 +179,44 @@ export default function ShoppingScreen() {
       });
     });
 
-    const menuList = Object.values(ingredientMap).map(ing => ({ ...ing, days: Array.from(ing.days) }));
+    // 3. AHORA restamos la despensa al total acumulado de cada ingrediente
+    const menuList = Object.values(ingredientMap).map(ing => {
+      // Buscar en la despensa (ajusta 'pantryItems' al nombre de tu variable de estado)
+      const pantryMatch = pantryItems.find(p => getCanonicalName(p.name) === ing.name);
+      
+      let finalAmount = ing.amount;
+      
+      if (pantryMatch) {
+        // Normalizar lo que hay en la despensa a la unidad base para poder restarlo correctamente
+        const normalizedPantry = normalizeToBase(pantryMatch.amount, pantryMatch.unit);
+        
+        // Asegurar que ambas unidades son compatibles antes de restar (ej: gramos con gramos)
+        if (normalizedPantry.unit === ing.unit) {
+          finalAmount = Math.max(0, ing.amount - normalizedPantry.amount);
+        }
+      }
+
+      return { 
+        ...ing, 
+        amount: Math.round(finalAmount * 100) / 100, 
+        days: Array.from(ing.days) 
+      };
+    }).filter(ing => ing.amount > 0); // Opcional: Ocultar de la lista si ya tenemos suficiente en la despensa (amount === 0)
+
+    // 4. Procesar extras
     const extrasList = extraItems.map(item => {
       const normalizedExtra = normalizeToBase(item.amount, item.unit);
-      return { ...item, amount: Math.round(normalizedExtra.amount * 100) / 100, unit: normalizedExtra.unit, checked: checkedItems.has(item.id), isExtra: true, days: [] };
+      return { 
+        ...item, 
+        amount: Math.round(normalizedExtra.amount * 100) / 100, 
+        unit: normalizedExtra.unit, 
+        checked: checkedItems.has(item.id), 
+        isExtra: true, 
+        days: [] 
+      };
     }).filter(item => !deletedItems.has(item.id));
 
+    // 5. Unir y ordenar
     const finalFlatList = [...menuList, ...extrasList].sort((a, b) => {
       if (a.checked === b.checked) return a.name.localeCompare(b.name);
       return a.checked ? 1 : -1;
@@ -161,64 +224,63 @@ export default function ShoppingScreen() {
 
     setShoppingItems(finalFlatList);
   };
+    // --- LÓGICA DE PRESUPUESTO BLINDADA ---
+    const budgetDetails = useMemo(() => {
+      let total = 0;
+      const items = shoppingItems.map(item => {
+        const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === item.name);
+        const dbItem = dbKey ? INGREDIENTS_DB[dbKey] : null;
+        
+        // PARCHE 1: Aseguramos que el unitPrice nunca sea undefined
+        let unitPrice = dbItem ? (tempPrices[item.name] !== undefined ? tempPrices[item.name] : (dbItem.purchasePrice || 0)) : 0;
+        unitPrice = Number(unitPrice) || 0; // Doble seguridad
 
-  // --- LÓGICA DE PRESUPUESTO BLINDADA ---
-  const budgetDetails = useMemo(() => {
-    let total = 0;
-    const items = shoppingItems.map(item => {
-      const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === item.name);
-      const dbItem = dbKey ? INGREDIENTS_DB[dbKey] : null;
-      
-      // PARCHE 1: Aseguramos que el unitPrice nunca sea undefined
-      let unitPrice = dbItem ? (tempPrices[item.name] !== undefined ? tempPrices[item.name] : (dbItem.purchasePrice || 0)) : 0;
-      unitPrice = Number(unitPrice) || 0; // Doble seguridad
-
-      let pAmount = 1;
-      let lots = 1;
-      let pUnit = 'ud';
-      let purchaseFormat = dbItem ? dbItem.purchaseUnit : '1 ud';
-      
-      if (dbItem && dbItem.purchaseUnit) {
-        const match = dbItem.purchaseUnit.match(/^([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
-        if (match) {
-          pAmount = parseFloat(match[1]) || 1;
-          pUnit = match[2].toLowerCase();
-          
-          let itemAmt = item.amount;
-          let pkgAmt = pAmount;
-          
-          if (item.unit === 'g' && pUnit === 'kg') pkgAmt = pAmount * 1000;
-          if (item.unit === 'kg' && pUnit === 'g') itemAmt = item.amount * 1000;
-          if (item.unit === 'ml' && pUnit === 'l') pkgAmt = pAmount * 1000;
-          if (item.unit === 'l' && pUnit === 'ml') itemAmt = item.amount * 1000;
-          if (pUnit === 'docena') pkgAmt = 12;
-          
-          lots = Math.ceil(itemAmt / pkgAmt) || 1;
+        let pAmount = 1;
+        let lots = 1;
+        let pUnit = 'ud';
+        let purchaseFormat = dbItem ? dbItem.purchaseUnit : '1 ud';
+        
+        if (dbItem && dbItem.purchaseUnit) {
+          const match = dbItem.purchaseUnit.match(/^([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
+          if (match) {
+            pAmount = parseFloat(match[1]) || 1;
+            pUnit = match[2].toLowerCase();
+            
+            let itemAmt = item.amount;
+            let pkgAmt = pAmount;
+            
+            if (item.unit === 'g' && pUnit === 'kg') pkgAmt = pAmount * 1000;
+            if (item.unit === 'kg' && pUnit === 'g') itemAmt = item.amount * 1000;
+            if (item.unit === 'ml' && pUnit === 'l') pkgAmt = pAmount * 1000;
+            if (item.unit === 'l' && pUnit === 'ml') itemAmt = item.amount * 1000;
+            if (pUnit === 'docena') pkgAmt = 12;
+            
+            lots = Math.ceil(itemAmt / pkgAmt) || 1;
+          }
         }
-      }
 
-      const override = ticketOverrides[item.id];
-      const currentLotsStr = override ? override.lotsStr : String(lots);
-      const currentLotsNum = parseFloat(currentLotsStr) || 0;
-      const currentUnit = override ? override.unit : pUnit;
+        const override = ticketOverrides[item.id];
+        const currentLotsStr = override ? override.lotsStr : String(lots);
+        const currentLotsNum = parseFloat(currentLotsStr) || 0;
+        const currentUnit = override ? override.unit : pUnit;
 
-      const itemTotalCost = currentLotsNum * unitPrice;
-      total += itemTotalCost;
+        const itemTotalCost = currentLotsNum * unitPrice;
+        total += itemTotalCost;
 
-      return {
-        ...item,
-        dbKey,
-        unitPrice,
-        purchaseFormat,
-        lots: currentLotsNum,
-        currentLotsStr,
-        currentUnit,
-        itemTotalCost
-      };     
-    });
+        return {
+          ...item,
+          dbKey,
+          unitPrice,
+          purchaseFormat,
+          lots: currentLotsNum,
+          currentLotsStr,
+          currentUnit,
+          itemTotalCost
+        };     
+      });
 
-    return { total, items };
-  }, [shoppingItems, tempPrices, ticketOverrides]);
+      return { total, items };
+    }, [shoppingItems, tempPrices, ticketOverrides]);
 
   // PARCHE 2: GUARDADO SEGURO
   useEffect(() => {

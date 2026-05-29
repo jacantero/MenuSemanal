@@ -6,10 +6,10 @@
     "baseDiners": 2,
     "ingredients": [
       { "name": "Espaguetis", "amount": 200.0, "unit": "g" },
-      { "name": "Bacon / Panceta", "amount": 150.0, "unit": "g" },
-      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "cuch." },
-      { "name": "Queso rallado / Grana Padano", "amount": 80.0, "unit": "g" },
-      { "name": "Huevo de gallina", "amount": 3.0, "unit": "ud" }
+      { "name": "Bacon", "amount": 150.0, "unit": "g" },
+      { "name": "Pimienta", "amount": 1.0, "unit": "cuch." },
+      { "name": "Queso rallado", "amount": 80.0, "unit": "g" },
+      { "name": "Huevo de gallina", "amount": 2.0, "unit": "ud" }
     ],
     "instructions": [
       "Hervir los espaguetis en agua con sal el tiempo indicado en el paquete para que queden al dente.",

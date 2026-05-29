@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // IMPORTA
 import {db} from '../firebaseConfig'
 
 // --- NUEVAS IMPORTACIONES DE FIREBASE ---
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 // --- OBJETIVOS Y LÍMITES DIARIOS MÁXIMOS RECOMENDADOS (OMS / IDR) ---
