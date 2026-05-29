@@ -168,7 +168,7 @@
     "source": "BEDCA"
   },
   "aceite": {
-    "name": "Aceite de Oliva", "unit": "ud", "emoji": "🫒", "purchaseUnit": "Botella 1L", "purchasePrice": 8.50, "weightPerUnit": 1000,
+    "name": "Aceite de Oliva", "unit": "ml", "emoji": "🫒", "purchaseUnit": "Botella 1L", "purchasePrice": 8.50, "weightPerUnit": 1000,
     "macros": { "kcals": 899.0, "protein": 0.0, "carbs": { "total": 0.0, "sugars": 0.0 }, "fats": { "total": 99.9, "saturated": 14.0, "monounsaturated": 75.5, "polyunsaturated": 10.4 }, "fiber": 0.0, "salt": 0.0 },
     "micros": { "calcium_mg": 0.0, "iron_mg": 0.0, "magnesium_mg": 0.0, "potassium_mg": 0.0, "phosphorus_mg": 0.0, "zinc_mg": 0.0, "vitA_mcg": 0.0, "vitB1_mg": 0.0, "vitB2_mg": 0.0, "vitB3_mg": 0.0, "vitB6_mg": 0.0, "vitB9_mcg": 0.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 5.1, "vitK_mcg": 60.2 },
     "source": "BEDCA"

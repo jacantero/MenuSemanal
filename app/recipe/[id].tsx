@@ -228,17 +228,17 @@ export default function RecipeDetailScreen() {
             
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>Kcal / ración</Text>
-              <Text style={[styles.statValue, { color: '#ea580c' }]}>{recipeStats.kcals}</Text>
-              <Text style={styles.statSubText}>Olla: {recipeStats.kcals * diners} kcal</Text>
+              <Text style={[styles.statValue, { color: '#ea580c' }]}>{Math.round(recipeStats.kcals/diners)}</Text>
+              <Text style={styles.statSubText}>Olla: {recipeStats.kcals} kcal</Text>
             </View>
 
             <View style={styles.statsDivider} />
 
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>Macros / ración</Text>
-              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#3b82f6'}}>P:</Text> {recipeStats.protein}g</Text>
-              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#eab308'}}>C:</Text> {recipeStats.carbs}g</Text>
-              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#ef4444'}}>G:</Text> {recipeStats.fats}g</Text>
+              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#3b82f6'}}>P:</Text> {recipeStats.protein/diners}g</Text>
+              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#eab308'}}>C:</Text> {recipeStats.carbs/diners}g</Text>
+              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#ef4444'}}>G:</Text> {recipeStats.fats/diners}g</Text>
             </View>
 
             {/* Iconito indicador de que se puede pulsar */}
@@ -311,10 +311,10 @@ export default function RecipeDetailScreen() {
                 <View key={idx} style={styles.detailRow}>
                   <View style={{ flex: 1, paddingRight: 10 }}>
                     <Text style={styles.detailName} numberOfLines={1}>
-                      {getEmojiForIngredient(item.name)} {item.name}
+                      {getEmojiForIngredient(item.name)} {item.name}{}
                     </Text>
                     <Text style={styles.detailMacros}>
-                      {Math.round(item.kcals)} kcal | P:{Math.round(item.protein)} C:{Math.round(item.carbs)} G:{Math.round(item.fats)}
+                      {Math.round(item.kcals/diners)} kcal | P:{Math.round(item.protein/diners)} C:{Math.round(item.carbs/diners)} G:{Math.round(item.fats/diners)}
                     </Text>
                   </View>
                   <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
