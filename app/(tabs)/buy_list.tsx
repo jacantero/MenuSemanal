@@ -228,34 +228,63 @@ export default function ShoppingScreen() {
     const budgetDetails = useMemo(() => {
       let total = 0;
       const items = shoppingItems.map(item => {
-        const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === item.name);
-        const dbItem = dbKey ? INGREDIENTS_DB[dbKey] : null;
+         {/*Búsqueda de los ingredientes de la receta en la base de datos*/}
+        const canonicalName = getCanonicalName(item.name || '').toLowerCase().trim();
+
+        const dbKey = Object.keys(INGREDIENTS_DB).find(k => {
+          const cleanKey = k.toLowerCase();
+          
+          // 1. Comprobación por la clave del objeto (ej: si la clave es "bacon")
+          if (cleanKey === canonicalName || canonicalName.includes(cleanKey)) {
+            return true;
+          }
+
+          const dbName = INGREDIENTS_DB[k]?.name;
+          if (!dbName) return false;
+
+          // 2. Tu lógica de separar los sinónimos por barra
+          const synonyms = dbName.toLowerCase().split('/').map(name => name.trim());
+          
+          // 3. ¡El truco! Usamos .some() para permitir búsquedas parciales cruzadas
+          return synonyms.some(syn => 
+            syn.includes(canonicalName) || canonicalName.includes(syn)
+          );
+        });
+
+        const dbItem = INGREDIENTS_DB[dbKey];
         
+        
+        //console.log(dbItem.name, dbItem.purchaseUnit)
         // PARCHE 1: Aseguramos que el unitPrice nunca sea undefined
         let unitPrice = dbItem ? (tempPrices[item.name] !== undefined ? tempPrices[item.name] : (dbItem.purchasePrice || 0)) : 0;
         unitPrice = Number(unitPrice) || 0; // Doble seguridad
-
+        
+        let leadingWord = null
         let pAmount = 1;
         let lots = 1;
         let pUnit = 'ud';
         let purchaseFormat = dbItem ? dbItem.purchaseUnit : '1 ud';
         
         if (dbItem && dbItem.purchaseUnit) {
-          const match = dbItem.purchaseUnit.match(/^([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
+          const match = dbItem.purchaseUnit.match(/^(?:([a-zñáéíóú]+)(?:\s+de)?\s+)?([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
           if (match) {
-            pAmount = parseFloat(match[1]) || 1;
-            pUnit = match[2].toLowerCase();
+            leadingWord = match[1];
+            pAmount = parseFloat(match[2]) || 1;
+            pUnit = match[3].toLowerCase();
             
             let itemAmt = item.amount;
             let pkgAmt = pAmount;
             
-            if (item.unit === 'g' && pUnit === 'kg') pkgAmt = pAmount * 1000;
+            if ((item.unit === 'g' || item.unit ==='ud') && pUnit === 'kg') pkgAmt = pAmount * 1000;
             if (item.unit === 'kg' && pUnit === 'g') itemAmt = item.amount * 1000;
             if (item.unit === 'ml' && pUnit === 'l') pkgAmt = pAmount * 1000;
             if (item.unit === 'l' && pUnit === 'ml') itemAmt = item.amount * 1000;
             if (pUnit === 'docena') pkgAmt = 12;
+            if (item.unit === "ud") itemAmt = itemAmt * dbItem.weightPerUnit
+            if (pUnit === "ud") pkgAmt = pAmount * dbItem.weightPerUnit
             
             lots = Math.ceil(itemAmt / pkgAmt) || 1;
+            console.log(item.name, itemAmt, pkgAmt, purchaseFormat, "lots", lots)
           }
         }
 
@@ -265,7 +294,10 @@ export default function ShoppingScreen() {
         const currentUnit = override ? override.unit : pUnit;
 
         const itemTotalCost = currentLotsNum * unitPrice;
+        
         total += itemTotalCost;
+
+        if (leadingWord) pUnit = leadingWord
 
         return {
           ...item,
@@ -275,7 +307,8 @@ export default function ShoppingScreen() {
           lots: currentLotsNum,
           currentLotsStr,
           currentUnit,
-          itemTotalCost
+          itemTotalCost,
+          pUnit
         };     
       });
 
@@ -611,7 +644,7 @@ export default function ShoppingScreen() {
                         style={styles.ticketQtyInput}
                         keyboardType="decimal-pad"
                         value={item.currentLotsStr}
-                        onChangeText={(val) => setTicketOverrides(prev => ({...prev, [item.id]: { lotsStr: val, unit: item.currentUnit }}))}
+                        onChangeText={(val) => setTicketOverrides(prev => ({...prev, [item.id]: { lotsStr: val, unit: item.pUnit}}))}
                       />
                       <TouchableOpacity 
                         style={styles.ticketUnitBtn}

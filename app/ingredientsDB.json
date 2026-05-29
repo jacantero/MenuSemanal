@@ -48,7 +48,7 @@
     "source": "BEDCA"
   },
   "huevo": {
-    "name": "Huevo de gallina", "unit": "ud", "emoji": "🥚", "purchaseUnit": "12 ud", "purchasePrice": 2.20, "weightPerUnit": 60,
+    "name": "Huevo de gallina", "unit": "ud", "emoji": "🥚", "purchaseUnit": "Caja 12 ud", "purchasePrice": 2.20, "weightPerUnit": 60,
     "macros": { "kcals": 162.0, "protein": 12.7, "carbs": { "total": 0.68, "sugars": 0.68 }, "fats": { "total": 12.1, "saturated": 3.3, "monounsaturated": 4.9, "polyunsaturated": 1.8 }, "fiber": 0.0, "salt": 0.36 },
     "micros": { "calcium_mg": 56.0, "iron_mg": 2.2, "magnesium_mg": 12.0, "potassium_mg": 147.0, "phosphorus_mg": 216.0, "zinc_mg": 2.0, "vitA_mcg": 227.0, "vitB1_mg": 0.11, "vitB2_mg": 0.37, "vitB3_mg": 3.3, "vitB6_mg": 0.12, "vitB9_mcg": 51.0, "vitB12_mcg": 2.1, "vitC_mg": 0.0, "vitD_mcg": 1.8, "vitE_mg": 1.9, "vitK_mcg": 8.9 },
     "source": "BEDCA"
