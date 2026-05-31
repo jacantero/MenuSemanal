@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform, Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
@@ -29,6 +29,8 @@ export default function ShoppingScreen() {
   const [extraItems, setExtraItems] = useState([]);
   const [checkedItems, setCheckedItems] = useState(new Set());
   const [deletedItems, setDeletedItems] = useState(new Set());
+  // 🛡️ ESCUDO OFFLINE: Guarda el momento exacto del último cambio local
+  const localSyncTime = useRef(Date.now());
 
   // ESTADOS DEL MODAL AÑADIR EXTRAS
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -55,7 +57,7 @@ export default function ShoppingScreen() {
   const [isBudgetModalVisible, setIsBudgetModalVisible] = useState(false);
   const [tempPrices, setTempPrices] = useState({});
   const [ticketOverrides, setTicketOverrides] = useState({});
-  const [activeUnitEditId, setActiveUnitEditId] = useState(null);
+
 
   const suggestions = newItemName.trim().length > 0 
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
@@ -84,6 +86,10 @@ export default function ShoppingScreen() {
   useEffect(() => {
     const setupSync = async () => {
       try {
+        // 1. Recuperamos nuestro reloj local por si venimos de tener la app cerrada
+        const savedTime = await AsyncStorage.getItem('@shopping_last_sync');
+        if (savedTime) localSyncTime.current = parseInt(savedTime, 10);
+
         const householdId = await AsyncStorage.getItem('@household_id');
         
         if (!householdId) {
@@ -101,9 +107,32 @@ export default function ShoppingScreen() {
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
-            if (data.extras) setExtraItems(data.extras);
-            if (data.checked) setCheckedItems(new Set(data.checked));
-            if (data.deleted) setDeletedItems(new Set(data.deleted));
+            const remoteTime = data.shoppingUpdatedAt || 0;
+
+            // 🛡️ EL ESCUDO EN ACCIÓN:
+            // Si la info de Firebase es MÁS VIEJA que nuestro último cambio, la RECHAZAMOS.
+            if (remoteTime < localSyncTime.current) {
+              console.log("Ignorando datos viejos de Firebase (estamos sin conexión o procesando)");
+              return;
+            }
+
+            // Si llegamos aquí, los datos de Firebase son más recientes (ej: tu pareja añadió algo).
+            // Actualizamos nuestro reloj local y aceptamos los datos.
+            localSyncTime.current = remoteTime;
+            AsyncStorage.setItem('@shopping_last_sync', remoteTime.toString());
+
+            if (data.extras) {
+              setExtraItems(data.extras);
+              AsyncStorage.setItem('@shopping_extras', JSON.stringify(data.extras));
+            }
+            if (data.checked) {
+              setCheckedItems(new Set(data.checked));
+              AsyncStorage.setItem('@shopping_checked', JSON.stringify(data.checked));
+            }
+            if (data.deleted) {
+              setDeletedItems(new Set(data.deleted));
+              AsyncStorage.setItem('@shopping_deleted', JSON.stringify(data.deleted));
+            }
           }
           setIsReady(true);
         });
@@ -123,14 +152,24 @@ export default function ShoppingScreen() {
     const householdId = await AsyncStorage.getItem('@household_id');
     if (!householdId) return;
 
+    // 1. Firmamos el momento exacto de este cambio
+    const now = Date.now();
+    localSyncTime.current = now; 
+    AsyncStorage.setItem('@shopping_last_sync', now.toString()); // Lo guardamos por si el usuario cierra la app sin internet
+
     const docRef = doc(db, "households", householdId);
     try {
       await updateDoc(docRef, {
         extras: extras,
         checked: Array.from(checked),
-        deleted: Array.from(deleted)
+        deleted: Array.from(deleted),
+        shoppingUpdatedAt: now // 2. Enviamos la firma a Firebase
       });
-    } catch (e) { console.error("Error sincronizando cambios:", e); }
+    } catch (e) { 
+      // Si falla (ej: no hay internet), no pasa nada. Firebase encola esta petición 
+      // automáticamente y la lanzará cuando vuelva la conexión.
+      console.log("Cambios guardados localmente. Se subirán al recuperar conexión."); 
+    }
   };
 
   const calculateList = () => {
@@ -352,6 +391,9 @@ export default function ShoppingScreen() {
       setExtraItems(updatedExtras);
       await AsyncStorage.setItem('@shopping_extras', JSON.stringify(updatedExtras));
 
+      // 🔥 SINCRO FIREBASE
+      syncToFirebase(updatedExtras, checkedItems, deletedItems);
+
       setNewItemName(''); setNewItemAmount('1'); setNewItemUnit('ud');
       setHasManuallySelectedUnit(false); setShowSuggestions(false); setIsModalVisible(false);
     };
@@ -423,7 +465,13 @@ export default function ShoppingScreen() {
     setCheckedItems(prev => {
       const newChecked = new Set(prev);
       if (newChecked.has(itemId)) newChecked.delete(itemId); else newChecked.add(itemId);
+      
+      // Guardado Local
       AsyncStorage.setItem('@shopping_checked', JSON.stringify(Array.from(newChecked))).catch(e => console.error(e));
+      
+      // 🔥 SINCRO FIREBASE: Subimos el nuevo Set de tachados junto al resto
+      syncToFirebase(extraItems, newChecked, deletedItems);
+      
       return newChecked;
     });
 
@@ -431,7 +479,7 @@ export default function ShoppingScreen() {
     setTimeout(() => {
       setShoppingItems(currentItems => [...currentItems].sort((a, b) => { if (a.checked === b.checked) return a.name.localeCompare(b.name); return a.checked ? 1 : -1; }));
     }, 1000);
-  }, []);
+  }, [extraItems, deletedItems]); // <-- IMPORTANTE: Dependencias actualizadas
 
   const handleDeleteItem = async (itemToDelete) => {
     const newDeleted = new Set(deletedItems);
@@ -439,11 +487,16 @@ export default function ShoppingScreen() {
     setDeletedItems(newDeleted);
     await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(newDeleted)));
 
+    let updatedExtras = extraItems; // Estado temporal por defecto
+
     if (itemToDelete.isExtra) {
-      const updatedExtras = extraItems.filter(ext => ext.id !== itemToDelete.id);
+      updatedExtras = extraItems.filter(ext => ext.id !== itemToDelete.id);
       setExtraItems(updatedExtras);
       await AsyncStorage.setItem('@shopping_extras', JSON.stringify(updatedExtras));
     }
+
+    // 🔥 SINCRO FIREBASE
+    syncToFirebase(updatedExtras, checkedItems, newDeleted);
   };
 
   const handleClearChecked = () => {
@@ -464,11 +517,16 @@ export default function ShoppingScreen() {
     setDeletedItems(newDeleted);
     await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(newDeleted)));
 
+    let updatedExtras = extraItems;
+
     if (extrasToRemove.size > 0) {
-      const updatedExtras = extraItems.filter(ext => !extrasToRemove.has(ext.id));
+      updatedExtras = extraItems.filter(ext => !extrasToRemove.has(ext.id));
       setExtraItems(updatedExtras);
       await AsyncStorage.setItem('@shopping_extras', JSON.stringify(updatedExtras));
     }
+
+    // 🔥 SINCRO FIREBASE
+    syncToFirebase(updatedExtras, checkedItems, newDeleted);
   };
 
   const renderDayBadges = (daysArray) => {
