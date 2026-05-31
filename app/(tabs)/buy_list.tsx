@@ -612,90 +612,69 @@ export default function ShoppingScreen() {
       <Modal visible={isBudgetModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { height: '85%', paddingBottom: 20 }]}>
+            
+            {/* 1. CABECERA DEL MODAL */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
               <Text style={styles.modalTitle}>🧾 Ticket Estimado</Text>
-              <TouchableOpacity onPress={() => { setIsBudgetModalVisible(false); setActiveUnitEditId(null); }} style={{ padding: 4 }}>
+              <TouchableOpacity onPress={() => setIsBudgetModalVisible(false)} style={{ padding: 4 }}>
                 <FontAwesome name="times" size={20} color="#64748b" />
               </TouchableOpacity>
             </View>
 
+            {/* 2. CABECERA DE LA TABLA */}
             <View style={styles.ticketHeaderRow}>
               <Text style={[styles.ticketHeaderCol, { flex: 1.5 }]}>PRODUCTO</Text>
-              <Text style={[styles.ticketHeaderCol, { flex: 1.5, textAlign: 'center' }]}>CANTIDAD</Text>
-              <Text style={[styles.ticketHeaderCol, { flex: 1, textAlign: 'right' }]}>PRECIO (€)</Text>
+              <Text style={[styles.ticketHeaderCol, { flex: 1.2, textAlign: 'center' }]}>COMPRA</Text>
+              <Text style={[styles.ticketHeaderCol, { flex: 1.3, textAlign: 'right' }]}>PRECIO TOTAL</Text>
             </View>
 
+            {/* 3. LISTA DE INGREDIENTES (SOLO LECTURA) */}
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
               {budgetDetails.items.map((item) => (
-                <View key={item.id}>
-                  <View style={styles.ticketRow}>
-                    <View style={{ flex: 1.5, paddingRight: 5 }}>
-                      <Text style={styles.ticketItemName} numberOfLines={1}>
-                        {getEmojiForIngredient(item.name)} {item.name}
-                      </Text>
-                      <Text style={styles.ticketItemDesc}>
-                        Req: {item.amount}{item.unit}
-                      </Text>
-                    </View>
-
-                    {/* CAJA EDITABLE DE CANTIDAD Y UNIDAD */}
-                    <View style={{ flex: 1.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                      <TextInput
-                        style={styles.ticketQtyInput}
-                        keyboardType="decimal-pad"
-                        value={item.currentLotsStr}
-                        onChangeText={(val) => setTicketOverrides(prev => ({...prev, [item.id]: { lotsStr: val, unit: item.pUnit}}))}
-                      />
-                      <TouchableOpacity 
-                        style={styles.ticketUnitBtn}
-                        onPress={() => setActiveUnitEditId(activeUnitEditId === item.id ? null : item.id)}
-                      >
-                        <Text style={styles.ticketUnitText}>{item.currentUnit} ▾</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    <View style={{ flex: 1, alignItems: 'flex-end', justifyContent: 'center' }}>
-                      <TextInput
-                        style={styles.ticketPriceInput}
-                        keyboardType="decimal-pad"
-                        // PARCHE 3: Protección brutal para el TextInput
-                        value={String(item.unitPrice ?? 0)}
-                        onChangeText={(val) => updatePriceInTicket(item.name, item.dbKey, val)}
-                      />
-                      <Text style={styles.ticketSubtotalText}>= {(item.itemTotalCost || 0).toFixed(2)}€</Text>
-                    </View>
+                <View key={item.id} style={styles.ticketRow}>
+                  
+                  {/* Columna Izquierda: Nombre y Cantidad Requerida */}
+                  <View style={{ flex: 1.5, paddingRight: 5 }}>
+                    <Text style={styles.ticketItemName} numberOfLines={1}>
+                      {getEmojiForIngredient(item.name)} {item.name}
+                    </Text>
+                    <Text style={styles.ticketItemDesc}>
+                      Req: {item.amount}{item.unit}
+                    </Text>
                   </View>
 
-                  {/* DESPLEGABLE INLINE PARA SELECCIONAR LA UNIDAD */}
-                  {activeUnitEditId === item.id && (
-                    <View style={styles.inlineUnitSelector}>
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {STANDARD_UNITS.map(u => (
-                          <TouchableOpacity 
-                            key={u} 
-                            style={[styles.unitChip, item.currentUnit === u && styles.unitChipSelected, { paddingVertical: 6, paddingHorizontal: 12, marginBottom: 0, marginRight: 6 }]}
-                            onPress={() => {
-                              setTicketOverrides(prev => ({...prev, [item.id]: { lotsStr: item.currentLotsStr, unit: u }}));
-                              setActiveUnitEditId(null);
-                            }}
-                          >
-                            <Text style={[styles.unitChipText, item.currentUnit === u && styles.unitChipTextSelected, { fontSize: 11 }]}>{u}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-                    </View>
-                  )}
+                  {/* Columna Central: Lotes y Formato de Compra */}
+                  <View style={{ flex: 1.2, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={[styles.ticketUnitText, { fontWeight: '600', color: '#334155', fontSize: 13 }]}>
+                      {item.currentLotsStr} x {item.purchaseFormat}
+                    </Text>
+                  </View>
+
+                  {/* Columna Derecha: Precio Unitario y Subtotal */}
+                  <View style={{ flex: 1.3, alignItems: 'flex-end', justifyContent: 'center' }}>
+                    <Text style={[styles.ticketSubtotalText, { fontSize: 15, fontWeight: 'bold', color: '#0f172a' }]}>
+                      {(item.itemTotalCost || 0).toFixed(2)}€
+                    </Text>
+                  </View>
+
                 </View>
               ))}
             </ScrollView>
 
+            {/* 4. PIE DEL TICKET (TOTALES) */}
             <View style={styles.ticketFooter}>
               <Text style={styles.ticketFooterLabel}>TOTAL APROXIMADO</Text>
               <Text style={styles.ticketFooterTotal}>{(budgetDetails.total || 0).toFixed(2)} €</Text>
             </View>
-            <TouchableOpacity style={[styles.confirmButton, { marginTop: 15 }]} onPress={() => { setIsBudgetModalVisible(false); setActiveUnitEditId(null); }}>
+
+            {/* 5. BOTÓN CERRAR */}
+            <TouchableOpacity 
+              style={[styles.confirmButton, { marginTop: 15 }]} 
+              onPress={() => setIsBudgetModalVisible(false)}
+            >
               <Text style={styles.confirmButtonText}>Cerrar Ticket</Text>
             </TouchableOpacity>
+
           </View>
         </View>
       </Modal>
