@@ -1,14 +1,15 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ProgressBarAndroid } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-// Importaciones actualizadas con la nueva función
-import { weeklyMenu, MOCK_RECIPES, updateEatOutDetails, assignRecipeToMenu, weeklyMetadata, updateSupermarketCost, getTotalEatOutCost, initAppData, consumeRecipeFromPantry, INGREDIENTS_DB, getCanonicalName, normalizeToBase } from '../tempData';
 import { FontAwesome } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // IMPORTANTE AÑADIR ESTO
-import {db} from '../firebaseConfig'
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
-// --- NUEVAS IMPORTACIONES DE FIREBASE ---
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+// 1. IMPORTAMOS EL HOOK DEL CONTEXTO GLOBAl (Ajusta la ruta si es necesario)
+import { useHousehold } from '../HouseholdContext';
+
+// Importaciones actualizadas (hemos quitado assignRecipeToMenu y weeklyMenu de aquí, ahora viven en el Contexto)
+import { MOCK_RECIPES, getTotalEatOutCost, initAppData, consumeRecipeFromPantry, INGREDIENTS_DB, getCanonicalName, normalizeToBase } from '../tempData';
+
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 // --- OBJETIVOS Y LÍMITES DIARIOS MÁXIMOS RECOMENDADOS (OMS / IDR) ---
@@ -46,15 +47,26 @@ const NUTRITION_LIMITS = {
 };
 
 export default function MenuScreen() {
-  const [isReady, setIsReady] = useState(false);
-  const [menuData, setMenuData] = useState(weeklyMenu);
 
-  // --- ESTADOS DEL HOGAR (FIREBASE) ---
-  const [householdId, setHouseholdId] = useState(null);
+  const context = useHousehold();
+  
+  // 🔍 EL "DEBUG" DEFINITIVO
+  console.log("--- CONTENIDO DEL CONTEXTO ---");
+  console.log(Object.keys(context)); // Esto te dirá qué propiedades SI existen
+  console.log(context);              // Esto te mostrará el objeto completo
+  // 2. DOSIS DE MAGIA: Traemos todos los estados y funciones mágicas del contexto
+  const { 
+    isReady,
+    householdId,
+    weeklyMenu: menuData,
+    createHousehold,
+    joinHousehold,
+    updateMenu
+  } = useHousehold();
+
+  // --- ESTADOS LOCALES (UI) ---
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [isHouseholdLoading, setIsHouseholdLoading] = useState(false);
-  
-  // --- ESTADO PARA EL COSTE ESTIMADO DE LA COMPRA ---
   const [supermarketCost, setSupermarketCost] = useState(0);
   const [dashboardVisible, setDashboardVisible] = useState(false);
 
@@ -78,70 +90,42 @@ export default function MenuScreen() {
   useEffect(() => {
     const loadData = async () => {
       await initAppData(); 
-      setMenuData({ ...weeklyMenu }); 
-      
       // Primera lectura rápida del presupuesto
       try {
         const savedCost = await AsyncStorage.getItem('@estimated_shopping_cost');
         if (savedCost) setSupermarketCost(parseFloat(savedCost));
-
-        // --- BUSCAMOS EL ID DEL HOGAR ---
-        const savedHousehold = await AsyncStorage.getItem('@household_id');
-        if (savedHousehold) {
-          setHouseholdId(savedHousehold);
-        }
       } catch (e) { console.error(e) }
-
-      setIsReady(true); 
     };
     loadData();
   }, []);
 
-  const totalEatOut = getTotalEatOutCost();
+  const totalEatOut = getTotalEatOutCost(menuData); // ⚠️ Asegúrate de que getTotalEatOutCost en tempData acepta menuData como parámetro
   const totalWeekly = supermarketCost + totalEatOut;
 
   // --- LECTURA CONSTANTE AL VOLVER A LA PANTALLA ---
   useFocusEffect(
     useCallback(() => {
-      const fetchMenuAndCost = async () => {
-        if (isReady) {
-          setMenuData({ ...weeklyMenu }); 
-          try {
-            const savedCost = await AsyncStorage.getItem('@estimated_shopping_cost');
-            if (savedCost) setSupermarketCost(parseFloat(savedCost));
-          } catch (e) {}
-        }
+      const fetchCost = async () => {
+        try {
+          const savedCost = await AsyncStorage.getItem('@estimated_shopping_cost');
+          if (savedCost) setSupermarketCost(parseFloat(savedCost));
+        } catch (e) {}
       };
-      fetchMenuAndCost();
-    }, [isReady])
+      fetchCost();
+    }, [])
   );
 
   // --- FUNCIONES DE EMPAREJAMIENTO FIREBASE ---
-  const generateRandomCode = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Sin O, 0, 1, I para evitar confusiones
-    let result = '';
-    for (let i = 0; i < 5; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
-    return result;
-  };
-
+  // Ahora estas funciones llaman a los métodos blindados del Contexto
   const handleCreateHousehold = async () => {
     setIsHouseholdLoading(true);
-    const newCode = generateRandomCode();
-    try {
-      // Creamos la "carpeta" de esta familia en Firebase
-      await setDoc(doc(db, "households", newCode), {
-        createdAt: new Date(),
-        supermarketCost: 0
-      });
-      // Lo guardamos en el teléfono
-      await AsyncStorage.setItem('@household_id', newCode);
-      setHouseholdId(newCode);
-      Alert.alert("¡Familia Creada!", `Tu código es: ${newCode}\nCompártelo para que se unan a tu familia.`);
-    } catch (error) {
-      console.error("🚨 ERROR REAL DE FIREBASE:", error); // <-- AÑADE ESTO
-      Alert.alert("Error", "No se pudo crear el hogar. Comprueba tu conexión.");
-    }
+    const newCode = await createHousehold();
     setIsHouseholdLoading(false);
+    if (newCode) {
+        Alert.alert("¡Familia Creada!", `Tu código es: ${newCode}\nCompártelo para que se unan a tu familia.`);
+    } else {
+        Alert.alert("Error", "No se pudo crear el hogar. Comprueba tu conexión.");
+    }
   };
 
   const handleJoinHousehold = async () => {
@@ -151,22 +135,13 @@ export default function MenuScreen() {
       return;
     }
     setIsHouseholdLoading(true);
-    try {
-      // Comprobamos si esa familia existe en la nube
-      const docRef = doc(db, "households", code);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        await AsyncStorage.setItem('@household_id', code);
-        setHouseholdId(code);
-        Alert.alert("¡Éxito!", "Te has unido a la familia correctamente.");
-      } else {
-        Alert.alert("No encontrado", "No existe ninguna familia con ese código.");
-      }
-    } catch (error) {
-      Alert.alert("Error", "No se pudo verificar el código.");
-    }
+    const success = await joinHousehold(code);
     setIsHouseholdLoading(false);
+    if (success) {
+      Alert.alert("¡Éxito!", "Te has unido a la familia correctamente.");
+    } else {
+      Alert.alert("Error", "No se pudo verificar el código o no existe.");
+    }
   };
 
   // --- CÁLCULO PROFUNDO DE MACROS Y MICROS PROPORCIONAL POR COMENSALES ---
@@ -182,8 +157,6 @@ export default function MenuScreen() {
       if (meal.recipeId && meal.recipeId !== 'eat_out') {
         const recipe = MOCK_RECIPES.find(r => String(r.id) === String(meal.recipeId));
         if (recipe) {
-          // Si el usuario no ha especificado comensales para esta comida en el menú, 
-          // asumimos que es 1 persona para calcular la ración individual real consumida.
           const actualDinersEating = 1;
           const recipeBaseDiners = recipe.baseDiners || 1;
           
@@ -193,10 +166,7 @@ export default function MenuScreen() {
             const dbItem = dbKey ? INGREDIENTS_DB[dbKey] : null;
 
             if (dbItem) {
-              // MATEMÁTICA CRUCIAL: (Cantidad total de la receta / Personas para las que está hecha) = Ración para 1 persona
-              // Luego lo multiplicamos por cuánta gente va a comer realmente en esa comida.
               let amountForThisMeal = (ing.amount / recipeBaseDiners) * actualDinersEating;
-              
               const normalized = normalizeToBase(amountForThisMeal, ing.unit); 
               const amountIn100g = normalized.amount / 100;
 
@@ -251,11 +221,13 @@ export default function MenuScreen() {
     return nutritionSelectedDay ? calculateDayNutrition(nutritionSelectedDay) : null;
   }, [nutritionSelectedDay, menuData]);
 
-  // --- FUNCIONES DE SELECCIÓN MÚLTIPLE Y MODALES (IGUAL) ---
+  // --- FUNCIONES DE SELECCIÓN MÚLTIPLE Y MODALES ---
+  // Ahora todas las modificaciones sobre el Menú se hacen clonando `menuData` y enviándoselo a `updateMenu`
+
   const handleLongPressTitle = (title) => {
     const newSelection = [];
-    Object.keys(weeklyMenu).forEach(d => {
-      weeklyMenu[d].forEach(m => {
+    Object.keys(menuData).forEach(d => {
+      menuData[d].forEach(m => {
         if (m.title === title) newSelection.push(`${d}|${m.id}`);
       });
     });
@@ -268,35 +240,38 @@ export default function MenuScreen() {
     setSelectedMeals(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
   };
 
-  const bulkMoveUp = () => {
+  const bulkMoveUp = async () => {
+    const newMenu = JSON.parse(JSON.stringify(menuData)); // Clonación profunda para no mutar el estado directamente
     selectedMeals.forEach(key => {
       const [d, mId] = key.split('|');
-      const idx = weeklyMenu[d].findIndex(m => m.id === mId);
-      if (idx > 0) [weeklyMenu[d][idx - 1], weeklyMenu[d][idx]] = [weeklyMenu[d][idx], weeklyMenu[d][idx - 1]];
+      const idx = newMenu[d].findIndex(m => m.id === mId);
+      if (idx > 0) [newMenu[d][idx - 1], newMenu[d][idx]] = [newMenu[d][idx], newMenu[d][idx - 1]];
     });
-    setMenuData({ ...weeklyMenu });
+    await updateMenu(newMenu);
   };
 
-  const bulkMoveDown = () => {
+  const bulkMoveDown = async () => {
+    const newMenu = JSON.parse(JSON.stringify(menuData));
     selectedMeals.forEach(key => {
       const [d, mId] = key.split('|');
-      const idx = weeklyMenu[d].findIndex(m => m.id === mId);
-      if (idx !== -1 && idx < weeklyMenu[d].length - 1) {
-        [weeklyMenu[d][idx + 1], weeklyMenu[d][idx]] = [weeklyMenu[d][idx], weeklyMenu[d][idx + 1]];
+      const idx = newMenu[d].findIndex(m => m.id === mId);
+      if (idx !== -1 && idx < newMenu[d].length - 1) {
+        [newMenu[d][idx + 1], newMenu[d][idx]] = [newMenu[d][idx], newMenu[d][idx + 1]];
       }
     });
-    setMenuData({ ...weeklyMenu });
+    await updateMenu(newMenu);
   };
 
   const bulkDelete = () => {
     Alert.alert("Borrar selección", `¿Borrar los ${selectedMeals.length} momentos seleccionados?`, [
       { text: "Cancelar", style: "cancel" },
-      { text: "Borrar", style: "destructive", onPress: () => {
+      { text: "Borrar", style: "destructive", onPress: async () => {
+          const newMenu = JSON.parse(JSON.stringify(menuData));
           selectedMeals.forEach(key => {
             const [d, mId] = key.split('|');
-            weeklyMenu[d] = weeklyMenu[d].filter(m => m.id !== mId);
+            newMenu[d] = newMenu[d].filter(m => m.id !== mId);
           });
-          setMenuData({ ...weeklyMenu });
+          await updateMenu(newMenu);
           setSelectedMeals([]); 
         }
       }
@@ -320,24 +295,20 @@ export default function MenuScreen() {
         { 
           text: "Quitar todas", 
           style: "destructive", 
-          onPress: () => {
+          onPress: async () => {
+            const newMenu = JSON.parse(JSON.stringify(menuData));
             selectedMeals.forEach(key => {
               const [d, mId] = key.split('|');
-              assignRecipeToMenu(d, mId, null);
+              const meal = newMenu[d].find(m => m.id === mId);
+              if (meal) { meal.recipeId = null; meal.diners = null; meal.eatOutPlace = null; meal.eatOutCost = null; }
             });
-            setMenuData({ ...weeklyMenu });
+            await updateMenu(newMenu);
             setSelectedMeals([]); 
           } 
         }
       ]
     );
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      if (isReady) setMenuData({ ...weeklyMenu }); 
-    }, [isReady])
-  );
 
   const getRecipeName = (recipeId) => {
     if (!recipeId) return null;
@@ -346,20 +317,20 @@ export default function MenuScreen() {
     return recipe ? recipe.name : 'Receta borrada';
   };
 
-  const moveMealUp = (day, index) => {
+  const moveMealUp = async (day, index) => {
     if (index === 0) return; 
-    const meals = [...weeklyMenu[day]];
+    const newMenu = JSON.parse(JSON.stringify(menuData));
+    const meals = newMenu[day];
     [meals[index - 1], meals[index]] = [meals[index], meals[index - 1]]; 
-    weeklyMenu[day] = meals;
-    setMenuData({ ...weeklyMenu });
+    await updateMenu(newMenu);
   };
 
-  const moveMealDown = (day, index) => {
-    if (index === weeklyMenu[day].length - 1) return; 
-    const meals = [...weeklyMenu[day]];
+  const moveMealDown = async (day, index) => {
+    if (index === menuData[day].length - 1) return; 
+    const newMenu = JSON.parse(JSON.stringify(menuData));
+    const meals = newMenu[day];
     [meals[index + 1], meals[index]] = [meals[index], meals[index + 1]];
-    weeklyMenu[day] = meals;
-    setMenuData({ ...weeklyMenu });
+    await updateMenu(newMenu);
   };
 
   const deleteMealSlot = (day, index, title) => {
@@ -370,9 +341,10 @@ export default function MenuScreen() {
         { text: "Cancelar", style: "cancel" },
         { 
           text: "Eliminar", style: "destructive", 
-          onPress: () => {
-            weeklyMenu[day].splice(index, 1); 
-            setMenuData({ ...weeklyMenu });
+          onPress: async () => {
+            const newMenu = JSON.parse(JSON.stringify(menuData));
+            newMenu[day].splice(index, 1); 
+            await updateMenu(newMenu);
           }
         }
       ]
@@ -394,9 +366,10 @@ export default function MenuScreen() {
     );
   };
 
-  const confirmAddMeal = (shouldAssign) => {
+  const confirmAddMeal = async (shouldAssign) => {
     if (newMealName.trim() === '' || selectedDays.length === 0) return;
     
+    const newMenu = JSON.parse(JSON.stringify(menuData));
     const createdTargets = []; 
     
     selectedDays.forEach((day, index) => {
@@ -407,11 +380,11 @@ export default function MenuScreen() {
         recipeId: null,
         diners: null
       };
-      weeklyMenu[day].push(newMeal);
+      newMenu[day].push(newMeal);
       createdTargets.push(`${day}|${newId}`); 
     });
 
-    setMenuData({ ...weeklyMenu });
+    await updateMenu(newMenu);
     setAddMealVisible(false);
 
     if (shouldAssign) {
@@ -429,13 +402,24 @@ export default function MenuScreen() {
     setEatOutModalVisible(true);
   };
 
-  const saveEatOutDetails = () => {
+  const saveEatOutDetails = async () => {
     const costNumber = parseFloat(eatOutCost.replace(',', '.')) || null;
-    updateEatOutDetails(eatOutTarget.day, eatOutTarget.mealId, eatOutPlace, costNumber);
-    setMenuData({ ...weeklyMenu });
+    
+    const newMenu = JSON.parse(JSON.stringify(menuData));
+    const meal = newMenu[eatOutTarget.day].find(m => m.id === eatOutTarget.mealId);
+    
+    if (meal) {
+      meal.eatOutPlace = eatOutPlace;
+      meal.eatOutCost = costNumber;
+    }
+
+    await updateMenu(newMenu);
     setEatOutModalVisible(false);
   };
 
+  // Esta función no toca el menú, sino la despensa, por lo que asumo que tu "consumeRecipeFromPantry" 
+  // ya hace el AsyncStorage.setItem correspondiente. Si la despensa se sincroniza con el Contexto,
+  // aquí tendrías que llamar a la función de despensa del Contexto.
   const handleConsumeRecipe = (recipeId, plannedDiners) => {
     const recipe = MOCK_RECIPES.find(r => String(r.id) === String(recipeId));
     
@@ -536,7 +520,12 @@ export default function MenuScreen() {
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity style={styles.unassignBtn} onPress={() => { assignRecipeToMenu(day, mealObject.id, null); setMenuData({ ...weeklyMenu }); }}>
+              <TouchableOpacity style={styles.unassignBtn} onPress={async () => { 
+                const newMenu = JSON.parse(JSON.stringify(menuData));
+                const meal = newMenu[day].find(m => m.id === mealObject.id);
+                if (meal) { meal.recipeId = null; meal.diners = null; meal.eatOutPlace = null; meal.eatOutCost = null; }
+                await updateMenu(newMenu);
+              }}>
                 <FontAwesome name="eraser" size={18} color="#ff5252" />
               </TouchableOpacity>
             </View>
@@ -558,6 +547,7 @@ export default function MenuScreen() {
     
     const barWidth = dayScoreInfo.score > 100 ? 100 : dayScoreInfo.score;
 
+  if (!isReady) return <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}><Text style={{ fontSize: 18, color: '#2f95dc', fontWeight: 'bold' }}>Cargando Menú...</Text></View>;
     return (
       <View key={day} style={styles.dayCard}>
         <View style={styles.dayHeader}>

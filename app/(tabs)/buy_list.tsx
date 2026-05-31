@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform, Alert } from 'react-native';
-import { useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { doc, onSnapshot, updateDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Lo dejamos solo para el coste estimado
+
+// 1. IMPORTAMOS EL HOOK DEL CONTEXTO GLOBAl (Ajusta la ruta si es necesario)
+import { useHousehold } from '../HouseholdContext';
+
 import { weeklyMenu, MOCK_RECIPES, INGREDIENTS_DB, COMMON_INGREDIENTS, normalizeToBase, getCanonicalName, registerCustomIngredient, updateIngredientDatabase } from '../tempData';
 
 export const getEmojiForIngredient = (rawName) => {
@@ -24,15 +25,19 @@ const DAY_BADGES = {
 };
 
 export default function ShoppingScreen() {
-  const [isReady, setIsReady] = useState(false);
-  const [shoppingItems, setShoppingItems] = useState([]);
-  const [extraItems, setExtraItems] = useState([]);
-  const [checkedItems, setCheckedItems] = useState(new Set());
-  const [deletedItems, setDeletedItems] = useState(new Set());
-  // 🛡️ ESCUDO OFFLINE: Guarda el momento exacto del último cambio local
-  const localSyncTime = useRef(Date.now());
+  // 2. DOSIS DE MAGIA: Traemos los estados y la función de guardado unificada del contexto
+  const { 
+    isReady: contextReady, 
+    extraItems, 
+    checkedItems, 
+    deletedItems, 
+    pantryItems, 
+    updateShopping 
+  } = useHousehold();
 
-  // ESTADOS DEL MODAL AÑADIR EXTRAS
+  const [shoppingItems, setShoppingItems] = useState([]);
+
+  // ESTADOS DEL MODAL AAÑADIR EXTRAS
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemAmount, setNewItemAmount] = useState('1'); 
@@ -58,119 +63,16 @@ export default function ShoppingScreen() {
   const [tempPrices, setTempPrices] = useState({});
   const [ticketOverrides, setTicketOverrides] = useState({});
 
-
   const suggestions = newItemName.trim().length > 0 
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
     : [];
 
-  // Dentro de tu componente:
-  const [pantryItems, setPantryItems] = useState([]);
-
-  useFocusEffect(
-    useCallback(() => {
-      const loadPantryForShopping = async () => {
-        try {
-          const savedPantry = await AsyncStorage.getItem('@pantry_items');
-          if (savedPantry) {
-            setPantryItems(JSON.parse(savedPantry));
-          }
-        } catch (e) {
-          console.error("Error cargando la despensa para la lista:", e);
-        }
-      };
-
-      loadPantryForShopping();
-    }, [])
-  );
-
+  // 3. REACCIÓN AUTOMÁTICA: Cada vez que el contexto cambie algo (venga de Firebase o local), recalculamos la lista
   useEffect(() => {
-    const setupSync = async () => {
-      try {
-        // 1. Recuperamos nuestro reloj local por si venimos de tener la app cerrada
-        const savedTime = await AsyncStorage.getItem('@shopping_last_sync');
-        if (savedTime) localSyncTime.current = parseInt(savedTime, 10);
-
-        const householdId = await AsyncStorage.getItem('@household_id');
-        
-        if (!householdId) {
-          const savedExtras = await AsyncStorage.getItem('@shopping_extras');
-          const savedChecked = await AsyncStorage.getItem('@shopping_checked');
-          const savedDeleted = await AsyncStorage.getItem('@shopping_deleted');
-          if (savedExtras) setExtraItems(JSON.parse(savedExtras));
-          if (savedChecked) setCheckedItems(new Set(JSON.parse(savedChecked)));
-          if (savedDeleted) setDeletedItems(new Set(JSON.parse(savedDeleted)));
-          setIsReady(true);
-          return;
-        }
-
-        const docRef = doc(db, "households", householdId);
-        const unsubscribe = onSnapshot(docRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            const remoteTime = data.shoppingUpdatedAt || 0;
-
-            // 🛡️ EL ESCUDO EN ACCIÓN:
-            // Si la info de Firebase es MÁS VIEJA que nuestro último cambio, la RECHAZAMOS.
-            if (remoteTime < localSyncTime.current) {
-              console.log("Ignorando datos viejos de Firebase (estamos sin conexión o procesando)");
-              return;
-            }
-
-            // Si llegamos aquí, los datos de Firebase son más recientes (ej: tu pareja añadió algo).
-            // Actualizamos nuestro reloj local y aceptamos los datos.
-            localSyncTime.current = remoteTime;
-            AsyncStorage.setItem('@shopping_last_sync', remoteTime.toString());
-
-            if (data.extras) {
-              setExtraItems(data.extras);
-              AsyncStorage.setItem('@shopping_extras', JSON.stringify(data.extras));
-            }
-            if (data.checked) {
-              setCheckedItems(new Set(data.checked));
-              AsyncStorage.setItem('@shopping_checked', JSON.stringify(data.checked));
-            }
-            if (data.deleted) {
-              setDeletedItems(new Set(data.deleted));
-              AsyncStorage.setItem('@shopping_deleted', JSON.stringify(data.deleted));
-            }
-          }
-          setIsReady(true);
-        });
-
-        return () => unsubscribe();
-      } catch (e) {
-        console.error("Error cargando datos:", e);
-        setIsReady(true);
-      }
-    };
-    setupSync();
-  }, []);
-
-  useFocusEffect(useCallback(() => { if (isReady) calculateList(); }, [isReady, extraItems, checkedItems, deletedItems, pantryItems]));
-
-  const syncToFirebase = async (extras, checked, deleted) => {
-    const householdId = await AsyncStorage.getItem('@household_id');
-    if (!householdId) return;
-
-    // 1. Firmamos el momento exacto de este cambio
-    const now = Date.now();
-    localSyncTime.current = now; 
-    AsyncStorage.setItem('@shopping_last_sync', now.toString()); // Lo guardamos por si el usuario cierra la app sin internet
-
-    const docRef = doc(db, "households", householdId);
-    try {
-      await updateDoc(docRef, {
-        extras: extras,
-        checked: Array.from(checked),
-        deleted: Array.from(deleted),
-        shoppingUpdatedAt: now // 2. Enviamos la firma a Firebase
-      });
-    } catch (e) { 
-      // Si falla (ej: no hay internet), no pasa nada. Firebase encola esta petición 
-      // automáticamente y la lanzará cuando vuelva la conexión.
-      console.log("Cambios guardados localmente. Se subirán al recuperar conexión."); 
+    if (contextReady) {
+      calculateList();
     }
-  };
+  }, [contextReady, extraItems, checkedItems, deletedItems, pantryItems]);
 
   const calculateList = () => {
     const ingredientMap = {};
@@ -193,11 +95,9 @@ export default function ShoppingScreen() {
 
               if (deletedItems.has(itemId)) return; 
               
-              // 1. Calcular cantidad requerida por la receta
               let adjustedAmount = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
               let normalized = normalizeToBase(adjustedAmount, ing.unit);
 
-              // 2. Acumular en el mapa temporalmente (Aún NO restamos la despensa aquí para poder sumar todas las recetas primero)
               if (ingredientMap[canonicalName]) {
                 ingredientMap[canonicalName].amount += normalized.amount; 
                 ingredientMap[canonicalName].days.add(day); 
@@ -218,18 +118,12 @@ export default function ShoppingScreen() {
       });
     });
 
-    // 3. AHORA restamos la despensa al total acumulado de cada ingrediente
     const menuList = Object.values(ingredientMap).map(ing => {
-      // Buscar en la despensa (ajusta 'pantryItems' al nombre de tu variable de estado)
       const pantryMatch = pantryItems.find(p => getCanonicalName(p.name) === ing.name);
-      
       let finalAmount = ing.amount;
       
       if (pantryMatch) {
-        // Normalizar lo que hay en la despensa a la unidad base para poder restarlo correctamente
         const normalizedPantry = normalizeToBase(pantryMatch.amount, pantryMatch.unit);
-        
-        // Asegurar que ambas unidades son compatibles antes de restar (ej: gramos con gramos)
         if (normalizedPantry.unit === ing.unit) {
           finalAmount = Math.max(0, ing.amount - normalizedPantry.amount);
         }
@@ -240,9 +134,8 @@ export default function ShoppingScreen() {
         amount: Math.round(finalAmount * 100) / 100, 
         days: Array.from(ing.days) 
       };
-    }).filter(ing => ing.amount > 0); // Opcional: Ocultar de la lista si ya tenemos suficiente en la despensa (amount === 0)
+    }).filter(ing => ing.amount > 0);
 
-    // 4. Procesar extras
     const extrasList = extraItems.map(item => {
       const normalizedExtra = normalizeToBase(item.amount, item.unit);
       return { 
@@ -255,7 +148,6 @@ export default function ShoppingScreen() {
       };
     }).filter(item => !deletedItems.has(item.id));
 
-    // 5. Unir y ordenar
     const finalFlatList = [...menuList, ...extrasList].sort((a, b) => {
       if (a.checked === b.checked) return a.name.localeCompare(b.name);
       return a.checked ? 1 : -1;
@@ -263,100 +155,84 @@ export default function ShoppingScreen() {
 
     setShoppingItems(finalFlatList);
   };
-    // --- LÓGICA DE PRESUPUESTO BLINDADA ---
-    const budgetDetails = useMemo(() => {
-      let total = 0;
-      const items = shoppingItems.map(item => {
-         {/*Búsqueda de los ingredientes de la receta en la base de datos*/}
-        const canonicalName = getCanonicalName(item.name || '').toLowerCase().trim();
 
-        const dbKey = Object.keys(INGREDIENTS_DB).find(k => {
-          const cleanKey = k.toLowerCase();
-          
-          // 1. Comprobación por la clave del objeto (ej: si la clave es "bacon")
-          if (cleanKey === canonicalName || canonicalName.includes(cleanKey)) {
-            return true;
-          }
+  // --- LÓGICA DE PRESUPUESTO BLINDADA ---
+  const budgetDetails = useMemo(() => {
+    let total = 0;
+    const items = shoppingItems.map(item => {
+      const canonicalName = getCanonicalName(item.name || '').toLowerCase().trim();
 
-          const dbName = INGREDIENTS_DB[k]?.name;
-          if (!dbName) return false;
+      const dbKey = Object.keys(INGREDIENTS_DB).find(k => {
+        const cleanKey = k.toLowerCase();
+        if (cleanKey === canonicalName || canonicalName.includes(cleanKey)) return true;
 
-          // 2. Tu lógica de separar los sinónimos por barra
-          const synonyms = dbName.toLowerCase().split('/').map(name => name.trim());
-          
-          // 3. ¡El truco! Usamos .some() para permitir búsquedas parciales cruzadas
-          return synonyms.some(syn => 
-            syn.includes(canonicalName) || canonicalName.includes(syn)
-          );
-        });
+        const dbName = INGREDIENTS_DB[k]?.name;
+        if (!dbName) return false;
 
-        const dbItem = INGREDIENTS_DB[dbKey];
-        
-        
-        //console.log(dbItem.name, dbItem.purchaseUnit)
-        // PARCHE 1: Aseguramos que el unitPrice nunca sea undefined
-        let unitPrice = dbItem ? (tempPrices[item.name] !== undefined ? tempPrices[item.name] : (dbItem.purchasePrice || 0)) : 0;
-        unitPrice = Number(unitPrice) || 0; // Doble seguridad
-        
-        let leadingWord = null
-        let pAmount = 1;
-        let lots = 1;
-        let pUnit = 'ud';
-        let purchaseFormat = dbItem ? dbItem.purchaseUnit : '1 ud';
-        
-        if (dbItem && dbItem.purchaseUnit) {
-          const match = dbItem.purchaseUnit.match(/^(?:([a-zñáéíóú]+)(?:\s+de)?\s+)?([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
-          if (match) {
-            leadingWord = match[1];
-            pAmount = parseFloat(match[2]) || 1;
-            pUnit = match[3].toLowerCase();
-            
-            let itemAmt = item.amount;
-            let pkgAmt = pAmount;
-            
-            if ((item.unit === 'g' || item.unit ==='ud') && pUnit === 'kg') pkgAmt = pAmount * 1000;
-            if (item.unit === 'kg' && pUnit === 'g') itemAmt = item.amount * 1000;
-            if (item.unit === 'ml' && pUnit === 'l') pkgAmt = pAmount * 1000;
-            if (item.unit === 'l' && pUnit === 'ml') itemAmt = item.amount * 1000;
-            if (pUnit === 'docena') pkgAmt = 12;
-            if (item.unit === "ud") itemAmt = itemAmt * dbItem.weightPerUnit
-            if (pUnit === "ud") pkgAmt = pAmount * dbItem.weightPerUnit
-            
-            lots = Math.ceil(itemAmt / pkgAmt) || 1;
-            console.log(item.name, itemAmt, pkgAmt, purchaseFormat, "lots", lots)
-          }
-        }
-
-        const override = ticketOverrides[item.id];
-        const currentLotsStr = override ? override.lotsStr : String(lots);
-        const currentLotsNum = parseFloat(currentLotsStr) || 0;
-        const currentUnit = override ? override.unit : pUnit;
-
-        const itemTotalCost = currentLotsNum * unitPrice;
-        
-        total += itemTotalCost;
-
-        if (leadingWord) pUnit = leadingWord
-
-        return {
-          ...item,
-          dbKey,
-          unitPrice,
-          purchaseFormat,
-          lots: currentLotsNum,
-          currentLotsStr,
-          currentUnit,
-          itemTotalCost,
-          pUnit
-        };     
+        const synonyms = dbName.toLowerCase().split('/').map(name => name.trim());
+        return synonyms.some(syn => syn.includes(canonicalName) || canonicalName.includes(syn));
       });
 
-      return { total, items };
-    }, [shoppingItems, tempPrices, ticketOverrides]);
+      const dbItem = INGREDIENTS_DB[dbKey];
+      let unitPrice = dbItem ? (tempPrices[item.name] !== undefined ? tempPrices[item.name] : (dbItem.purchasePrice || 0)) : 0;
+      unitPrice = Number(unitPrice) || 0; 
+      
+      let leadingWord = null;
+      let pAmount = 1;
+      let lots = 1;
+      let pUnit = 'ud';
+      let purchaseFormat = dbItem ? dbItem.purchaseUnit : '1 ud';
+      
+      if (dbItem && dbItem.purchaseUnit) {
+        const match = dbItem.purchaseUnit.match(/^(?:([a-zñáéíóú]+)(?:\s+de)?\s+)?([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
+        if (match) {
+          leadingWord = match[1];
+          pAmount = parseFloat(match[2]) || 1;
+          pUnit = match[3].toLowerCase();
+          
+          let itemAmt = item.amount;
+          let pkgAmt = pAmount;
+          
+          if ((item.unit === 'g' || item.unit ==='ud') && pUnit === 'kg') pkgAmt = pAmount * 1000;
+          if (item.unit === 'kg' && pUnit === 'g') itemAmt = item.amount * 1000;
+          if (item.unit === 'ml' && pUnit === 'l') pkgAmt = pAmount * 1000;
+          if (item.unit === 'l' && pUnit === 'ml') itemAmt = item.amount * 1000;
+          if (pUnit === 'docena') pkgAmt = 12;
+          if (item.unit === "ud") itemAmt = itemAmt * dbItem.weightPerUnit;
+          if (pUnit === "ud") pkgAmt = pAmount * dbItem.weightPerUnit;
+          
+          lots = Math.ceil(itemAmt / pkgAmt) || 1;
+        }
+      }
 
-  // PARCHE 2: GUARDADO SEGURO
+      const override = ticketOverrides[item.id];
+      const currentLotsStr = override ? override.lotsStr : String(lots);
+      const currentLotsNum = parseFloat(currentLotsStr) || 0;
+      const currentUnit = override ? override.unit : pUnit;
+
+      const itemTotalCost = currentLotsNum * unitPrice;
+      total += itemTotalCost;
+
+      if (leadingWord) pUnit = leadingWord;
+
+      return {
+        ...item,
+        dbKey,
+        unitPrice,
+        purchaseFormat,
+        lots: currentLotsNum,
+        currentLotsStr,
+        currentUnit,
+        itemTotalCost,
+        pUnit
+      };     
+    });
+
+    return { total, items };
+  }, [shoppingItems, tempPrices, ticketOverrides]);
+
   useEffect(() => {
-    const safeTotal = budgetDetails.total || 0; // Si es NaN o undefined, será 0
+    const safeTotal = budgetDetails.total || 0;
     AsyncStorage.setItem('@estimated_shopping_cost', safeTotal.toString())
       .catch(e => console.error("Error guardando el presupuesto:", e));
   }, [budgetDetails.total]);
@@ -372,6 +248,7 @@ export default function ShoppingScreen() {
     }
   };
 
+  // 4. ACCIÓN MANUAL: Añadir manda la orden directa al contexto
   const handleAddManual = async () => {
     if (!newItemName.trim() || !newItemAmount.trim()) return;
 
@@ -388,11 +265,8 @@ export default function ShoppingScreen() {
       const newItem = { id: itemId, name: finalName, amount: finalAmount, unit: newItemUnit };
       const updatedExtras = [...extraItems, newItem];
       
-      setExtraItems(updatedExtras);
-      await AsyncStorage.setItem('@shopping_extras', JSON.stringify(updatedExtras));
-
-      // 🔥 SINCRO FIREBASE
-      syncToFirebase(updatedExtras, checkedItems, deletedItems);
+      // Enviamos el cambio al contexto
+      await updateShopping(updatedExtras, checkedItems, deletedItems);
 
       setNewItemName(''); setNewItemAmount('1'); setNewItemUnit('ud');
       setHasManuallySelectedUnit(false); setShowSuggestions(false); setIsModalVisible(false);
@@ -461,42 +335,35 @@ export default function ShoppingScreen() {
     Alert.alert("¡Ficha actualizada!", `Los datos de "${editingIngName}" se han guardado correctamente.`);
   };
 
+  // 5. MARCAR ÍTEMS: Actualizamos el contexto y mantenemos tu genial efecto visual de retardo
   const toggleCheck = useCallback(async (itemId) => {
-    setCheckedItems(prev => {
-      const newChecked = new Set(prev);
-      if (newChecked.has(itemId)) newChecked.delete(itemId); else newChecked.add(itemId);
-      
-      // Guardado Local
-      AsyncStorage.setItem('@shopping_checked', JSON.stringify(Array.from(newChecked))).catch(e => console.error(e));
-      
-      // 🔥 SINCRO FIREBASE: Subimos el nuevo Set de tachados junto al resto
-      syncToFirebase(extraItems, newChecked, deletedItems);
-      
-      return newChecked;
-    });
+    const newChecked = new Set(checkedItems);
+    if (newChecked.has(itemId)) newChecked.delete(itemId); else newChecked.add(itemId);
+    
+    // El contexto guarda y sube a Firebase de forma transparente y blindada
+    await updateShopping(extraItems, newChecked, deletedItems);
 
+    // Mantenemos tu truco visual de reordenar la lista un segundo después en la pantalla
     setShoppingItems(prevItems => prevItems.map(item => item.id === itemId ? { ...item, checked: !item.checked } : item));
     setTimeout(() => {
-      setShoppingItems(currentItems => [...currentItems].sort((a, b) => { if (a.checked === b.checked) return a.name.localeCompare(b.name); return a.checked ? 1 : -1; }));
+      setShoppingItems(currentItems => [...currentItems].sort((a, b) => { 
+        if (a.checked === b.checked) return a.name.localeCompare(b.name); 
+        return a.checked ? 1 : -1; 
+      }));
     }, 1000);
-  }, [extraItems, deletedItems]); // <-- IMPORTANTE: Dependencias actualizadas
+  }, [extraItems, checkedItems, deletedItems, updateShopping]);
 
+  // 6. BORRAR ÍTEM: Limpio, asíncrono y centralizado
   const handleDeleteItem = async (itemToDelete) => {
     const newDeleted = new Set(deletedItems);
     newDeleted.add(itemToDelete.id);
-    setDeletedItems(newDeleted);
-    await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(newDeleted)));
 
-    let updatedExtras = extraItems; // Estado temporal por defecto
-
+    let updatedExtras = extraItems;
     if (itemToDelete.isExtra) {
       updatedExtras = extraItems.filter(ext => ext.id !== itemToDelete.id);
-      setExtraItems(updatedExtras);
-      await AsyncStorage.setItem('@shopping_extras', JSON.stringify(updatedExtras));
     }
 
-    // 🔥 SINCRO FIREBASE
-    syncToFirebase(updatedExtras, checkedItems, newDeleted);
+    await updateShopping(updatedExtras, checkedItems, newDeleted);
   };
 
   const handleClearChecked = () => {
@@ -506,27 +373,24 @@ export default function ShoppingScreen() {
     ]);
   };
 
+  // 7. LIMPIAR COMPLETADOS: Un solo tiro al contexto
   const performClear = async () => {
     const newDeleted = new Set(deletedItems);
     const extrasToRemove = new Set();
 
     shoppingItems.forEach(item => {
-      if (item.checked) { newDeleted.add(item.id); if (item.isExtra) extrasToRemove.add(item.id); }
+      if (item.checked) { 
+        newDeleted.add(item.id); 
+        if (item.isExtra) extrasToRemove.add(item.id); 
+      }
     });
 
-    setDeletedItems(newDeleted);
-    await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(newDeleted)));
-
     let updatedExtras = extraItems;
-
     if (extrasToRemove.size > 0) {
       updatedExtras = extraItems.filter(ext => !extrasToRemove.has(ext.id));
-      setExtraItems(updatedExtras);
-      await AsyncStorage.setItem('@shopping_extras', JSON.stringify(updatedExtras));
     }
 
-    // 🔥 SINCRO FIREBASE
-    syncToFirebase(updatedExtras, checkedItems, newDeleted);
+    await updateShopping(updatedExtras, checkedItems, newDeleted);
   };
 
   const renderDayBadges = (daysArray) => {
@@ -544,7 +408,8 @@ export default function ShoppingScreen() {
     );
   };
 
-  if (!isReady) return <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}><Text style={{ fontSize: 18, color: '#2f95dc', fontWeight: 'bold' }}>Preparando el carrito...</Text></View>;
+  // Usamos el loader del contexto global
+  if (!contextReady) return <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}><Text style={{ fontSize: 18, color: '#2f95dc', fontWeight: 'bold' }}>Preparando el carrito...</Text></View>;
 
   const hasCheckedItems = shoppingItems.some(i => i.checked);
 

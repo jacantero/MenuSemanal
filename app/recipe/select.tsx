@@ -1,12 +1,17 @@
 import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, Alert, Platform, KeyboardAvoidingView, Modal } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
-import { MOCK_RECIPES, assignRecipeToMenu, deleteRecipe } from '../tempData';
+
+import { MOCK_RECIPES, deleteRecipe } from '../tempData';
+import { useHousehold } from '../HouseholdContext';
+
 import { FontAwesome } from '@expo/vector-icons';
 import Fuse from "fuse.js";
 
 
 export default function SelectRecipeScreen() {
+
+  const { weeklyMenu, updateMenu } = useHousehold(); // <--- Aquí tienes las herramientas
   // 1. Añadimos bulkMeals a los parámetros que recibimos
   const { day, meal, bulkMeals } = useLocalSearchParams();
 
@@ -24,19 +29,31 @@ export default function SelectRecipeScreen() {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [dinersCount, setDinersCount] = useState('2'); // Sugiriendo 2 por defecto
 
-  // NUEVA FUNCIÓN: Reparte la receta a 1 hueco o a varios de golpe
-  const assignToTargets = (recipeId, dinersAmount) => {
+  const assignToTargets = async (recipeId, dinersAmount) => {
+    // 1. Clonamos el menú actual para no mutar el estado directamente
+    const newMenu = JSON.parse(JSON.stringify(weeklyMenu));
+
+    // 2. Aplicamos los cambios
     if (bulkMeals) {
-      // Si venimos de selección múltiple, separamos los IDs y asignamos a todos
       const targets = bulkMeals.split(',');
       targets.forEach(target => {
         const [tDay, tMeal] = target.split('|');
-        assignRecipeToMenu(tDay, tMeal, recipeId, dinersAmount);
+        const targetMeal = newMenu[tDay]?.find(m => m.id === tMeal);
+        if (targetMeal) {
+          targetMeal.recipeId = recipeId;
+          targetMeal.diners = dinersAmount;
+        }
       });
-    } else {
-      // Funcionamiento normal para un solo hueco
-      assignRecipeToMenu(day, meal, recipeId, dinersAmount);
+    } else if (day && meal) {
+      const targetMeal = newMenu[day]?.find(m => m.id === meal);
+      if (targetMeal) {
+        targetMeal.recipeId = recipeId;
+        targetMeal.diners = dinersAmount;
+      }
     }
+
+    // 3. ¡EL PASO CRÍTICO!: Actualizamos el Contexto
+    await updateMenu(newMenu);
   };
 
   useFocusEffect(
@@ -76,47 +93,26 @@ export default function SelectRecipeScreen() {
     return matchesIncludes && matchesExcludes;
   });
 
-  // --- ACCIONES DE SELECCIÓN ---
-  const handleSelectRecipe = (recipe) => {
-    if (recipe === 'eat_out') {
-      assignToTargets('eat_out', 1);
-      router.back();
-    } else {
-// 🌟 Guardamos la receta seleccionada y abrimos el modal flotante
-      setSelectedRecipe(recipe);
-      setDinersCount('2'); // Reseteamos la sugerencia por defecto a 2
-      setIsDinersModalVisible(true);
-    }
-  };
-
-  // 🆕 FUNCIÓN PARA CONFIRMAR LOS COMENSALES DESDE EL MODAL
-  const handleConfirmDiners = () => {
-    const finalDiners = parseInt(dinersCount, 10) || 2; // Si está vacío, por seguridad dejamos 2
+  // En handleConfirmDiners:
+  const handleConfirmDiners = async () => {
+    const finalDiners = parseInt(dinersCount, 10) || 2;
     if (selectedRecipe) {
-      assignToTargets(selectedRecipe.id, finalDiners);
+      await assignToTargets(selectedRecipe.id, finalDiners); // <--- await
       setIsDinersModalVisible(false);
       router.back();
     }
   };
 
-  // --- ACCIONES DE GESTIÓN (EDITAR / BORRAR) ---
-  const confirmDelete = (recipe) => {
-    if (!recipe) return;
-    Alert.alert(
-      "¿Borrar receta?",
-      `¿Estás seguro de que quieres eliminar "${recipe.name}" para siempre?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Borrar", 
-          style: "destructive", 
-          onPress: () => {
-            deleteRecipe(recipe.id);
-            setRecipes([...MOCK_RECIPES.filter(r => r !== null)]); 
-          } 
-        }
-      ]
-    );
+  // En handleSelectRecipe (para el caso 'eat_out'):
+  const handleSelectRecipe = async (recipe) => {
+    if (recipe === 'eat_out') {
+      await assignToTargets('eat_out', 1); // <--- await
+      router.back();
+    } else {
+      setSelectedRecipe(recipe);
+      setDinersCount('2');
+      setIsDinersModalVisible(true);
+    }
   };
 
   const renderRecipeItem = ({ item }) => {
