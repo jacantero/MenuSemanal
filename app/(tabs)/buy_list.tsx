@@ -337,20 +337,27 @@ export default function ShoppingScreen() {
 
   // 5. MARCAR ÍTEMS: Actualizamos el contexto y mantenemos tu genial efecto visual de retardo
   const toggleCheck = useCallback(async (itemId) => {
+    
+    // 1. TACHADO INMEDIATO (La magia visual va primero)
+    setShoppingItems(prevItems => 
+      prevItems.map(item => item.id === itemId ? { ...item, checked: !item.checked } : item)
+    );
+
+    // 2. Preparamos los datos para el Contexto
     const newChecked = new Set(checkedItems);
     if (newChecked.has(itemId)) newChecked.delete(itemId); else newChecked.add(itemId);
     
-    // El contexto guarda y sube a Firebase de forma transparente y blindada
+    // 3. Enviamos a la base de datos (Como ya hemos tachado la UI, no nos importa si esto tarda un poco)
     await updateShopping(extraItems, newChecked, deletedItems);
 
-    // Mantenemos tu truco visual de reordenar la lista un segundo después en la pantalla
-    setShoppingItems(prevItems => prevItems.map(item => item.id === itemId ? { ...item, checked: !item.checked } : item));
+    // 4. Tu truco de reordenar la lista un segundo después en la pantalla
     setTimeout(() => {
       setShoppingItems(currentItems => [...currentItems].sort((a, b) => { 
         if (a.checked === b.checked) return a.name.localeCompare(b.name); 
         return a.checked ? 1 : -1; 
       }));
     }, 1000);
+
   }, [extraItems, checkedItems, deletedItems, updateShopping]);
 
   // 6. BORRAR ÍTEM: Limpio, asíncrono y centralizado
