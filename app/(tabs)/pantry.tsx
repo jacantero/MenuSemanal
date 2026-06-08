@@ -1,9 +1,12 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
-import { useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { weeklyMenu, MOCK_RECIPES, INGREDIENTS_DB, getCanonicalName, normalizeToBase, getPackageSize, calculatePurchaseLots, COMMON_INGREDIENTS } from '../tempData';
+
+// 1. IMPORTAMOS NUESTRO CONTEXTO MÁGICO
+import { useHousehold } from '../HouseholdContext';
+
+// 2. Importaciones reducidas al mínimo necesario para el CRUD manual
+import { INGREDIENTS_DB, getCanonicalName, COMMON_INGREDIENTS } from '../tempData';
 
 const STANDARD_UNITS = ['ud', 'g', 'kg', 'ml', 'L', 'cuch.', 'taza', 'pizca', 'paquete'];
 
@@ -22,8 +25,12 @@ const formatAmount = (amount, unit) => {
 };
 
 export default function PantryScreen() {
-  const [isReady, setIsReady] = useState(false);
-  const [pantryItems, setPantryItems] = useState([]);
+  // 🌟 CONTEXTO SÚPER LIGERO: Solo pedimos la despensa y la función para guardarla
+  const { 
+    isReady: contextReady,
+    pantryItems, 
+    updatePantry
+  } = useHousehold();
 
   // --- ESTADOS DEL MODAL CRUD ---
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -42,136 +49,7 @@ export default function PantryScreen() {
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(ingName.toLowerCase()))
     : [];
 
-  const loadPantry = async () => {
-    try {
-      const savedPantry = await AsyncStorage.getItem('@pantry_items');
-      if (savedPantry) setPantryItems(JSON.parse(savedPantry));
-    } catch (e) {
-      console.error("Error cargando la despensa", e);
-    } finally {
-      setIsReady(true);
-    }
-  };
-
-  const checkForFinishedShopping = async () => {
-    try {
-      const savedChecked = await AsyncStorage.getItem('@shopping_checked');
-      const checkedSet = savedChecked ? new Set(JSON.parse(savedChecked)) : new Set();
-      
-      if (checkedSet.size > 0) {
-        Alert.alert(
-          "🛒 ¡Compra detectada!",
-          "Tienes ingredientes tachados en tu lista de la compra. ¿Quieres guardarlos en tu despensa?",
-          [
-            { text: "No por ahora", style: "cancel" },
-            { text: "Sí, guardar", onPress: () => processTransfer(checkedSet) }
-          ]
-        );
-      }
-    } catch (e) {
-      console.error("Error leyendo compras", e);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      loadPantry().then(checkForFinishedShopping);
-    }, [])
-  );
-
-  const processTransfer = async (checkedSet) => {
-    const savedExtras = await AsyncStorage.getItem('@shopping_extras');
-    const extraItems = savedExtras ? JSON.parse(savedExtras) : [];
-    const savedDeleted = await AsyncStorage.getItem('@shopping_deleted');
-    const deletedSet = savedDeleted ? new Set(JSON.parse(savedDeleted)) : new Set();
-
-    const ingredientMap = {};
-
-    Object.keys(weeklyMenu).forEach(day => {
-      const dayMealsList = weeklyMenu[day] || [];
-      dayMealsList.forEach(assignment => {
-        const actualRecipeId = assignment?.recipeId;
-        if (actualRecipeId && actualRecipeId !== 'eat_out') {
-          const recipe = MOCK_RECIPES.find(r => r && String(r.id) === String(actualRecipeId));
-          if (recipe) {
-            const currentDiners = assignment?.diners || recipe.baseDiners || 1;
-            recipe.ingredients.forEach(ing => {
-              const canonicalName = getCanonicalName(ing.name);
-              const cleanSafeId = canonicalName.toLowerCase().replace(/[^a-z0-9]/g, '');
-              const itemId = `menu-${cleanSafeId}`; 
-
-              if (deletedSet.has(itemId)) return; 
-
-              let adjustedAmount = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
-              const normalized = normalizeToBase(adjustedAmount, ing.unit);
-
-              if (ingredientMap[canonicalName]) {
-                ingredientMap[canonicalName].amount += normalized.amount; 
-              } else {
-                ingredientMap[canonicalName] = { id: itemId, name: canonicalName, amount: normalized.amount, unit: normalized.unit };
-              }
-            });
-          }
-        }
-      });
-    });
-
-    let itemsToTransfer = Object.values(ingredientMap).filter(item => checkedSet.has(item.id));
-    
-    extraItems.forEach(extra => {
-      if (checkedSet.has(extra.id) && !deletedSet.has(extra.id)) {
-        const canonicalName = getCanonicalName(extra.name);
-        const normalized = normalizeToBase(extra.amount, extra.unit);
-        itemsToTransfer.push({ id: extra.id, name: canonicalName, amount: normalized.amount, unit: normalized.unit });
-      }
-    });
-
-    let currentPantry = await AsyncStorage.getItem('@pantry_items');
-    currentPantry = currentPantry ? JSON.parse(currentPantry) : [];
-
-    itemsToTransfer.forEach(newItem => {
-      const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === newItem.name);
-      const dbItem = dbKey ? INGREDIENTS_DB[dbKey] : null;
-
-      let finalAmountToAdd = newItem.amount;
-      let finalUnit = newItem.unit;
-      let purchaseFormat = null;
-
-      if (dbItem && dbItem.purchaseUnit) {
-        const packageInfo = getPackageSize(dbItem.purchaseUnit);
-        if (packageInfo.amount > 0) {
-          finalAmountToAdd = calculatePurchaseLots(newItem.amount, packageInfo.amount);
-          finalUnit = packageInfo.unit; 
-          purchaseFormat = dbItem.purchaseUnit; 
-        }
-      }
-
-      const cleanAmountToAdd = Math.round(finalAmountToAdd * 100) / 100;
-      let existing = currentPantry.find(p => p.name === newItem.name);
-
-      if (existing) {
-        existing.amount += cleanAmountToAdd;
-        if (existing.amount > existing.maxAmount) existing.maxAmount = existing.amount; 
-        if (purchaseFormat) existing.purchaseUnit = purchaseFormat; 
-      } else {
-        currentPantry.push({
-          id: `pantry-${Date.now()}-${Math.random()}`,
-          name: newItem.name, unit: finalUnit, amount: cleanAmountToAdd, maxAmount: cleanAmountToAdd, purchaseUnit: purchaseFormat
-        });
-      }
-    });
-
-    setPantryItems(currentPantry);
-    await AsyncStorage.setItem('@pantry_items', JSON.stringify(currentPantry));
-
-    checkedSet.forEach(id => deletedSet.add(id));
-    await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(deletedSet)));
-    await AsyncStorage.removeItem('@shopping_checked'); 
-    
-    Alert.alert("✅ Despensa actualizada", "Las cantidades se han ajustado según los formatos de venta del supermercado.");
-  };
-
-  // --- FUNCIONES CRUD DEL MODAL ---
+  // --- FUNCIONES CRUD DEL MODAL (AÑADIR / EDITAR MANUAMENTE) ---
   const handleSelectSuggestion = (suggestion) => {
     setIngName(suggestion.name);
     if (!hasManuallySelectedUnit) setIngUnit(suggestion.unit || 'g');
@@ -207,7 +85,6 @@ export default function PantryScreen() {
 
     const canonicalName = getCanonicalName(ingName);
     const parsedAmount = parseFloat(ingAmount) || 0;
-    // Si el usuario no define un máximo, asumimos que lo que introduce es el envase lleno al 100%
     const parsedMax = parseFloat(ingMaxAmount) || parsedAmount; 
 
     let updatedPantry = [...pantryItems];
@@ -219,7 +96,7 @@ export default function PantryScreen() {
             ...item, 
             name: canonicalName, 
             amount: parsedAmount, 
-            maxAmount: Math.max(parsedAmount, parsedMax), // Evitar que el max sea menor que la cantidad actual
+            maxAmount: Math.max(parsedAmount, parsedMax),
             unit: ingUnit 
           };
         }
@@ -232,12 +109,11 @@ export default function PantryScreen() {
         amount: parsedAmount,
         maxAmount: parsedMax,
         unit: ingUnit,
-        purchaseUnit: `1 ${ingUnit}` // Formato por defecto al añadir a mano
+        purchaseUnit: `1 ${ingUnit}`
       });
     }
 
-    setPantryItems(updatedPantry);
-    await AsyncStorage.setItem('@pantry_items', JSON.stringify(updatedPantry));
+    await updatePantry(updatedPantry);
     setIsModalVisible(false);
   };
 
@@ -249,8 +125,7 @@ export default function PantryScreen() {
         style: "destructive", 
         onPress: async () => {
           const updatedPantry = pantryItems.filter(item => item.id !== currentItemId);
-          setPantryItems(updatedPantry);
-          await AsyncStorage.setItem('@pantry_items', JSON.stringify(updatedPantry));
+          await updatePantry(updatedPantry);
           setIsModalVisible(false);
         }
       }
@@ -258,16 +133,15 @@ export default function PantryScreen() {
   };
 
   const handleQuickConsume = () => {
-    // Restamos el 25% de la capacidad máxima del envase
     const max = parseFloat(ingMaxAmount) || parseFloat(ingAmount);
     const consumption = max * 0.25;
     const current = parseFloat(ingAmount) || 0;
     const newAmount = Math.max(0, current - consumption);
-    
     setIngAmount(String(Math.round(newAmount * 100) / 100));
   };
 
-  if (!isReady) {
+  // --- UI ---
+  if (!contextReady) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={{ fontSize: 18, color: '#2f95dc', fontWeight: 'bold' }}>Abriendo armarios...</Text>
@@ -279,7 +153,6 @@ export default function PantryScreen() {
     <View style={styles.container}>
       <Text style={styles.headerTitle}>🗄️ Mi Despensa</Text>
 
-      {/* BOTÓN SUPERIOR PARA AÑADIR A MANO */}
       <TouchableOpacity style={styles.fakeSearchInput} activeOpacity={0.8} onPress={openAddModal}>
         <FontAwesome name="plus-circle" size={20} color="#2f95dc" style={{ marginRight: 10 }} />
         <Text style={styles.fakeSearchText}>Añadir ingrediente manualmente...</Text>
@@ -288,7 +161,7 @@ export default function PantryScreen() {
       {pantryItems.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Tu despensa está vacía.</Text>
-          <Text style={styles.emptySubText}>Ve a la lista de la compra, tacha los ingredientes que has comprado y vuelve aquí.</Text>
+          <Text style={styles.emptySubText}>Ve a la lista de la compra, tacha los ingredientes que has comprado y dale a finalizar para llenar esto.</Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.listContainer}>
@@ -409,7 +282,6 @@ export default function PantryScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-
     </View>
   );
 }

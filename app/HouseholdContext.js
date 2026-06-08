@@ -1,12 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// ⚠️ IMPORTANTE: Asegúrate de importar getDoc y setDoc de Firebase
 import { doc, onSnapshot, updateDoc, setDoc, getDoc } from 'firebase/firestore'; 
 import { db } from './firebaseConfig'; 
 
 export const HouseholdContext = createContext();
 
-// Función auxiliar para generar el código
+// Función auxiliar para generar el código de invitación
 const generateRandomCode = () => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let result = '';
@@ -22,7 +21,7 @@ export const HouseholdProvider = ({ children }) => {
   const [extraItems, setExtraItems] = useState([]);
   const [checkedItems, setCheckedItems] = useState(new Set());
   const [deletedItems, setDeletedItems] = useState(new Set());
-  const [pantryItems, setPantryItems] = useState([]);
+  const [pantryItems, setPantryItems] = useState([]); // Array de la despensa [{id, name, amount, maxAmount, unit...}]
   const [weeklyMenu, setWeeklyMenuState] = useState({});
   const [customIngredients, setCustomIngredients] = useState({});
 
@@ -32,7 +31,7 @@ export const HouseholdProvider = ({ children }) => {
   const localMenuTime = useRef(0);
   const localIngredientsTime = useRef(0);
 
-  // 🚀 INICIALIZACIÓN
+  // 🚀 INICIALIZACIÓN Y ESCUCHA EN TIEMPO REAL (FIREBASE + ASYNCSTORAGE)
   useEffect(() => {
     const initApp = async () => {
       try {
@@ -50,7 +49,7 @@ export const HouseholdProvider = ({ children }) => {
         const sChecked = await AsyncStorage.getItem('@shopping_checked');
         const sDeleted = await AsyncStorage.getItem('@shopping_deleted');
         const sPantry = await AsyncStorage.getItem('@pantry_items');
-        const sMenu = await AsyncStorage.getItem('@weekly_menu'); // Cargamos el menú local
+        const sMenu = await AsyncStorage.getItem('@weekly_menu');
 
         if (sExtras) setExtraItems(JSON.parse(sExtras));
         if (sChecked) setCheckedItems(new Set(JSON.parse(sChecked)));
@@ -71,6 +70,7 @@ export const HouseholdProvider = ({ children }) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
 
+            // Sincronización Módulo Compra
             if ((data.shoppingUpdatedAt || 0) >= localShoppingTime.current) {
               localShoppingTime.current = data.shoppingUpdatedAt || 0;
               if (data.extras) setExtraItems(data.extras);
@@ -78,6 +78,7 @@ export const HouseholdProvider = ({ children }) => {
               if (data.deleted) setDeletedItems(new Set(data.deleted));
             }
 
+            // Sincronización Módulo Despensa
             if ((data.pantryUpdatedAt || 0) >= localPantryTime.current) {
               localPantryTime.current = data.pantryUpdatedAt || 0;
               if (data.pantry) {
@@ -86,7 +87,7 @@ export const HouseholdProvider = ({ children }) => {
               }
             }
 
-            // 🛡️ ESCUDO MENÚ SEMANAL AÑADIDO
+            // Sincronización Módulo Menú Semanal
             if ((data.menuUpdatedAt || 0) >= localMenuTime.current) {
               localMenuTime.current = data.menuUpdatedAt || 0;
               if (data.weeklyMenu) {
@@ -107,6 +108,7 @@ export const HouseholdProvider = ({ children }) => {
     initApp();
   }, []);
 
+  // Función genérica para empujar datos locales hacia Firebase protegiendo las versiones
   const syncModuleToFirebase = async (updates, moduleTimeKey, localTimeRef) => {
     const now = Date.now();
     localTimeRef.current = now;
@@ -114,10 +116,13 @@ export const HouseholdProvider = ({ children }) => {
     try {
       const docRef = doc(db, "households", householdId);
       await updateDoc(docRef, { ...updates, [moduleTimeKey]: now });
-    } catch (e) { console.log(`[Offline] Datos guardados localmente.`); }
+    } catch (e) { 
+      console.log(`[Offline] Datos guardados localmente.`); 
+    }
   };
 
-  // --- FUNCIONES MAESTRAS DE LA COMPRA Y DESPENSA ---
+  // --- FUNCIONES MAESTRAS (MUTACIONES) ---
+
   const updateShopping = async (newExtras, newChecked, newDeleted) => {
     setExtraItems(newExtras);
     setCheckedItems(newChecked);
@@ -126,7 +131,11 @@ export const HouseholdProvider = ({ children }) => {
     await AsyncStorage.setItem('@shopping_checked', JSON.stringify(Array.from(newChecked)));
     await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(newDeleted)));
     await AsyncStorage.setItem('@shopping_extras_time', Date.now().toString());
-    await syncModuleToFirebase({ extras: newExtras, checked: Array.from(newChecked), deleted: Array.from(newDeleted) }, 'shoppingUpdatedAt', localShoppingTime);
+    await syncModuleToFirebase({ 
+      extras: newExtras, 
+      checked: Array.from(newChecked), 
+      deleted: Array.from(newDeleted) 
+    }, 'shoppingUpdatedAt', localShoppingTime);
   };
 
   const updatePantry = async (newPantry) => {
@@ -136,8 +145,6 @@ export const HouseholdProvider = ({ children }) => {
     await syncModuleToFirebase({ pantry: newPantry }, 'pantryUpdatedAt', localPantryTime);
   };
 
-  // 🌟 --- NUEVAS FUNCIONES MAESTRAS PARA EL MENÚ Y EL HOGAR --- 🌟
-  
   const updateMenu = async (newMenu) => {
     setWeeklyMenuState(newMenu);
     await AsyncStorage.setItem('@weekly_menu', JSON.stringify(newMenu));
@@ -145,13 +152,52 @@ export const HouseholdProvider = ({ children }) => {
     await syncModuleToFirebase({ weeklyMenu: newMenu }, 'menuUpdatedAt', localMenuTime);
   };
 
+  // 🍳 FUNCIÓN MAESTRA: CONSUMIR INGREDIENTES DE UNA RECETA
+  const consumeRecipeIngredients = useCallback(async (recipe, plannedDiners) => {
+    if (!recipe || !recipe.ingredients || pantryItems.length === 0) return false;
+
+    let hasIngredients = false;
+    const recipeBaseDiners = recipe.baseDiners || 1;
+    const diners = plannedDiners || recipeBaseDiners;
+
+    // Clonamos el array actual de la despensa de forma segura
+    const newPantry = JSON.parse(JSON.stringify(pantryItems));
+
+    recipe.ingredients.forEach(recipeIng => {
+      // Buscamos coincidencia por ID o por nombre normalizado (ignorando mayúsculas y espacios)
+      const pantryIndex = newPantry.findIndex(pantryItem => 
+        (pantryItem.id && recipeIng.id && pantryItem.id === recipeIng.id) ||
+        (pantryItem.name.toLowerCase().trim() === recipeIng.name.toLowerCase().trim())
+      );
+
+      if (pantryIndex !== -1) {
+        hasIngredients = true;
+        // Escalado de porciones: (Cantidad base / Comensales base) * Comensales reales
+        const amountNeeded = (recipeIng.amount / recipeBaseDiners) * diners;
+        
+        // Restamos cantidad evitando números negativos
+        newPantry[pantryIndex].amount = Math.max(0, newPantry[pantryIndex].amount - amountNeeded);
+      }
+    });
+
+    if (!hasIngredients) {
+      return false; // Ninguno de los ingredientes de la receta estaba en la despensa
+    }
+
+    // Guardamos la despensa optimizada (Sincroniza UI, AsyncStorage y Firebase automáticamente)
+    await updatePantry(newPantry);
+    return true;
+  }, [pantryItems]);
+
+  // --- GESTIÓN DE CASAS/HOGARES ---
+
   const createHousehold = async () => {
     const newCode = generateRandomCode();
     try {
       await setDoc(doc(db, "households", newCode), { createdAt: new Date(), supermarketCost: 0 });
       await AsyncStorage.setItem('@household_id', newCode);
       setHouseholdId(newCode);
-      return newCode; // Devolvemos el código para mostrarlo en la Alerta de la pantalla
+      return newCode;
     } catch (error) {
       console.error(error);
       return null;
@@ -165,9 +211,9 @@ export const HouseholdProvider = ({ children }) => {
       if (docSnap.exists()) {
         await AsyncStorage.setItem('@household_id', code);
         setHouseholdId(code);
-        return true; // Éxito
+        return true;
       }
-      return false; // No existe
+      return false;
     } catch (error) {
       return false;
     }
@@ -176,13 +222,14 @@ export const HouseholdProvider = ({ children }) => {
   return (
     <HouseholdContext.Provider value={{
       isReady,
-      householdId, // ¡Añadido!
+      householdId,
       extraItems, checkedItems, deletedItems, updateShopping,
       pantryItems, updatePantry,
-      weeklyMenu, updateMenu, // ¡Añadido updateMenu (sustituye a setWeeklyMenuState)!
+      weeklyMenu, updateMenu,
+      consumeRecipeIngredients, // 👈 ¡Disponible para MenuScreen!
       customIngredients, setCustomIngredients,
-      createHousehold, // ¡Añadido!
-      joinHousehold    // ¡Añadido!
+      createHousehold,
+      joinHousehold
     }}>
       {children}
     </HouseholdContext.Provider>
@@ -191,11 +238,8 @@ export const HouseholdProvider = ({ children }) => {
 
 export const useHousehold = () => {
   const context = useContext(HouseholdContext);
-  
-  // 🛡️ ESTA LÍNEA ES CLAVE
   if (context === undefined || context === null) {
-    throw new Error('¡ERROR CRÍTICO! El hook useHousehold se está llamando fuera de un HouseholdProvider. Revisa si el Provider está envolviendo correctamente este componente.');
+    throw new Error('¡ERROR CRÍTICO! El hook useHousehold se está llamando fuera de un HouseholdProvider.');
   }
-  
   return context;
 };

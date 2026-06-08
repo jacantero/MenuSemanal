@@ -83,6 +83,8 @@ export default function MenuScreen() {
   const [eatOutPlace, setEatOutPlace] = useState('');
   const [eatOutCost, setEatOutCost] = useState('');
 
+  const { pantryItems, updatePantry } = useHousehold();
+
   // --- NUEVOS ESTADOS PARA EL DESGLOSE DE NUTRIENTES ---
   const [isNutritionModalVisible, setIsNutritionModalVisible] = useState(false);
   const [nutritionSelectedDay, setNutritionSelectedDay] = useState('');
@@ -420,28 +422,35 @@ export default function MenuScreen() {
   // Esta función no toca el menú, sino la despensa, por lo que asumo que tu "consumeRecipeFromPantry" 
   // ya hace el AsyncStorage.setItem correspondiente. Si la despensa se sincroniza con el Contexto,
   // aquí tendrías que llamar a la función de despensa del Contexto.
-  const handleConsumeRecipe = (recipeId, plannedDiners) => {
-    const recipe = MOCK_RECIPES.find(r => String(r.id) === String(recipeId));
-    
-    Alert.alert(
-      "Cocinar receta",
-      `¿Quieres restar de tu despensa los ingredientes necesarios para cocinar "${recipe?.name}"?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Cocinar y Restar", 
-          onPress: async () => {
-            const success = await consumeRecipeFromPantry(recipe, plannedDiners);
-            if (success) {
-              Alert.alert("¡Que aproveche!", "Los ingredientes se han descontado de la despensa.");
-            } else {
-              Alert.alert("Despensa Vacía", "No se han encontrado los ingredientes en tu despensa para restar.");
-            }
+// Asegúrate de extraer "pantryItems" y "updatePantry" del useHousehold() arriba en tu componente:
+// const { pantryItems, updatePantry } = useHousehold();
+
+const handleConsumeRecipe = (recipeId, plannedDiners) => {
+  const recipe = MOCK_RECIPES.find(r => String(r.id) === String(recipeId));
+  
+  Alert.alert(
+    "Cocinar receta",
+    `¿Quieres restar de tu despensa los ingredientes necesarios para cocinar "${recipe?.name}"?`,
+    [
+      { text: "Cancelar", style: "cancel" },
+      { 
+        text: "Cocinar y Restar", 
+        onPress: async () => {
+          // 1. Le pasamos la despensa actual del contexto a la función de tempData
+          const { updatedPantry, success } = consumeRecipeFromPantry(pantryItems, recipe, plannedDiners);
+          
+          if (success) {
+            // 2. Guardamos los nuevos datos a través del contexto global (¡Esto actualizará la UI al instante!)
+            await updatePantry(updatedPantry);
+            Alert.alert("¡Que aproveche! 🍽️", "Los ingredientes se han descontado de la despensa.");
+          } else {
+            Alert.alert("Despensa Inalterada", "No tenías ninguno de los ingredientes de esta receta registrados en tu despensa.");
           }
         }
-      ]
-    );
-  };
+      }
+    ]
+  );
+};
 
   const renderMealSlot = (day, mealObject, index, totalMeals) => {
     const assignedRecipeId = mealObject.recipeId;

@@ -184,45 +184,54 @@ export const initAppData = async () => {
 // --- NUEVO: FUNCIÓN PARA CONSUMIR RECETAS DESDE EL MENÚ ---
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const consumeRecipeFromPantry = async (recipe, plannedDiners) => {
-  if (!recipe || !recipe.ingredients) return false;
-
-  try {
-    const savedPantry = await AsyncStorage.getItem('@pantry_items');
-    if (!savedPantry) return false; // Despensa vacía
-
-    let currentPantry = JSON.parse(savedPantry);
-    const currentDiners = plannedDiners || recipe.baseDiners || 1;
-
-    let itemsConsumed = false;
-
-    // Recorremos los ingredientes de la receta
-    recipe.ingredients.forEach(ing => {
-      const nameLower = ing.name.toLowerCase().trim();
-      const amountToConsume = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
-
-      // Buscamos si tenemos este ingrediente en la despensa
-      const pantryIndex = currentPantry.findIndex(p => p.name.toLowerCase().trim() === nameLower);
-
-      if (pantryIndex !== -1) {
-        // Le restamos la cantidad, asegurándonos de no bajar de 0
-        const newAmount = Math.max(0, currentPantry[pantryIndex].amount - amountToConsume);
-        currentPantry[pantryIndex].amount = newAmount;
-        itemsConsumed = true;
-      }
-    });
-
-    // Guardamos la despensa actualizada
-    if (itemsConsumed) {
-      await AsyncStorage.setItem('@pantry_items', JSON.stringify(currentPantry));
-      return true; // Devuelve true si al menos un ingrediente fue restado
-    }
-    return false;
-
-  } catch (e) {
-    console.error("Error consumiendo receta:", e);
-    return false;
+export const consumeRecipeFromPantry = (pantryItems, recipe, plannedDiners) => {
+  if (!recipe || !recipe.ingredients || !pantryItems || pantryItems.length === 0) {
+    return { updatedPantry: pantryItems, success: false };
   }
+
+  // 1. Clonamos la despensa para trabajar de forma segura sin mutar estados reactivos
+  const updatedPantry = JSON.parse(JSON.stringify(pantryItems));
+  let itemsConsumed = false;
+
+  const currentDiners = plannedDiners || recipe.baseDiners || 1;
+  const baseDiners = recipe.baseDiners || 1;
+
+  // 2. Recorremos los ingredientes de la receta
+  recipe.ingredients.forEach(ing => {
+    const canonicalName = getCanonicalName(ing.name);
+    const rawAmountToConsume = (ing.amount / baseDiners) * currentDiners;
+    
+    // 3. Pasamos lo que pide la receta a su unidad base (g, ml, ud...)
+    const normalizedNeeded = normalizeToBase(rawAmountToConsume, ing.unit);
+
+    // 4. Buscamos el ingrediente en la despensa usando su nombre canónico unificado
+    const pantryMatch = updatedPantry.find(p => getCanonicalName(p.name) === canonicalName);
+
+    if (pantryMatch) {
+      // 5. Convertimos lo que hay en la despensa a unidad base para restar manzanas con manzanas
+      const normalizedPantry = normalizeToBase(pantryMatch.amount, pantryMatch.unit);
+
+      if (normalizedPantry.unit === normalizedNeeded.unit) {
+        // Restamos con seguridad de no bajar de cero
+        const newAmountBase = Math.max(0, normalizedPantry.amount - normalizedNeeded.amount);
+
+        // 6. Devolvemos el valor a la unidad original que prefiere ver el usuario en su tarjeta
+        if (pantryMatch.unit === 'kg' && normalizedPantry.unit === 'g') {
+          pantryMatch.amount = newAmountBase / 1000;
+        } else if (pantryMatch.unit === 'L' && normalizedPantry.unit === 'ml') {
+          pantryMatch.amount = newAmountBase / 1000;
+        } else {
+          pantryMatch.amount = newAmountBase;
+        }
+
+        pantryMatch.amount = Math.round(pantryMatch.amount * 100) / 100;
+        itemsConsumed = true; // Confirmamos que se ha modificado al menos un producto
+      }
+    }
+  });
+
+  // Devolvemos el nuevo array calculado y el indicador de éxito
+  return { updatedPantry, success: itemsConsumed };
 };
 
 // ==========================================

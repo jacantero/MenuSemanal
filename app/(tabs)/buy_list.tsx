@@ -32,7 +32,8 @@ export default function ShoppingScreen() {
     checkedItems, 
     deletedItems, 
     pantryItems, 
-    updateShopping 
+    updateShopping,
+    updatePantry 
   } = useHousehold();
 
   const [shoppingItems, setShoppingItems] = useState([]);
@@ -248,6 +249,79 @@ export default function ShoppingScreen() {
     }
   };
 
+  // 🛒 FUNCIÓN MAESTRA: Transferir del Carrito a la Despensa usando los lotes de buy_list
+  const handleTransferToPantry = async () => {
+    // 1. Filtramos solo los productos que el usuario ha tachado (comprado)
+    const checkedItemsToTransfer = budgetDetails.items.filter(item => item.checked);
+
+    if (checkedItemsToTransfer.length === 0) {
+      Alert.alert("Carrito vacío", "No tienes ningún ingrediente marcado (tachado) para enviar a la despensa.");
+      return;
+    }
+
+    // 2. Clonamos la despensa actual de forma segura
+    const currentPantry = JSON.parse(JSON.stringify(pantryItems));
+
+    checkedItemsToTransfer.forEach(item => {
+      let finalAmountToAdd = item.amount; // Caída de seguridad
+      let finalUnit = item.unit;          // Unidad base calculada (g, ml, ud)
+
+      // Si el ingrediente tiene formato en la base de datos (Ej: "Botella 250ml")
+      if (item.purchaseFormat) {
+        // Usamos exactamente tu mismo Regex de budgetDetails para abrir el paquete
+        const match = item.purchaseFormat.match(/^(?:([a-zñáéíóú]+)(?:\s+de)?\s+)?([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
+        
+        if (match) {
+          const pAmount = parseFloat(match[2]) || 1;
+          const pUnit = match[3].toLowerCase();
+          
+          // Multiplicamos: Cantidad del paquete * Número de lotes que calculó buy_list
+          const totalPurchasedInPackageUnit = item.lots * pAmount;
+          
+          // Lo normalizamos a la unidad base antes de guardarlo (Ej: 1 kg -> 1000g / 0.25 L -> 250ml)
+          const normalized = normalizeToBase(totalPurchasedInPackageUnit, pUnit);
+          
+          finalAmountToAdd = normalized.amount;
+          finalUnit = normalized.unit;
+        }
+      }
+
+      const cleanAmountToAdd = Math.round(finalAmountToAdd * 100) / 100;
+
+      // 3. Buscamos si ya existe en la despensa
+      let existing = currentPantry.find(p => getCanonicalName(p.name) === getCanonicalName(item.name));
+
+      if (existing) {
+        existing.amount += cleanAmountToAdd;
+        if (existing.amount > existing.maxAmount) {
+          existing.maxAmount = existing.amount; // Actualizamos el tope de la barra de progreso
+        }
+      } else {
+        // Si es nuevo, lo creamos con el formato limpio de la base de datos
+        currentPantry.push({
+          id: `pantry-${Date.now()}-${Math.random()}`,
+          name: item.name,
+          unit: finalUnit, // 'ml', 'g', etc.
+          amount: cleanAmountToAdd,
+          maxAmount: cleanAmountToAdd,
+          purchaseUnit: item.purchaseFormat
+        });
+      }
+    });
+
+    try {
+      // 4. Guardamos la nueva despensa unificada en el contexto (sube a Firebase/AsyncStorage solo)
+      await updatePantry(currentPantry);
+
+      // 5. Limpiamos los elementos comprados de la lista de la compra de golpe
+      await performClear();
+
+      Alert.alert("¡Despensa Actualizada! 🥳", "Los productos se han sumado a tu inventario y el carrito se ha limpiado.");
+    } catch (error) {
+      Alert.alert("Error", "No se pudo guardar la compra en la despensa.");
+    }
+  };
+
   // 4. ACCIÓN MANUAL: Añadir manda la orden directa al contexto
   const handleAddManual = async () => {
     if (!newItemName.trim() || !newItemAmount.trim()) return;
@@ -373,11 +447,27 @@ export default function ShoppingScreen() {
     await updateShopping(updatedExtras, checkedItems, newDeleted);
   };
 
-  const handleClearChecked = () => {
-    Alert.alert("¿Añadir a la despensa?", "Si borras los ingredientes tachados aquí se perderán. Para guardar tu compra, ve a la pestaña de 'Despensa' y se limpiarán automáticamente.", [
-      { text: "Solo borrarlos", style: "destructive", onPress: performClear },
-      { text: "Entendido", style: "cancel" }
-    ]);
+const handleClearChecked = () => {
+    Alert.alert(
+      "🛒 Procesar Compra", 
+      "¿Qué quieres hacer con los ingredientes comprados (tachados)?", 
+      [
+        { 
+          text: "Sumar a la Despensa y Limpiar", 
+          style: "default", 
+          onPress: handleTransferToPantry // 👈 Tu nueva función unificada
+        },
+        { 
+          text: "Borrarlos de la lista", 
+          style: "destructive", 
+          onPress: performClear 
+        },
+        { 
+          text: "Cancelar", 
+          style: "cancel" 
+        }
+      ]
+    );
   };
 
   // 7. LIMPIAR COMPLETADOS: Un solo tiro al contexto
@@ -528,9 +618,9 @@ export default function ShoppingScreen() {
           </View>
           
           {hasCheckedItems && (
-            <TouchableOpacity style={styles.clearAllButton} onPress={handleClearChecked}>
-              <FontAwesome name="trash" size={18} color="#ff5252" style={{ marginRight: 8 }} />
-              <Text style={styles.clearAllText}>Borrar todo lo tachado</Text>
+            <TouchableOpacity style={styles.processButton} onPress={handleClearChecked}>
+              <FontAwesome name="check-circle" size={18} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={styles.processButtonText}>Procesar Compra</Text>
             </TouchableOpacity>
           )}
         </ScrollView>
@@ -777,5 +867,26 @@ const styles = StyleSheet.create({
   macroLabel: { fontSize: 11, fontWeight: '700', color: '#64748b', marginBottom: 4, paddingLeft: 4 },
   macroInput: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, padding: 8, fontSize: 14, fontWeight: 'bold', color: '#334155' },
   confirmModalBtn: { backgroundColor: '#10b981', padding: 14, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  confirmModalBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  confirmModalBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  processButton: {
+    flexDirection: 'row',
+    backgroundColor: '#22c55e', // Un verde vibrante de éxito
+    padding: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 15,
+    marginBottom: 10,
+    shadowColor: '#22c55e',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3, // Sombra en Android
+  },
+  processButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  }
 });
