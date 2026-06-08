@@ -164,7 +164,7 @@ export default function PantryScreen() {
           <Text style={styles.emptySubText}>Ve a la lista de la compra, tacha los ingredientes que has comprado y dale a finalizar para llenar esto.</Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.listContainer}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.listContainer} showsVerticalScrollIndicator={false}>
           <View style={styles.gridWrapper}>
             {pantryItems.map(ing => {
               const emoji = getEmojiForIngredient(ing.name);
@@ -289,7 +289,7 @@ export default function PantryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f7fa', padding: 12 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 15, textAlign: 'center', color: '#333', marginTop: 10 },
-  listContainer: { paddingBottom: 80, paddingTop: 5 },
+  listContainer: { paddingBottom: 200, paddingTop: 5 },
   
   fakeSearchInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 5, elevation: 1 },
   fakeSearchText: { fontSize: 16, color: '#94a3b8', flex: 1 },
