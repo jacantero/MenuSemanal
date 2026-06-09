@@ -26,15 +26,15 @@ const DAY_BADGES = {
 
 export default function ShoppingScreen() {
   // 2. DOSIS DE MAGIA: Traemos los estados y la función de guardado unificada del contexto
-  const { 
-    isReady: contextReady, 
-    extraItems, 
-    checkedItems, 
-    deletedItems, 
+  const {
+    isReady: contextReady,
+    extraItems,
+    checkedItems,
+    deletedItems,
     pantryItems,
-    weeklyMenu, 
+    weeklyMenu,
     updateShopping,
-    updatePantry 
+    updatePantry
   } = useHousehold();
 
   const [shoppingItems, setShoppingItems] = useState([]);
@@ -42,7 +42,7 @@ export default function ShoppingScreen() {
   // ESTADOS DEL MODAL AAÑADIR EXTRAS
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newItemName, setNewItemName] = useState('');
-  const [newItemAmount, setNewItemAmount] = useState('1'); 
+  const [newItemAmount, setNewItemAmount] = useState('1');
   const [newItemUnit, setNewItemUnit] = useState('ud');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [hasManuallySelectedUnit, setHasManuallySelectedUnit] = useState(false);
@@ -50,7 +50,7 @@ export default function ShoppingScreen() {
   // ESTADOS DEL MODAL DE EDICIÓN DE INGREDIENTE (LONG PRESS)
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingIngName, setEditingIngName] = useState('');
-  const [activeTab, setActiveTab] = useState('datos'); 
+  const [activeTab, setActiveTab] = useState('datos');
 
   const [formUnit, setFormUnit] = useState('g');
   const [formEmoji, setFormEmoji] = useState('🛒');
@@ -65,7 +65,7 @@ export default function ShoppingScreen() {
   const [tempPrices, setTempPrices] = useState({});
   const [ticketOverrides, setTicketOverrides] = useState({});
 
-  const suggestions = newItemName.trim().length > 0 
+  const suggestions = newItemName.trim().length > 0
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
     : [];
 
@@ -90,29 +90,29 @@ export default function ShoppingScreen() {
           const recipe = MOCK_RECIPES.find(r => r && String(r.id) === String(actualRecipeId));
           if (recipe) {
             const currentDiners = plannedDiners || recipe.baseDiners || 1;
-            
+
             recipe.ingredients.forEach(ing => {
               const canonicalName = getCanonicalName(ing.name);
               const cleanSafeId = canonicalName.toLowerCase().replace(/[^a-z0-9]/g, '');
-              const itemId = `menu-${cleanSafeId}`; 
+              const itemId = `menu-${cleanSafeId}`;
 
-              if (deletedItems.has(itemId)) return; 
-              
+              if (deletedItems.has(itemId)) return;
+
               let adjustedAmount = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
               let normalized = normalizeToBase(adjustedAmount, ing.unit);
 
               if (ingredientMap[canonicalName]) {
-                ingredientMap[canonicalName].amount += normalized.amount; 
-                ingredientMap[canonicalName].days.add(day); 
+                ingredientMap[canonicalName].amount += normalized.amount;
+                ingredientMap[canonicalName].days.add(day);
               } else {
-                ingredientMap[canonicalName] = { 
-                  id: itemId, 
-                  name: canonicalName, 
-                  amount: normalized.amount, 
-                  unit: normalized.unit, 
-                  days: new Set([day]), 
-                  checked: checkedItems.has(itemId), 
-                  isExtra: false 
+                ingredientMap[canonicalName] = {
+                  id: itemId,
+                  name: canonicalName,
+                  amount: normalized.amount,
+                  unit: normalized.unit,
+                  days: new Set([day]),
+                  checked: checkedItems.has(itemId),
+                  isExtra: false
                 };
               }
             });
@@ -132,7 +132,7 @@ export default function ShoppingScreen() {
     const menuList = Object.values(ingredientMap).map(ing => {
       const pantryMatch = pantryDict[ing.name]; // Búsqueda instantánea
       let finalAmount = ing.amount;
-      
+
       if (pantryMatch) {
         const normalizedPantry = normalizeToBase(pantryMatch.amount, pantryMatch.unit);
         if (normalizedPantry.unit === ing.unit) {
@@ -140,23 +140,23 @@ export default function ShoppingScreen() {
         }
       }
 
-      return { 
-        ...ing, 
-        amount: Math.round(finalAmount * 100) / 100, 
-        days: Array.from(ing.days) 
+      return {
+        ...ing,
+        amount: Math.round(finalAmount * 100) / 100,
+        days: Array.from(ing.days)
       };
     }).filter(ing => ing.amount > 0);
 
     // 3. Añadimos los elementos extra (añadidos a mano)
     const extrasList = extraItems.map(item => {
       const normalizedExtra = normalizeToBase(item.amount, item.unit);
-      return { 
-        ...item, 
-        amount: Math.round(normalizedExtra.amount * 100) / 100, 
-        unit: normalizedExtra.unit, 
-        checked: checkedItems.has(item.id), 
-        isExtra: true, 
-        days: [] 
+      return {
+        ...item,
+        amount: Math.round(normalizedExtra.amount * 100) / 100,
+        unit: normalizedExtra.unit,
+        checked: checkedItems.has(item.id),
+        isExtra: true,
+        days: []
       };
     }).filter(item => !deletedItems.has(item.id));
 
@@ -172,48 +172,74 @@ export default function ShoppingScreen() {
   // --- LÓGICA DE PRESUPUESTO BLINDADA ---
   const budgetDetails = useMemo(() => {
     let total = 0;
+
+    // 🌟 OPTIMIZACIÓN Y ORDEN: 
+    // Extraemos las entradas una sola vez y las ordenamos de más largas a más cortas.
+    // Así "Pan de molde" se comprueba antes que "Pan".
+    const dbEntries = Object.entries(INGREDIENTS_DB).sort((a, b) => b[0].length - a[0].length);
+
     const items = shoppingItems.map(item => {
       const canonicalName = getCanonicalName(item.name || '').toLowerCase().trim();
 
-      const dbKey = Object.keys(INGREDIENTS_DB).find(k => {
+      // 🌟 PASO 1: Búsqueda Exacta (La más segura)
+      let dbEntryMatch = dbEntries.find(([k, dbItem]) => {
         const cleanKey = k.toLowerCase();
-        if (cleanKey === canonicalName || canonicalName.includes(cleanKey)) return true;
+        if (cleanKey === canonicalName) return true;
 
-        const dbName = INGREDIENTS_DB[k]?.name;
+        const dbName = dbItem?.name;
         if (!dbName) return false;
 
         const synonyms = dbName.toLowerCase().split('/').map(name => name.trim());
-        return synonyms.some(syn => syn.includes(canonicalName) || canonicalName.includes(syn));
+        return synonyms.includes(canonicalName);
       });
 
-      const dbItem = INGREDIENTS_DB[dbKey];
+      // 🌟 PASO 2: Búsqueda Parcial Inteligente (Solo si falla el Paso 1)
+      if (!dbEntryMatch) {
+        dbEntryMatch = dbEntries.find(([k, dbItem]) => {
+          const cleanKey = k.toLowerCase();
+          // Usamos \b para asegurar que es una palabra independiente
+          // "agua" hará match en "agua mineral", pero NO en "aguacate"
+          const regexKey = new RegExp(`\\b${cleanKey}\\b`, 'i');
+          if (regexKey.test(canonicalName)) return true;
+
+          const dbName = dbItem?.name;
+          if (!dbName) return false;
+
+          const synonyms = dbName.toLowerCase().split('/').map(name => name.trim());
+          return synonyms.some(syn => new RegExp(`\\b${syn}\\b`, 'i').test(canonicalName));
+        });
+      }
+
+      const dbKey = dbEntryMatch ? dbEntryMatch[0] : undefined;
+      const dbItem = dbEntryMatch ? dbEntryMatch[1] : undefined;
+
       let unitPrice = dbItem ? (tempPrices[item.name] !== undefined ? tempPrices[item.name] : (dbItem.purchasePrice || 0)) : 0;
-      unitPrice = Number(unitPrice) || 0; 
-      
+      unitPrice = Number(unitPrice) || 0;
+
       let leadingWord = null;
       let pAmount = 1;
       let lots = 1;
       let pUnit = 'ud';
       let purchaseFormat = dbItem ? dbItem.purchaseUnit : '1 ud';
-      
+
       if (dbItem && dbItem.purchaseUnit) {
         const match = dbItem.purchaseUnit.match(/^(?:([a-zñáéíóú]+)(?:\s+de)?\s+)?([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
         if (match) {
           leadingWord = match[1];
           pAmount = parseFloat(match[2]) || 1;
           pUnit = match[3].toLowerCase();
-          
+
           let itemAmt = item.amount;
           let pkgAmt = pAmount;
-          
-          if ((item.unit === 'g' || item.unit ==='ud') && pUnit === 'kg') pkgAmt = pAmount * 1000;
+
+          if ((item.unit === 'g' || item.unit === 'ud') && pUnit === 'kg') pkgAmt = pAmount * 1000;
           if (item.unit === 'kg' && pUnit === 'g') itemAmt = item.amount * 1000;
           if (item.unit === 'ml' && pUnit === 'l') pkgAmt = pAmount * 1000;
           if (item.unit === 'l' && pUnit === 'ml') itemAmt = item.amount * 1000;
           if (pUnit === 'docena') pkgAmt = 12;
           if (item.unit === "ud") itemAmt = itemAmt * dbItem.weightPerUnit;
           if (pUnit === "ud") pkgAmt = pAmount * dbItem.weightPerUnit;
-          
+
           lots = Math.ceil(itemAmt / pkgAmt) || 1;
         }
       }
@@ -238,7 +264,7 @@ export default function ShoppingScreen() {
         currentUnit,
         itemTotalCost,
         pUnit
-      };     
+      };
     });
 
     return { total, items };
@@ -282,17 +308,17 @@ export default function ShoppingScreen() {
       if (item.purchaseFormat) {
         // Usamos exactamente tu mismo Regex de budgetDetails para abrir el paquete
         const match = item.purchaseFormat.match(/^(?:([a-zñáéíóú]+)(?:\s+de)?\s+)?([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
-        
+
         if (match) {
           const pAmount = parseFloat(match[2]) || 1;
           const pUnit = match[3].toLowerCase();
-          
+
           // Multiplicamos: Cantidad del paquete * Número de lotes que calculó buy_list
           const totalPurchasedInPackageUnit = item.lots * pAmount;
-          
+
           // Lo normalizamos a la unidad base antes de guardarlo (Ej: 1 kg -> 1000g / 0.25 L -> 250ml)
           const normalized = normalizeToBase(totalPurchasedInPackageUnit, pUnit);
-          
+
           finalAmountToAdd = normalized.amount;
           finalUnit = normalized.unit;
         }
@@ -345,12 +371,12 @@ export default function ShoppingScreen() {
 
     const proceedToAdd = async (finalName) => {
       const cleanSafeId = finalName.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const finalAmount = parseFloat(newItemAmount) || 1; 
+      const finalAmount = parseFloat(newItemAmount) || 1;
       const itemId = `extra-${cleanSafeId}-${Date.now()}`;
-      
+
       const newItem = { id: itemId, name: finalName, amount: finalAmount, unit: newItemUnit };
       const updatedExtras = [...extraItems, newItem];
-      
+
       // Enviamos el cambio al contexto
       await updateShopping(updatedExtras, checkedItems, deletedItems);
 
@@ -364,10 +390,12 @@ export default function ShoppingScreen() {
         `Parece que "${canonicalName}" no está en tu base de datos. ¿Quieres que la aplicación se lo aprenda?`,
         [
           { text: "Solo por hoy", style: "cancel", onPress: () => proceedToAdd(canonicalName) },
-          { text: "Sí, aprender", style: "default", onPress: async () => {
+          {
+            text: "Sí, aprender", style: "default", onPress: async () => {
               const registeredName = await registerCustomIngredient(rawName, newItemUnit);
               proceedToAdd(registeredName);
-          }}
+            }
+          }
         ]
       );
     } else { proceedToAdd(canonicalName); }
@@ -376,12 +404,12 @@ export default function ShoppingScreen() {
   const openIngredientEditor = (ingredientName) => {
     const canonical = getCanonicalName(ingredientName);
     const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonical);
-    
+
     if (dbKey) {
       const dbData = INGREDIENTS_DB[dbKey];
       setEditingIngName(canonical);
       setActiveTab('datos');
-      
+
       setFormUnit(dbData.unit || 'g');
       setFormEmoji(dbData.emoji || '🛒');
       setFormFormat(dbData.purchaseUnit || `1${dbData.unit}`);
@@ -417,30 +445,30 @@ export default function ShoppingScreen() {
 
     await updateIngredientDatabase(editingIngName, advancedIngredientObject);
     setIsEditModalVisible(false);
-    calculateList(); 
+    calculateList();
     Alert.alert("¡Ficha actualizada!", `Los datos de "${editingIngName}" se han guardado correctamente.`);
   };
 
   // 5. MARCAR ÍTEMS: Actualizamos el contexto y mantenemos tu genial efecto visual de retardo
   const toggleCheck = useCallback(async (itemId) => {
-    
+
     // 1. TACHADO INMEDIATO (La magia visual va primero)
-    setShoppingItems(prevItems => 
+    setShoppingItems(prevItems =>
       prevItems.map(item => item.id === itemId ? { ...item, checked: !item.checked } : item)
     );
 
     // 2. Preparamos los datos para el Contexto
     const newChecked = new Set(checkedItems);
     if (newChecked.has(itemId)) newChecked.delete(itemId); else newChecked.add(itemId);
-    
+
     // 3. Enviamos a la base de datos (Como ya hemos tachado la UI, no nos importa si esto tarda un poco)
     await updateShopping(extraItems, newChecked, deletedItems);
 
     // 4. Tu truco de reordenar la lista un segundo después en la pantalla
     setTimeout(() => {
-      setShoppingItems(currentItems => [...currentItems].sort((a, b) => { 
-        if (a.checked === b.checked) return a.name.localeCompare(b.name); 
-        return a.checked ? 1 : -1; 
+      setShoppingItems(currentItems => [...currentItems].sort((a, b) => {
+        if (a.checked === b.checked) return a.name.localeCompare(b.name);
+        return a.checked ? 1 : -1;
       }));
     }, 1000);
 
@@ -459,38 +487,38 @@ export default function ShoppingScreen() {
     await updateShopping(updatedExtras, checkedItems, newDeleted);
   };
 
-const handleClearChecked = () => {
+  const handleClearChecked = () => {
     Alert.alert(
-      "🛒 Procesar Compra", 
-      "¿Qué quieres hacer con los ingredientes comprados (tachados)?", 
+      "🛒 Procesar Compra",
+      "¿Qué quieres hacer con los ingredientes comprados (tachados)?",
       [
-        { 
-          text: "Sumar a la Despensa y Limpiar", 
-          style: "default", 
+        {
+          text: "Sumar a la Despensa y Limpiar",
+          style: "default",
           onPress: handleTransferToPantry // 👈 Tu nueva función unificada
         },
-        { 
-          text: "Borrarlos de la lista", 
-          style: "destructive", 
-          onPress: performClear 
+        {
+          text: "Borrarlos de la lista",
+          style: "destructive",
+          onPress: performClear
         },
-        { 
-          text: "Cancelar", 
-          style: "cancel" 
+        {
+          text: "Cancelar",
+          style: "cancel"
         }
       ]
     );
   };
 
-  // 7. LIMPIAR COMPLETADOS: Un solo tiro al contexto
+  /* 7. LIMPIAR COMPLETADOS: Un solo tiro al contexto */
   const performClear = async () => {
     const newDeleted = new Set(deletedItems);
     const extrasToRemove = new Set();
 
     shoppingItems.forEach(item => {
-      if (item.checked) { 
-        newDeleted.add(item.id); 
-        if (item.isExtra) extrasToRemove.add(item.id); 
+      if (item.checked) {
+        newDeleted.add(item.id);
+        if (item.isExtra) extrasToRemove.add(item.id);
       }
     });
 
@@ -500,6 +528,12 @@ const handleClearChecked = () => {
     }
 
     await updateShopping(updatedExtras, checkedItems, newDeleted);
+  };
+
+  const handleSelectSuggestion = (suggestion) => {
+    setNewItemName(suggestion.name);
+    setNewItemUnit(suggestion.unit || 'ud');
+    setShowSuggestions(false);
   };
 
   const renderDayBadges = (daysArray) => {
@@ -536,7 +570,7 @@ const handleClearChecked = () => {
           <Text style={{ fontSize: 10, color: '#0369a1', fontWeight: '600' }}>Ver ticket</Text>
         </View>
       </TouchableOpacity>
-      
+
       <TouchableOpacity style={styles.fakeSearchInput} activeOpacity={0.8} onPress={() => setIsModalVisible(true)}>
         <FontAwesome name="plus-circle" size={20} color="#2f95dc" style={{ marginRight: 10 }} />
         <Text style={styles.fakeSearchText}>Añadir algo que falte en casa...</Text>
@@ -610,12 +644,12 @@ const handleClearChecked = () => {
 
                   <Text style={[styles.cardEmoji, ing.checked && { opacity: 0.4 }]}>{emoji}</Text>
                   <Text style={[styles.cardName, ing.checked && styles.textStrikethrough]} numberOfLines={2}>{ing.name}</Text>
-                  
+
                   <View style={styles.cardAmountBadge}>
                     <Text style={styles.cardAmountText}>{ing.amount} {ing.unit}</Text>
                   </View>
 
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.absoluteTouchOverlay}
                     onPress={() => toggleCheck(ing.id)}
                     onLongPress={() => openIngredientEditor(ing.name)}
@@ -628,7 +662,7 @@ const handleClearChecked = () => {
               );
             })}
           </View>
-          
+
           {hasCheckedItems && (
             <TouchableOpacity style={styles.processButton} onPress={handleClearChecked}>
               <FontAwesome name="check-circle" size={18} color="#fff" style={{ marginRight: 8 }} />
@@ -644,7 +678,7 @@ const handleClearChecked = () => {
       <Modal visible={isBudgetModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { height: '85%', paddingBottom: 20 }]}>
-            
+
             {/* 1. CABECERA DEL MODAL */}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
               <Text style={styles.modalTitle}>🧾 Ticket Estimado</Text>
@@ -664,7 +698,7 @@ const handleClearChecked = () => {
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
               {budgetDetails.items.map((item) => (
                 <View key={item.id} style={styles.ticketRow}>
-                  
+
                   {/* Columna Izquierda: Nombre y Cantidad Requerida */}
                   <View style={{ flex: 1.5, paddingRight: 5 }}>
                     <Text style={styles.ticketItemName} numberOfLines={1}>
@@ -700,8 +734,8 @@ const handleClearChecked = () => {
             </View>
 
             {/* 5. BOTÓN CERRAR */}
-            <TouchableOpacity 
-              style={[styles.confirmButton, { marginTop: 15 }]} 
+            <TouchableOpacity
+              style={[styles.confirmButton, { marginTop: 15 }]}
               onPress={() => setIsBudgetModalVisible(false)}
             >
               <Text style={styles.confirmButtonText}>Cerrar Ticket</Text>
@@ -718,7 +752,7 @@ const handleClearChecked = () => {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>✨ Editar Ficha Técnica</Text>
-            
+
             <View style={{ flexShrink: 1 }}>
               <Text style={styles.modalSubtitle}>Ingrediente: {editingIngName}</Text>
 
@@ -755,25 +789,25 @@ const handleClearChecked = () => {
 
                 {activeTab === 'macros' && (
                   <View style={styles.gridWrapperModal}>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Kcals</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.kcals} onChangeText={t => setFormMacros({...formMacros, kcals: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Proteínas (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.protein} onChangeText={t => setFormMacros({...formMacros, protein: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Carbos (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.carbsTotal} onChangeText={t => setFormMacros({...formMacros, carbsTotal: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Azúcares (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.carbsSugars} onChangeText={t => setFormMacros({...formMacros, carbsSugars: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Grasas (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsTotal} onChangeText={t => setFormMacros({...formMacros, fatsTotal: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Saturadas (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsSat} onChangeText={t => setFormMacros({...formMacros, fatsSat: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Monoinsat. (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsMono} onChangeText={t => setFormMacros({...formMacros, fatsMono: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Poliinsat. (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsPoly} onChangeText={t => setFormMacros({...formMacros, fatsPoly: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Fibra (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fiber} onChangeText={t => setFormMacros({...formMacros, fiber: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Sal (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.salt} onChangeText={t => setFormMacros({...formMacros, salt: t})} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Kcals</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.kcals} onChangeText={t => setFormMacros({ ...formMacros, kcals: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Proteínas (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.protein} onChangeText={t => setFormMacros({ ...formMacros, protein: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Carbos (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.carbsTotal} onChangeText={t => setFormMacros({ ...formMacros, carbsTotal: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Azúcares (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.carbsSugars} onChangeText={t => setFormMacros({ ...formMacros, carbsSugars: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Grasas (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsTotal} onChangeText={t => setFormMacros({ ...formMacros, fatsTotal: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Saturadas (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsSat} onChangeText={t => setFormMacros({ ...formMacros, fatsSat: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Monoinsat. (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsMono} onChangeText={t => setFormMacros({ ...formMacros, fatsMono: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Poliinsat. (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fatsPoly} onChangeText={t => setFormMacros({ ...formMacros, fatsPoly: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Fibra (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.fiber} onChangeText={t => setFormMacros({ ...formMacros, fiber: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Sal (g)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMacros.salt} onChangeText={t => setFormMacros({ ...formMacros, salt: t })} /></View>
                   </View>
                 )}
 
                 {activeTab === 'micros' && (
                   <View style={styles.gridWrapperModal}>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Calcio (mg)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMicros.calcium} onChangeText={t => setFormMicros({...formMicros, calcium: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Hierro (mg)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMicros.iron} onChangeText={t => setFormMicros({...formMicros, iron: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Magnesio (mg)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMicros.magnesium} onChangeText={t => setFormMicros({...formMicros, magnesium: t})} /></View>
-                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Potasio (mg)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMicros.potassium} onChangeText={t => setFormMicros({...formMicros, potassium: t})} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Calcio (mg)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMicros.calcium} onChangeText={t => setFormMicros({ ...formMicros, calcium: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Hierro (mg)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMicros.iron} onChangeText={t => setFormMicros({ ...formMicros, iron: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Magnesio (mg)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMicros.magnesium} onChangeText={t => setFormMicros({ ...formMicros, magnesium: t })} /></View>
+                    <View style={styles.macroBox}><Text style={styles.macroLabel}>Potasio (mg)</Text><TextInput style={styles.macroInput} keyboardType="numeric" value={formMicros.potassium} onChangeText={t => setFormMicros({ ...formMicros, potassium: t })} /></View>
                   </View>
                 )}
               </ScrollView>
@@ -799,16 +833,16 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 5, textAlign: 'center', color: '#333', marginTop: 10 },
   helperText: { fontSize: 11, color: '#64748b', textAlign: 'center', marginBottom: 15, fontStyle: 'italic' },
   listContainer: { paddingBottom: 80, paddingTop: 5 },
-  
+
   budgetCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#e0f2fe', borderWidth: 1, borderColor: '#bae6fd', borderRadius: 16, padding: 16, marginBottom: 12, shadowColor: '#0284c7', shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
   budgetTextContainer: { flexDirection: 'column' },
   budgetLabel: { fontSize: 13, fontWeight: '700', color: '#0369a1', textTransform: 'uppercase', letterSpacing: 0.5 },
   budgetValue: { fontSize: 26, fontWeight: '900', color: '#0284c7', marginTop: 2 },
 
-  gridWrapper: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: '3%', marginLeft:5 },
+  gridWrapper: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: '3%', marginLeft: 5 },
   gridCard: { width: '31%', aspectRatio: 1, borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0', backgroundColor: '#ffffff', padding: 8, marginBottom: 10, alignItems: 'center', justifyContent: 'center', position: 'relative', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, elevation: 2 },
   gridCardChecked: { opacity: 0.5, transform: [{ scale: 0.95 }], backgroundColor: '#f1f5f9' },
-  
+
   daysSidebar: { position: 'absolute', top: 6, left: -6, flexDirection: 'column', flexWrap: 'wrap', height: '80%', gap: 4, zIndex: 20 },
   dayBadge: { width: 16, height: 16, borderRadius: 8, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 1, elevation: 2 },
   dayBadgeText: { color: '#fff', fontSize: 9, fontWeight: 'bold' },
@@ -819,7 +853,7 @@ const styles = StyleSheet.create({
   cardAmountBadge: { backgroundColor: '#f1f5f9', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, marginTop: 4 },
   cardAmountText: { fontSize: 10, fontWeight: 'bold', color: '#475569' },
   cardDeleteBtn: { position: 'absolute', top: 4, right: 4, padding: 4, zIndex: 30 },
-  
+
   absoluteTouchOverlay: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, zIndex: 10 },
   checkOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 16, justifyContent: 'center', alignItems: 'center', zIndex: 40 },
 
@@ -831,7 +865,7 @@ const styles = StyleSheet.create({
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#333' },
   closeButton: { padding: 4 },
-  
+
   inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#555', marginBottom: 8 },
   modalInput: { backgroundColor: '#f9f9f9', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#eee', fontSize: 16 },
   amountUnitContainer: { flexDirection: 'row', marginTop: 20, marginBottom: 30, zIndex: 1 },
