@@ -169,6 +169,7 @@ export default function ShoppingScreen() {
     setShoppingItems(finalFlatList);
   };
 
+  const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');//Para robustecer el regex
   // --- LÓGICA DE PRESUPUESTO BLINDADA ---
   const budgetDetails = useMemo(() => {
     let total = 0;
@@ -199,14 +200,14 @@ export default function ShoppingScreen() {
           const cleanKey = k.toLowerCase();
           // Usamos \b para asegurar que es una palabra independiente
           // "agua" hará match en "agua mineral", pero NO en "aguacate"
-          const regexKey = new RegExp(`\\b${cleanKey}\\b`, 'i');
+          const regexKey = new RegExp(`\\b${escapeRegex(cleanKey)}\\b`, 'i');
           if (regexKey.test(canonicalName)) return true;
 
           const dbName = dbItem?.name;
           if (!dbName) return false;
 
           const synonyms = dbName.toLowerCase().split('/').map(name => name.trim());
-          return synonyms.some(syn => new RegExp(`\\b${syn}\\b`, 'i').test(canonicalName));
+          return synonyms.some(syn => new RegExp(`\\b${escapeRegex(syn)}\\b`, 'i').test(canonicalName));
         });
       }
 
@@ -617,7 +618,7 @@ export default function ShoppingScreen() {
               </View>
             </View>
 
-            <TouchableOpacity style={[styles.confirmButton, !newItemName.trim() && { opacity: 0.5 }]} onPress={handleAddManual} disabled={!newItemName.trim()}>
+            <TouchableOpacity style={[styles.confirmButton, !newItemName.trim() && { opacity: 0.5 }]} onPress={handleAddManual} disabled={!newItemName?.trim()}>
               <Text style={styles.confirmButtonText}>Añadir a mi carrito</Text>
             </TouchableOpacity>
           </View>
@@ -654,8 +655,8 @@ export default function ShoppingScreen() {
                     onPress={() => toggleCheck(ing.id)}
                     onLongPress={() => openIngredientEditor(ing.name)}
                     delayLongPress={400}
-                    activeOpacity={0.7}
-                  />
+                    activeOpacity={0.7}>
+                  </TouchableOpacity>
 
                   {ing.checked && <View style={styles.checkOverlay} pointerEvents="none"><FontAwesome name="check" size={40} color="#fff" /></View>}
                 </View>
