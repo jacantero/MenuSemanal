@@ -155,12 +155,6 @@
     "micros": { "calcium_mg": 11.0, "iron_mg": 0.6, "magnesium_mg": 10.0, "potassium_mg": 290.0, "phosphorus_mg": 24.0, "zinc_mg": 0.2, "vitA_mcg": 64.0, "vitB1_mg": 0.06, "vitB2_mg": 0.04, "vitB3_mg": 0.7, "vitB6_mg": 0.11, "vitB9_mcg": 22.0, "vitB12_mcg": 0.0, "vitC_mg": 26.0, "vitD_mcg": 0.0, "vitE_mg": 0.8, "vitK_mcg": 7.9 },
     "source": "BEDCA"
   },
-  "pan": {
-    "name": "Pan frito", "unit": "ud", "emoji": "🥖", "purchaseUnit": "Barra 250g", "purchasePrice": 0.60, "weightPerUnit": 250,
-    "macros": { "kcals": 261.0, "protein": 8.4, "carbs": { "total": 51.5, "sugars": 1.8 }, "fats": { "total": 1.6, "saturated": 0.3, "monounsaturated": 0.2, "polyunsaturated": 0.7 }, "fiber": 3.5, "salt": 1.1 },
-    "micros": { "calcium_mg": 23.0, "iron_mg": 1.5, "magnesium_mg": 25.0, "potassium_mg": 110.0, "phosphorus_mg": 94.0, "zinc_mg": 0.8, "vitA_mcg": 0.0, "vitB1_mg": 0.1, "vitB2_mg": 0.06, "vitB3_mg": 1.5, "vitB6_mg": 0.1, "vitB9_mcg": 22.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.1, "vitK_mcg": 0.5 },
-    "source": "BEDCA"
-  },
   "almendra": {
     "name": "Almendras", "unit": "g", "emoji": "🥜", "purchaseUnit": "Bolsa 200g", "purchasePrice": 3.50, "weightPerUnit": 1,
     "macros": { "kcals": 610.0, "protein": 20.0, "carbs": { "total": 6.9, "sugars": 4.2 }, "fats": { "total": 54.0, "saturated": 4.0, "monounsaturated": 34.0, "polyunsaturated": 12.0 }, "fiber": 11.4, "salt": 0.5 },
@@ -522,9 +516,15 @@
     "source": "BEDCA"
   },
   "pan hamburguesa": {
-    "name": "Pan de hamburguesa", "unit": "ud", "emoji": "🍔", "purchaseUnit": "Pack 4ud", "purchasePrice": 1.20, "weightPerUnit": 70,
+    "name": "Pan hamburguesa", "unit": "ud", "emoji": "🍔", "purchaseUnit": "Pack 4ud", "purchasePrice": 1.20, "weightPerUnit": 70,
     "macros": { "kcals": 270.0, "protein": 8.5, "carbs": { "total": 50.0, "sugars": 6.0 }, "fats": { "total": 3.0, "saturated": 0.5, "monounsaturated": 1.0, "polyunsaturated": 1.0 }, "fiber": 2.5, "salt": 1.1 },
     "micros": { "calcium_mg": 80.0, "iron_mg": 2.5, "magnesium_mg": 25.0, "potassium_mg": 150.0, "phosphorus_mg": 100.0, "zinc_mg": 0.8, "vitA_mcg": 0.0, "vitB1_mg": 0.2, "vitB2_mg": 0.1, "vitB3_mg": 3.0, "vitB6_mg": 0.1, "vitB9_mcg": 40.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.2, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "pan molde": {
+    "name": "Pan molde", "unit": "ud", "emoji": "🍞", "purchaseUnit": "Pack 24ud", "purchasePrice": 1.35, "weightPerUnit": 26,
+    "macros": { "kcals": 258.0, "protein": 8.1, "carbs": { "total": 48.2, "sugars": 3.8 }, "fats": { "total": 3.2, "saturated": 0.6, "monounsaturated": 0.9, "polyunsaturated": 1.4 }, "fiber": 3.2, "salt": 1.2 },
+    "micros": { "calcium_mg": 75.0, "iron_mg": 2.1, "magnesium_mg": 24.0, "potassium_mg": 135.0, "phosphorus_mg": 92.0, "zinc_mg": 0.7, "vitA_mcg": 0.0, "vitB1_mg": 0.22, "vitB2_mg": 0.09, "vitB3_mg": 2.7, "vitB6_mg": 0.08, "vitB9_mcg": 32.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.2, "vitK_mcg": 0.0 },
     "source": "BEDCA"
   },
   "lechuga": {
@@ -568,5 +568,17 @@
     "macros": { "kcals": 90.0, "protein": 18.0, "carbs": { "total": 3.0, "sugars": 0.8 }, "fats": { "total": 1.5, "saturated": 0.3, "monounsaturated": 0.5, "polyunsaturated": 0.5 }, "fiber": 0.0, "salt": 1.0 },
     "micros": { "calcium_mg": 30.0, "iron_mg": 2.0, "magnesium_mg": 25.0, "potassium_mg": 200.0, "phosphorus_mg": 180.0, "zinc_mg": 1.5, "vitA_mcg": 10.0, "vitB1_mg": 0.05, "vitB2_mg": 0.1, "vitB3_mg": 2.0, "vitB6_mg": 0.2, "vitB9_mcg": 10.0, "vitB12_mcg": 1.0, "vitC_mg": 1.0, "vitD_mcg": 0.0, "vitE_mg": 0.1, "vitK_mcg": 0.0 },
     "source": "USER_CUSTOM"
+  },
+  "aguacate": {
+    "name": "Aguacate", "unit": "ud", "emoji": "🥑", "purchaseUnit": "Pack 4ud", "purchasePrice": 3.90, "weightPerUnit": 135,
+    "macros": { "kcals": 160.0, "protein": 2.0, "carbs": { "total": 8.5, "sugars": 0.7 }, "fats": { "total": 14.7, "saturated": 2.1, "monounsaturated": 9.8, "polyunsaturated": 1.8 }, "fiber": 6.7, "salt": 0.01 },
+    "micros": { "calcium_mg": 12.0, "iron_mg": 0.6, "magnesium_mg": 29.0, "potassium_mg": 485.0, "phosphorus_mg": 52.0, "zinc_mg": 0.6, "vitA_mcg": 7.0, "vitB1_mg": 0.07, "vitB2_mg": 0.13, "vitB3_mg": 1.7, "vitB6_mg": 0.26, "vitB9_mcg": 81.0, "vitB12_mcg": 0.0, "vitC_mg": 10.0, "vitD_mcg": 0.0, "vitE_mg": 2.0, "vitK_mcg": 21.0 },
+    "source": "BEDCA"
+  },
+  "hummus": {
+    "name": "Hummus de garbanzos", "unit": "g", "emoji": "🥣", "purchaseUnit": "Tarrina 240g", "purchasePrice": 1.25, "weightPerUnit": 1,
+    "macros": { "kcals": 177.0, "protein": 4.9, "carbs": { "total": 9.5, "sugars": 0.4 }, "fats": { "total": 12.2, "saturated": 1.7, "monounsaturated": 6.3, "polyunsaturated": 3.6 }, "fiber": 4.0, "salt": 1.1 },
+    "micros": { "calcium_mg": 42.0, "iron_mg": 1.6, "magnesium_mg": 41.0, "potassium_mg": 228.0, "phosphorus_mg": 110.0, "zinc_mg": 1.1, "vitA_mcg": 1.0, "vitB1_mg": 0.12, "vitB2_mg": 0.06, "vitB3_mg": 0.6, "vitB6_mg": 0.15, "vitB9_mcg": 58.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 1.5, "vitK_mcg": 8.0 },
+    "source": "BEDCA"
   }
 }

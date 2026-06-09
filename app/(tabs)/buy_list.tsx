@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // Lo deja
 // 1. IMPORTAMOS EL HOOK DEL CONTEXTO GLOBAl (Ajusta la ruta si es necesario)
 import { useHousehold } from '../HouseholdContext';
 
-import { weeklyMenu, MOCK_RECIPES, INGREDIENTS_DB, COMMON_INGREDIENTS, normalizeToBase, getCanonicalName, registerCustomIngredient, updateIngredientDatabase } from '../tempData';
+import { MOCK_RECIPES, INGREDIENTS_DB, COMMON_INGREDIENTS, normalizeToBase, getCanonicalName, registerCustomIngredient, updateIngredientDatabase } from '../tempData';
 
 export const getEmojiForIngredient = (rawName) => {
   const canonical = getCanonicalName(rawName);
@@ -31,7 +31,8 @@ export default function ShoppingScreen() {
     extraItems, 
     checkedItems, 
     deletedItems, 
-    pantryItems, 
+    pantryItems,
+    weeklyMenu, 
     updateShopping,
     updatePantry 
   } = useHousehold();
@@ -73,11 +74,12 @@ export default function ShoppingScreen() {
     if (contextReady) {
       calculateList();
     }
-  }, [contextReady, extraItems, checkedItems, deletedItems, pantryItems]);
+  }, [contextReady, extraItems, checkedItems, deletedItems, pantryItems, weeklyMenu]);
 
   const calculateList = () => {
     const ingredientMap = {};
 
+    // 1. Agrupamos los ingredientes del menú
     Object.keys(weeklyMenu).forEach(day => {
       const dayMealsList = weeklyMenu[day] || [];
       dayMealsList.forEach(assignment => {
@@ -119,8 +121,16 @@ export default function ShoppingScreen() {
       });
     });
 
+    // 🌟 DICCIONARIO: Prevenimos el colapso de la app
+    const pantryDict = {};
+    pantryItems.forEach(p => {
+      const safeName = getCanonicalName(p.name);
+      pantryDict[safeName] = p;
+    });
+
+    // 2. Restamos lo que ya tenemos en la despensa
     const menuList = Object.values(ingredientMap).map(ing => {
-      const pantryMatch = pantryItems.find(p => getCanonicalName(p.name) === ing.name);
+      const pantryMatch = pantryDict[ing.name]; // Búsqueda instantánea
       let finalAmount = ing.amount;
       
       if (pantryMatch) {
@@ -137,6 +147,7 @@ export default function ShoppingScreen() {
       };
     }).filter(ing => ing.amount > 0);
 
+    // 3. Añadimos los elementos extra (añadidos a mano)
     const extrasList = extraItems.map(item => {
       const normalizedExtra = normalizeToBase(item.amount, item.unit);
       return { 
@@ -149,6 +160,7 @@ export default function ShoppingScreen() {
       };
     }).filter(item => !deletedItems.has(item.id));
 
+    // 4. Ordenamos todo junto (comprados abajo)
     const finalFlatList = [...menuList, ...extrasList].sort((a, b) => {
       if (a.checked === b.checked) return a.name.localeCompare(b.name);
       return a.checked ? 1 : -1;

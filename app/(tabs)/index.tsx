@@ -51,9 +51,9 @@ export default function MenuScreen() {
   const context = useHousehold();
   
   // 🔍 EL "DEBUG" DEFINITIVO
-  console.log("--- CONTENIDO DEL CONTEXTO ---");
-  console.log(Object.keys(context)); // Esto te dirá qué propiedades SI existen
-  console.log(context);              // Esto te mostrará el objeto completo
+  // console.log("--- CONTENIDO DEL CONTEXTO ---");
+  // console.log(Object.keys(context)); // Esto te dirá qué propiedades SI existen
+  // console.log(context);              // Esto te mostrará el objeto completo
   // 2. DOSIS DE MAGIA: Traemos todos los estados y funciones mágicas del contexto
   const { 
     isReady,

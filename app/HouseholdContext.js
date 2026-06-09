@@ -226,7 +226,7 @@ export const HouseholdProvider = ({ children }) => {
       extraItems, checkedItems, deletedItems, updateShopping,
       pantryItems, updatePantry,
       weeklyMenu, updateMenu,
-      consumeRecipeIngredients, // 👈 ¡Disponible para MenuScreen!
+      consumeRecipeIngredients, 
       customIngredients, setCustomIngredients,
       createHousehold,
       joinHousehold
