@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ProgressBarAndroid } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // 1. IMPORTAMOS EL HOOK DEL CONTEXTO GLOBAl (Ajusta la ruta si es necesario)
 import { useHousehold } from '../HouseholdContext';
@@ -25,11 +25,11 @@ let perc_protein = 25;
 
 const NUTRITION_LIMITS = {
   kcals: kcals,
-  protein: (perc_protein*kcals/(100*kcal_protein)),
-  carbsTotal: (perc_carbs*kcals/(100*kcal_carb)),
-  fatsTotal: (perc_fat*kcals/(100*kcal_fat)),
-  sugarsMax: (perc_sugar*kcals/(100*kcal_carb)),      // Máx 50g azúcares libres
-  fatsSatMax: (perc_fatSat*kcals/(100*kcal_fat)),     // Máx 10% de la energía diaria en saturadas
+  protein: (perc_protein * kcals / (100 * kcal_protein)),
+  carbsTotal: (perc_carbs * kcals / (100 * kcal_carb)),
+  fatsTotal: (perc_fat * kcals / (100 * kcal_fat)),
+  sugarsMax: (perc_sugar * kcals / (100 * kcal_carb)),      // Máx 50g azúcares libres
+  fatsSatMax: (perc_fatSat * kcals / (100 * kcal_fat)),     // Máx 10% de la energía diaria en saturadas
   saltMax: 5,         // Máx 5g de sal al día según la OMS
   vitC: 80,           // mg
   vitD: 15,           // mcg
@@ -49,16 +49,17 @@ const NUTRITION_LIMITS = {
 export default function MenuScreen() {
 
   const context = useHousehold();
-  
+
   // 🔍 EL "DEBUG" DEFINITIVO
   // console.log("--- CONTENIDO DEL CONTEXTO ---");
   // console.log(Object.keys(context)); // Esto te dirá qué propiedades SI existen
   // console.log(context);              // Esto te mostrará el objeto completo
   // 2. DOSIS DE MAGIA: Traemos todos los estados y funciones mágicas del contexto
-  const { 
+  const {
     isReady,
     householdId,
     weeklyMenu: menuData,
+    startNewWeek,
     createHousehold,
     joinHousehold,
     updateMenu
@@ -70,11 +71,14 @@ export default function MenuScreen() {
   const [supermarketCost, setSupermarketCost] = useState(0);
   const [dashboardVisible, setDashboardVisible] = useState(false);
 
+  // Controlará cuándo initAppData() ha terminado
+  const [dataLoaded, setDataLoaded] = useState(false);
+
   const [addMealVisible, setAddMealVisible] = useState(false);
   const [dayToAdd, setDayToAdd] = useState(null);
   const [newMealName, setNewMealName] = useState('');
   const [selectedDays, setSelectedDays] = useState([]);
-  
+
   const [selectedMeals, setSelectedMeals] = useState([]);
   const isMultiSelectMode = selectedMeals.length > 0;
 
@@ -91,12 +95,15 @@ export default function MenuScreen() {
 
   useEffect(() => {
     const loadData = async () => {
-      await initAppData(); 
+      await initAppData();
       // Primera lectura rápida del presupuesto
       try {
         const savedCost = await AsyncStorage.getItem('@estimated_shopping_cost');
         if (savedCost) setSupermarketCost(parseFloat(savedCost));
       } catch (e) { console.error(e) }
+
+      // Avisamos a React de que ya puede pintar la pantalla
+      setDataLoaded(true);
     };
     loadData();
   }, []);
@@ -111,11 +118,31 @@ export default function MenuScreen() {
         try {
           const savedCost = await AsyncStorage.getItem('@estimated_shopping_cost');
           if (savedCost) setSupermarketCost(parseFloat(savedCost));
-        } catch (e) {}
+        } catch (e) { }
       };
       fetchCost();
     }, [])
   );
+
+  // --- FUNCIÓN PARA REINICIAR LA SEMANA ---
+  const handleStartNewWeek = () => {
+    Alert.alert(
+      "🔄 Empezar nueva semana",
+      "¿Seguro que quieres borrar el menú actual? Esto también limpiará los elementos tachados de tu lista de la compra.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Sí, limpiar todo",
+          style: "destructive",
+          onPress: async () => {
+            await startNewWeek(); // 👈 Llama a la función de tu Contexto
+            // Opcional: Mostrar un aviso de éxito
+            // Alert.alert("¡Hecho!", "El menú ha quedado en blanco para la nueva semana.");
+          }
+        }
+      ]
+    );
+  };
 
   // --- FUNCIONES DE EMPAREJAMIENTO FIREBASE ---
   // Ahora estas funciones llaman a los métodos blindados del Contexto
@@ -124,9 +151,9 @@ export default function MenuScreen() {
     const newCode = await createHousehold();
     setIsHouseholdLoading(false);
     if (newCode) {
-        Alert.alert("¡Familia Creada!", `Tu código es: ${newCode}\nCompártelo para que se unan a tu familia.`);
+      Alert.alert("¡Familia Creada!", `Tu código es: ${newCode}\nCompártelo para que se unan a tu familia.`);
     } else {
-        Alert.alert("Error", "No se pudo crear el hogar. Comprueba tu conexión.");
+      Alert.alert("Error", "No se pudo crear el hogar. Comprueba tu conexión.");
     }
   };
 
@@ -151,7 +178,7 @@ export default function MenuScreen() {
     const dayMeals = menuData[day] || [];
     let totals = {
       kcals: 0, protein: 0, carbsTotal: 0, sugars: 0, fatsTotal: 0, fatsSat: 0, salt: 0,
-      vitC: 0, vitD: 0, vitB1: 0, vitB2: 0, vitB3: 0, vitB6: 0, vitB9: 0, vitB12: 0, 
+      vitC: 0, vitD: 0, vitB1: 0, vitB2: 0, vitB3: 0, vitB6: 0, vitB9: 0, vitB12: 0,
       calcio: 0, fosforo: 0, hierro: 0, magnesio: 0, potasio: 0
     };
 
@@ -161,7 +188,7 @@ export default function MenuScreen() {
         if (recipe) {
           const actualDinersEating = 1;
           const recipeBaseDiners = recipe.baseDiners || 1;
-          
+
           recipe.ingredients.forEach(ing => {
             const canonicalName = getCanonicalName(ing.name);
             const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName);
@@ -169,7 +196,7 @@ export default function MenuScreen() {
 
             if (dbItem) {
               let amountForThisMeal = (ing.amount / recipeBaseDiners) * actualDinersEating;
-              const normalized = normalizeToBase(amountForThisMeal, ing.unit); 
+              const normalized = normalizeToBase(amountForThisMeal, ing.unit);
               const amountIn100g = normalized.amount / 100;
 
               if (dbItem.macros) {
@@ -208,7 +235,7 @@ export default function MenuScreen() {
 
   const getDayScore = (totals) => {
     if (totals.kcals === 0) return { score: 0, text: "Sin recetas planificadas", color: "#64748b" };
-    
+
     if (totals.sugars > NUTRITION_LIMITS.sugarsMax || totals.fatsSat > NUTRITION_LIMITS.fatsSatMax || totals.salt > NUTRITION_LIMITS.saltMax) {
       return { score: 100, text: "⚠️ Excede límites saludables", color: "#ef4444" };
     }
@@ -237,7 +264,7 @@ export default function MenuScreen() {
   };
 
   const handlePressTitle = (day, mealId) => {
-    if (!isMultiSelectMode) return; 
+    if (!isMultiSelectMode) return;
     const key = `${day}|${mealId}`;
     setSelectedMeals(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
   };
@@ -267,14 +294,15 @@ export default function MenuScreen() {
   const bulkDelete = () => {
     Alert.alert("Borrar selección", `¿Borrar los ${selectedMeals.length} momentos seleccionados?`, [
       { text: "Cancelar", style: "cancel" },
-      { text: "Borrar", style: "destructive", onPress: async () => {
+      {
+        text: "Borrar", style: "destructive", onPress: async () => {
           const newMenu = JSON.parse(JSON.stringify(menuData));
           selectedMeals.forEach(key => {
             const [d, mId] = key.split('|');
             newMenu[d] = newMenu[d].filter(m => m.id !== mId);
           });
           await updateMenu(newMenu);
-          setSelectedMeals([]); 
+          setSelectedMeals([]);
         }
       }
     ]);
@@ -285,7 +313,7 @@ export default function MenuScreen() {
       pathname: '/recipe/select',
       params: { bulkMeals: selectedMeals.join(',') }
     });
-    setSelectedMeals([]); 
+    setSelectedMeals([]);
   };
 
   const bulkUnassignRecipes = () => {
@@ -294,9 +322,9 @@ export default function MenuScreen() {
       `¿Quieres borrar las recetas de los ${selectedMeals.length} momentos seleccionados?`,
       [
         { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Quitar todas", 
-          style: "destructive", 
+        {
+          text: "Quitar todas",
+          style: "destructive",
           onPress: async () => {
             const newMenu = JSON.parse(JSON.stringify(menuData));
             selectedMeals.forEach(key => {
@@ -305,8 +333,8 @@ export default function MenuScreen() {
               if (meal) { meal.recipeId = null; meal.diners = null; meal.eatOutPlace = null; meal.eatOutCost = null; }
             });
             await updateMenu(newMenu);
-            setSelectedMeals([]); 
-          } 
+            setSelectedMeals([]);
+          }
         }
       ]
     );
@@ -314,21 +342,21 @@ export default function MenuScreen() {
 
   const getRecipeName = (recipeId) => {
     if (!recipeId) return null;
-    if (recipeId === 'eat_out') return 'Comer fuera'; 
+    if (recipeId === 'eat_out') return 'Comer fuera';
     const recipe = MOCK_RECIPES.find(r => String(r.id) === String(recipeId));
     return recipe ? recipe.name : 'Receta borrada';
   };
 
   const moveMealUp = async (day, index) => {
-    if (index === 0) return; 
+    if (index === 0) return;
     const newMenu = JSON.parse(JSON.stringify(menuData));
     const meals = newMenu[day];
-    [meals[index - 1], meals[index]] = [meals[index], meals[index - 1]]; 
+    [meals[index - 1], meals[index]] = [meals[index], meals[index - 1]];
     await updateMenu(newMenu);
   };
 
   const moveMealDown = async (day, index) => {
-    if (index === menuData[day].length - 1) return; 
+    if (index === menuData[day].length - 1) return;
     const newMenu = JSON.parse(JSON.stringify(menuData));
     const meals = newMenu[day];
     [meals[index + 1], meals[index]] = [meals[index], meals[index + 1]];
@@ -341,11 +369,11 @@ export default function MenuScreen() {
       `¿Quieres eliminar el hueco de "${title}" del ${day}? (Se borrará también la receta)`,
       [
         { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Eliminar", style: "destructive", 
+        {
+          text: "Eliminar", style: "destructive",
           onPress: async () => {
             const newMenu = JSON.parse(JSON.stringify(menuData));
-            newMenu[day].splice(index, 1); 
+            newMenu[day].splice(index, 1);
             await updateMenu(newMenu);
           }
         }
@@ -356,24 +384,24 @@ export default function MenuScreen() {
   const openAddMealModal = (day) => {
     setDayToAdd(day);
     setNewMealName('');
-    setSelectedDays([day]); 
+    setSelectedDays([day]);
     setAddMealVisible(true);
   };
 
   const toggleDaySelection = (day) => {
-    setSelectedDays(prev => 
-      prev.includes(day) 
-        ? prev.filter(d => d !== day) 
-        : [...prev, day]              
+    setSelectedDays(prev =>
+      prev.includes(day)
+        ? prev.filter(d => d !== day)
+        : [...prev, day]
     );
   };
 
   const confirmAddMeal = async (shouldAssign) => {
     if (newMealName.trim() === '' || selectedDays.length === 0) return;
-    
+
     const newMenu = JSON.parse(JSON.stringify(menuData));
-    const createdTargets = []; 
-    
+    const createdTargets = [];
+
     selectedDays.forEach((day, index) => {
       const newId = `custom_${Date.now()}_${index}`;
       const newMeal = {
@@ -383,16 +411,16 @@ export default function MenuScreen() {
         diners: null
       };
       newMenu[day].push(newMeal);
-      createdTargets.push(`${day}|${newId}`); 
+      createdTargets.push(`${day}|${newId}`);
     });
 
     await updateMenu(newMenu);
     setAddMealVisible(false);
 
     if (shouldAssign) {
-      router.push({ 
-        pathname: '/recipe/select', 
-        params: { bulkMeals: createdTargets.join(',') } 
+      router.push({
+        pathname: '/recipe/select',
+        params: { bulkMeals: createdTargets.join(',') }
       });
     }
   };
@@ -406,10 +434,10 @@ export default function MenuScreen() {
 
   const saveEatOutDetails = async () => {
     const costNumber = parseFloat(eatOutCost.replace(',', '.')) || null;
-    
+
     const newMenu = JSON.parse(JSON.stringify(menuData));
     const meal = newMenu[eatOutTarget.day].find(m => m.id === eatOutTarget.mealId);
-    
+
     if (meal) {
       meal.eatOutPlace = eatOutPlace;
       meal.eatOutCost = costNumber;
@@ -422,35 +450,35 @@ export default function MenuScreen() {
   // Esta función no toca el menú, sino la despensa, por lo que asumo que tu "consumeRecipeFromPantry" 
   // ya hace el AsyncStorage.setItem correspondiente. Si la despensa se sincroniza con el Contexto,
   // aquí tendrías que llamar a la función de despensa del Contexto.
-// Asegúrate de extraer "pantryItems" y "updatePantry" del useHousehold() arriba en tu componente:
-// const { pantryItems, updatePantry } = useHousehold();
+  // Asegúrate de extraer "pantryItems" y "updatePantry" del useHousehold() arriba en tu componente:
+  // const { pantryItems, updatePantry } = useHousehold();
 
-const handleConsumeRecipe = (recipeId, plannedDiners) => {
-  const recipe = MOCK_RECIPES.find(r => String(r.id) === String(recipeId));
-  
-  Alert.alert(
-    "Cocinar receta",
-    `¿Quieres restar de tu despensa los ingredientes necesarios para cocinar "${recipe?.name}"?`,
-    [
-      { text: "Cancelar", style: "cancel" },
-      { 
-        text: "Cocinar y Restar", 
-        onPress: async () => {
-          // 1. Le pasamos la despensa actual del contexto a la función de tempData
-          const { updatedPantry, success } = consumeRecipeFromPantry(pantryItems, recipe, plannedDiners);
-          
-          if (success) {
-            // 2. Guardamos los nuevos datos a través del contexto global (¡Esto actualizará la UI al instante!)
-            await updatePantry(updatedPantry);
-            Alert.alert("¡Que aproveche! 🍽️", "Los ingredientes se han descontado de la despensa.");
-          } else {
-            Alert.alert("Despensa Inalterada", "No tenías ninguno de los ingredientes de esta receta registrados en tu despensa.");
+  const handleConsumeRecipe = (recipeId, plannedDiners) => {
+    const recipe = MOCK_RECIPES.find(r => String(r.id) === String(recipeId));
+
+    Alert.alert(
+      "Cocinar receta",
+      `¿Quieres restar de tu despensa los ingredientes necesarios para cocinar "${recipe?.name}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Cocinar y Restar",
+          onPress: async () => {
+            // 1. Le pasamos la despensa actual del contexto a la función de tempData
+            const { updatedPantry, success } = consumeRecipeFromPantry(pantryItems, recipe, plannedDiners);
+
+            if (success) {
+              // 2. Guardamos los nuevos datos a través del contexto global (¡Esto actualizará la UI al instante!)
+              await updatePantry(updatedPantry);
+              Alert.alert("¡Que aproveche! 🍽️", "Los ingredientes se han descontado de la despensa.");
+            } else {
+              Alert.alert("Despensa Inalterada", "No tenías ninguno de los ingredientes de esta receta registrados en tu despensa.");
+            }
           }
         }
-      }
-    ]
-  );
-};
+      ]
+    );
+  };
 
   const renderMealSlot = (day, mealObject, index, totalMeals) => {
     const assignedRecipeId = mealObject.recipeId;
@@ -460,7 +488,7 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
 
     const handlePressFilled = () => {
       if (assignedRecipeId === 'eat_out') {
-        openEatOutModal(day, mealObject); 
+        openEatOutModal(day, mealObject);
       } else {
         router.push({ pathname: `/recipe/${assignedRecipeId}`, params: { day, meal: mealObject.id, plannedDiners } });
       }
@@ -468,25 +496,25 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
 
     return (
       <View key={mealObject.id} style={[styles.mealSection, isLast && { marginBottom: 0 }]}>
-        
+
         <View style={styles.mealHeader}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
             onLongPress={() => handleLongPressTitle(mealObject.title)}
             onPress={() => handlePressTitle(day, mealObject.id)}
             delayLongPress={300}
           >
             {isMultiSelectMode && (
-              <FontAwesome 
-                name={selectedMeals.includes(`${day}|${mealObject.id}`) ? "check-circle" : "circle-o"} 
-                size={18} 
-                color={selectedMeals.includes(`${day}|${mealObject.id}`) ? "#2f95dc" : "#ccc"} 
-                style={{ marginRight: 8 }} 
+              <FontAwesome
+                name={selectedMeals.includes(`${day}|${mealObject.id}`) ? "check-circle" : "circle-o"}
+                size={18}
+                color={selectedMeals.includes(`${day}|${mealObject.id}`) ? "#2f95dc" : "#ccc"}
+                style={{ marginRight: 8 }}
               />
             )}
             <Text style={styles.mealTitle} numberOfLines={1}>{mealObject.title}</Text>
           </TouchableOpacity>
-          
+
           {!isMultiSelectMode && (
             <View style={styles.controls}>
               <TouchableOpacity onPress={() => moveMealUp(day, index, mealObject.title)} disabled={index === 0} style={[styles.controlBtn, index === 0 && { opacity: 0.2 }]}>
@@ -501,21 +529,21 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
             </View>
           )}
         </View>
-        
+
         {recipeName && recipeName !== 'Receta borrada' ? (
           <View style={styles.filledSlot}>
-            
+
             <TouchableOpacity style={{ flex: 1 }} onPress={handlePressFilled}>
               <Text style={styles.filledSlotText} numberOfLines={1}>
-                {assignedRecipeId === 'eat_out' 
+                {assignedRecipeId === 'eat_out'
                   ? `🍽️ ${mealObject.eatOutPlace || 'Comer fuera'} ${mealObject.eatOutCost ? `(${mealObject.eatOutCost}€)` : ''}`
                   : `🍲 ${recipeName}${plannedDiners ? ` (👥 ${plannedDiners})` : ''}`
                 }
               </Text>
             </TouchableOpacity>
-            
+
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              
+
               {assignedRecipeId === 'eat_out' ? (
                 <TouchableOpacity style={styles.editDataBtn} onPress={() => openEatOutModal(day, mealObject)}>
                   <Text style={styles.editDataBtnText}>
@@ -524,12 +552,12 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity style={styles.consumeBtn} onPress={() => handleConsumeRecipe(assignedRecipeId, plannedDiners)}>
-                  <FontAwesome name="fire" size={16} color="#e65100" style={{marginRight: 4}} />
+                  <FontAwesome name="fire" size={16} color="#e65100" style={{ marginRight: 4 }} />
                   <Text style={styles.consumeBtnText}>Cocinar</Text>
                 </TouchableOpacity>
               )}
 
-              <TouchableOpacity style={styles.unassignBtn} onPress={async () => { 
+              <TouchableOpacity style={styles.unassignBtn} onPress={async () => {
                 const newMenu = JSON.parse(JSON.stringify(menuData));
                 const meal = newMenu[day].find(m => m.id === mealObject.id);
                 if (meal) { meal.recipeId = null; meal.diners = null; meal.eatOutPlace = null; meal.eatOutCost = null; }
@@ -553,10 +581,10 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
     const dayMeals = menuData[day] || [];
     const dayNutrition = calculateDayNutrition(day);
     const dayScoreInfo = getDayScore(dayNutrition);
-    
+
     const barWidth = dayScoreInfo.score > 100 ? 100 : dayScoreInfo.score;
 
-  if (!isReady) return <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}><Text style={{ fontSize: 18, color: '#2f95dc', fontWeight: 'bold' }}>Cargando Menú...</Text></View>;
+    if (!isReady) return <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}><Text style={{ fontSize: 18, color: '#2f95dc', fontWeight: 'bold' }}>Cargando Menú...</Text></View>;
     return (
       <View key={day} style={styles.dayCard}>
         <View style={styles.dayHeader}>
@@ -568,9 +596,9 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
         </View>
 
         {/* --- INDICADOR INTEGRADO INTERACTIVO --- */}
-        <TouchableOpacity 
-          style={styles.nutritionIndicatorBar} 
-          activeOpacity={0.7} 
+        <TouchableOpacity
+          style={styles.nutritionIndicatorBar}
+          activeOpacity={0.7}
           onPress={() => { setNutritionSelectedDay(day); setIsNutritionModalVisible(true); }}
         >
           <View style={styles.nutritionMetaRow}>
@@ -581,15 +609,15 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
             <View style={[styles.nutritionProgressBar, { width: `${barWidth || 5}%`, backgroundColor: dayScoreInfo.color }]} />
           </View>
         </TouchableOpacity>
-        
-        {dayMeals.map((mealObject, index) => 
+
+        {dayMeals.map((mealObject, index) =>
           renderMealSlot(day, mealObject, index, dayMeals.length)
         )}
       </View>
     );
   };
 
-  if (!isReady) {
+  if (!isReady || !dataLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e6f7ff' }}>
         <Text style={{ fontSize: 18, color: '#2f95dc', fontWeight: 'bold' }}>Cargando tu menú...</Text>
@@ -600,12 +628,34 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-        
+
         <View style={styles.headerContainer}>
           <Text style={styles.headerTitle}>Mi Menú Semanal</Text>
           <TouchableOpacity style={styles.miniDashboardBtn} onPress={() => setDashboardVisible(true)}>
             <Text style={styles.miniDashboardText}>💰 Gastos: {totalWeekly.toFixed(2)} €</Text>
-            <FontAwesome name="chevron-right" size={12} color="#2f95dc" style={{marginLeft: 8}}/>
+            <FontAwesome name="chevron-right" size={12} color="#2f95dc" style={{ marginLeft: 8 }} />
+          </TouchableOpacity>
+        </View>
+        <View style={{ alignItems: 'center', marginBottom: 12 }}>
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#0509f1',
+              borderWidth: 1,
+              borderColor: '#000000',
+              paddingVertical: 8,       // Controla la altura interna del botón
+              paddingHorizontal: 16,     // Controla el espacio a los lados del texto
+              borderRadius: 20,          // Bordes redondeados estilo pastilla
+              alignSelf: 'center'        // 🔥 Esto hace que el botón mida SOLO lo que mide su contenido
+            }}
+            onPress={handleStartNewWeek}
+          >
+            <FontAwesome name="refresh" size={14} color="#ffffff" style={{ marginRight: 8 }} />
+            <Text style={{ fontSize: 13, fontWeight: '600', color: '#eee4e4' }}>
+              Borrar todo y empezar nueva semana
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -618,7 +668,7 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
             <FontAwesome name="times" size={20} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.bulkText}>{selectedMeals.length}</Text>
-          
+
           <View style={{ flexDirection: 'row', gap: 15 }}>
             <TouchableOpacity onPress={bulkMoveUp} style={styles.bulkBtnAction}><FontAwesome name="arrow-up" size={18} color="#fff" /></TouchableOpacity>
             <TouchableOpacity onPress={bulkMoveDown} style={styles.bulkBtnAction}><FontAwesome name="arrow-down" size={18} color="#fff" /></TouchableOpacity>
@@ -663,86 +713,86 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
 
                 {/* 2. ALERTAS DE CONTROL CRÍTICO */}
                 <Text style={[styles.subBlockTitle, { color: '#b91c1c', marginTop: 15 }]}>🛑 Límites Clínicos Máximos</Text>
-                
+
                 <View style={[styles.alertNutrientBox, currentNutritionData.sugars > NUTRITION_LIMITS.sugarsMax && styles.alertTriggered]}>
                   <Text style={styles.nutrientName}>🍬 Azúcares Libres:</Text>
-                  <Text style={[styles.nutrientVal, currentNutritionData.sugars > NUTRITION_LIMITS.sugarsMax && {color: '#b91c1c', fontWeight: 'bold'}]}>
+                  <Text style={[styles.nutrientVal, currentNutritionData.sugars > NUTRITION_LIMITS.sugarsMax && { color: '#b91c1c', fontWeight: 'bold' }]}>
                     {currentNutritionData.sugars}g / {Math.round(NUTRITION_LIMITS.sugarsMax)}g max {currentNutritionData.sugars > NUTRITION_LIMITS.sugarsMax ? '🚨' : '✅'}
                   </Text>
                 </View>
 
                 <View style={[styles.alertNutrientBox, currentNutritionData.fatsSat > NUTRITION_LIMITS.fatsSatMax && styles.alertTriggered]}>
                   <Text style={styles.nutrientName}>🥩 Grasas Saturadas:</Text>
-                  <Text style={[styles.nutrientVal, currentNutritionData.fatsSat > NUTRITION_LIMITS.fatsSatMax && {color: '#b91c1c', fontWeight: 'bold'}]}>
+                  <Text style={[styles.nutrientVal, currentNutritionData.fatsSat > NUTRITION_LIMITS.fatsSatMax && { color: '#b91c1c', fontWeight: 'bold' }]}>
                     {currentNutritionData.fatsSat}g / {Math.round(NUTRITION_LIMITS.fatsSatMax)}g max {currentNutritionData.fatsSat > NUTRITION_LIMITS.fatsSatMax ? '🚨' : '✅'}
                   </Text>
                 </View>
 
                 <View style={[styles.alertNutrientBox, currentNutritionData.salt > NUTRITION_LIMITS.saltMax && styles.alertTriggered]}>
                   <Text style={styles.nutrientName}>🧂 Sal Común:</Text>
-                  <Text style={[styles.nutrientVal, currentNutritionData.salt > NUTRITION_LIMITS.saltMax && {color: '#b91c1c', fontWeight: 'bold'}]}>
+                  <Text style={[styles.nutrientVal, currentNutritionData.salt > NUTRITION_LIMITS.saltMax && { color: '#b91c1c', fontWeight: 'bold' }]}>
                     {currentNutritionData.salt}g / {NUTRITION_LIMITS.saltMax}g max {currentNutritionData.salt > NUTRITION_LIMITS.saltMax ? '🚨' : '✅'}
                   </Text>
                 </View>
 
                 {/* 3. DESGLOSE DE VITAMINAS Y MINERALES */}
                 <Text style={[styles.subBlockTitle, { color: '#0369a1', marginTop: 15 }]}>🔬 Micronutrientes Esenciales</Text>
-                
+
                 <View style={styles.cardNutrientRow}>
                   <Text style={styles.nutrientName}>☀️ Vitamina D:</Text>
-                  <Text style={styles.nutrientVal}>{currentNutritionData.vitD} mcg / {NUTRITION_LIMITS.vitD} mcg ({Math.round((currentNutritionData.vitD / NUTRITION_LIMITS.vitD)*100)}%)</Text>
+                  <Text style={styles.nutrientVal}>{currentNutritionData.vitD} mcg / {NUTRITION_LIMITS.vitD} mcg ({Math.round((currentNutritionData.vitD / NUTRITION_LIMITS.vitD) * 100)}%)</Text>
                 </View>
                 <View style={styles.cardNutrientRow}>
                   <Text style={styles.nutrientName}>🍊 Vitamina C:</Text>
-                  <Text style={styles.nutrientVal}>{currentNutritionData.vitC} mg / {NUTRITION_LIMITS.vitC} mg ({Math.round((currentNutritionData.vitC / NUTRITION_LIMITS.vitC)*100)}%)</Text>
+                  <Text style={styles.nutrientVal}>{currentNutritionData.vitC} mg / {NUTRITION_LIMITS.vitC} mg ({Math.round((currentNutritionData.vitC / NUTRITION_LIMITS.vitC) * 100)}%)</Text>
                 </View>
-                
+
                 <Text style={styles.microGroupLabel}>⚡ Complejo Vitamínico B:</Text>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>B1 (Tiamina):</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB1}mg ({Math.round((currentNutritionData.vitB1 / NUTRITION_LIMITS.vitB1)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB1}mg ({Math.round((currentNutritionData.vitB1 / NUTRITION_LIMITS.vitB1) * 100)}%)</Text>
                 </View>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>B2 (Riboflavina):</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB2}mg ({Math.round((currentNutritionData.vitB2 / NUTRITION_LIMITS.vitB2)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB2}mg ({Math.round((currentNutritionData.vitB2 / NUTRITION_LIMITS.vitB2) * 100)}%)</Text>
                 </View>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>B3 (Niacina):</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB3}mg ({Math.round((currentNutritionData.vitB3 / NUTRITION_LIMITS.vitB3)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB3}mg ({Math.round((currentNutritionData.vitB3 / NUTRITION_LIMITS.vitB3) * 100)}%)</Text>
                 </View>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>B6 (Piridoxina):</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB6}mg ({Math.round((currentNutritionData.vitB6 / NUTRITION_LIMITS.vitB6)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB6}mg ({Math.round((currentNutritionData.vitB6 / NUTRITION_LIMITS.vitB6) * 100)}%)</Text>
                 </View>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>B9 (Ácido Fólico):</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB9}mcg ({Math.round((currentNutritionData.vitB9 / NUTRITION_LIMITS.vitB9)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB9}mcg ({Math.round((currentNutritionData.vitB9 / NUTRITION_LIMITS.vitB9) * 100)}%)</Text>
                 </View>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>B12 (Cobalamina):</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB12}mcg ({Math.round((currentNutritionData.vitB12 / NUTRITION_LIMITS.vitB12)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.vitB12}mcg ({Math.round((currentNutritionData.vitB12 / NUTRITION_LIMITS.vitB12) * 100)}%)</Text>
                 </View>
 
                 <Text style={styles.microGroupLabel}>🪨 Minerales Clave:</Text>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>Calcio:</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.calcio}mg ({Math.round((currentNutritionData.calcio / NUTRITION_LIMITS.calcio)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.calcio}mg ({Math.round((currentNutritionData.calcio / NUTRITION_LIMITS.calcio) * 100)}%)</Text>
                 </View>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>Fósforo:</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.fosforo}mg ({Math.round((currentNutritionData.fosforo / NUTRITION_LIMITS.fosforo)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.fosforo}mg ({Math.round((currentNutritionData.fosforo / NUTRITION_LIMITS.fosforo) * 100)}%)</Text>
                 </View>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>Hierro:</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.hierro}mg ({Math.round((currentNutritionData.hierro / NUTRITION_LIMITS.hierro)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.hierro}mg ({Math.round((currentNutritionData.hierro / NUTRITION_LIMITS.hierro) * 100)}%)</Text>
                 </View>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>Magnesio:</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.magnesio}mg ({Math.round((currentNutritionData.magnesio / NUTRITION_LIMITS.magnesio)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.magnesio}mg ({Math.round((currentNutritionData.magnesio / NUTRITION_LIMITS.magnesio) * 100)}%)</Text>
                 </View>
                 <View style={styles.microIndentRow}>
                   <Text style={styles.microIndentName}>Potasio:</Text>
-                  <Text style={styles.microIndentVal}>{currentNutritionData.potasio}mg ({Math.round((currentNutritionData.potasio / NUTRITION_LIMITS.potasio)*100)}%)</Text>
+                  <Text style={styles.microIndentVal}>{currentNutritionData.potasio}mg ({Math.round((currentNutritionData.potasio / NUTRITION_LIMITS.potasio) * 100)}%)</Text>
                 </View>
 
               </ScrollView>
@@ -759,7 +809,7 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Añadir al {dayToAdd}</Text>
-            
+
             <TextInput
               style={styles.modalInput}
               placeholder="Ej: Desayuno, Merienda, Snack..."
@@ -773,8 +823,8 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
               {DAYS_OF_WEEK.map(day => {
                 const isSelected = selectedDays.includes(day);
                 return (
-                  <TouchableOpacity 
-                    key={day} 
+                  <TouchableOpacity
+                    key={day}
                     style={[styles.dayChip, isSelected && styles.dayChipSelected]}
                     onPress={() => toggleDaySelection(day)}
                   >
@@ -787,17 +837,17 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
             </View>
 
             <View style={styles.modalButtonsColumn}>
-              <TouchableOpacity 
-                style={[styles.modalConfirmBtn, (newMealName.trim() === '' || selectedDays.length === 0) && { opacity: 0.5 }]} 
+              <TouchableOpacity
+                style={[styles.modalConfirmBtn, (newMealName.trim() === '' || selectedDays.length === 0) && { opacity: 0.5 }]}
                 onPress={() => confirmAddMeal(true)}
                 disabled={newMealName.trim() === '' || selectedDays.length === 0}
               >
-                <FontAwesome name="magic" size={16} color="#fff" style={{marginRight: 10}} />
+                <FontAwesome name="magic" size={16} color="#fff" style={{ marginRight: 10 }} />
                 <Text style={styles.modalConfirmText}>Añadir y elegir receta</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={[styles.modalSecondaryBtn, (newMealName.trim() === '' || selectedDays.length === 0) && { opacity: 0.5 }]} 
+              <TouchableOpacity
+                style={[styles.modalSecondaryBtn, (newMealName.trim() === '' || selectedDays.length === 0) && { opacity: 0.5 }]}
                 onPress={() => confirmAddMeal(false)}
                 disabled={newMealName.trim() === '' || selectedDays.length === 0}
               >
@@ -817,21 +867,21 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Detalles de Comer Fuera</Text>
-            
+
             <Text style={styles.inputLabel}>¿Dónde has comido/cenado?</Text>
-            <TextInput 
-              onChangeText={setEatOutPlace} 
-              placeholder="Ej: Burger King, La Tagliatella..." 
-              style={styles.modalInput} 
+            <TextInput
+              onChangeText={setEatOutPlace}
+              placeholder="Ej: Burger King, La Tagliatella..."
+              style={styles.modalInput}
               value={eatOutPlace}
             />
 
             <Text style={styles.inputLabel}>¿Cuánto te ha costado? (€)</Text>
-            <TextInput 
-              keyboardType="decimal-pad" 
-              onChangeText={setEatOutCost} 
-              placeholder="Ej: 15.50" 
-              style={styles.modalInput} 
+            <TextInput
+              keyboardType="decimal-pad"
+              onChangeText={setEatOutCost}
+              placeholder="Ej: 15.50"
+              style={styles.modalInput}
               value={eatOutCost}
             />
 
@@ -841,12 +891,12 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
                 <Text style={styles.modalConfirmText}>Guardar detalles</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.modalSecondaryBtn}
                 onPress={() => {
                   setEatOutModalVisible(false);
                   router.push({ pathname: '/recipe/select', params: { day: eatOutTarget.day, meal: eatOutTarget.mealId } });
-                }} 
+                }}
               >
                 <Text style={styles.modalSecondaryBtnText}>Cambiar por una receta</Text>
               </TouchableOpacity>
@@ -886,51 +936,60 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
         </View>
       </Modal>
       {/* ========================================================
-          🚀 MODAL DE BIENVENIDA (BLOQUEA LA APP SI NO HAY HOGAR)
+          🚀 MODAL DE BIENVENIDA (PROTEGIDO CONTRA EL TECLADO)
           ======================================================== */}
       <Modal visible={isReady && !householdId} animationType="slide" transparent={false}>
-        <View style={{ flex: 1, backgroundColor: '#2f95dc', justifyContent: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: '#fff', padding: 30, borderRadius: 20, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 }}>
-            <FontAwesome name="home" size={60} color="#2f95dc" style={{ marginBottom: 20 }} />
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 10, textAlign: 'center' }}>Bienvenido a tu Cocina</Text>
-            <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 }}>
-              Para sincronizar la despensa y el menú en tiempo real, necesitas crear una familia o unirte a una existente.
-            </Text>
-
-            {/* BOTÓN CREAR */}
-            <TouchableOpacity 
-              style={{ backgroundColor: '#10b981', padding: 15, borderRadius: 12, width: '100%', alignItems: 'center', marginBottom: 20 }}
-              onPress={handleCreateHousehold}
-              disabled={isHouseholdLoading}
-            >
-              <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
-                {isHouseholdLoading ? 'Cargando...' : '✨ Crear Nueva Familia'}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, backgroundColor: '#2f95dc', justifyContent: 'center', padding: 20 }}
+            bounces={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={{ backgroundColor: '#fff', padding: 30, borderRadius: 20, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 }}>
+              <FontAwesome name="home" size={60} color="#2f95dc" style={{ marginBottom: 20 }} />
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#333', marginBottom: 10, textAlign: 'center' }}>Bienvenido a tu Cocina</Text>
+              <Text style={{ fontSize: 16, color: '#666', textAlign: 'center', marginBottom: 30 }}>
+                Para sincronizar la despensa y el menú en tiempo real, necesitas crear una familia o unirte a una existente.
               </Text>
-            </TouchableOpacity>
 
-            <View style={{ width: '100%', height: 1, backgroundColor: '#eee', marginVertical: 10 }} />
-            <Text style={{ fontSize: 14, color: '#999', marginBottom: 15, fontWeight: 'bold' }}>O ÚNETE A UNA EXISTENTE</Text>
-
-            {/* INPUT UNIRSE */}
-            <View style={{ flexDirection: 'row', width: '100%', gap: 10 }}>
-              <TextInput 
-                style={{ flex: 1, backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 10, padding: 12, fontSize: 18, textAlign: 'center', textTransform: 'uppercase' }}
-                placeholder="CÓDIGO"
-                maxLength={5}
-                value={joinCodeInput}
-                onChangeText={setJoinCodeInput}
-              />
-              <TouchableOpacity 
-                style={{ backgroundColor: '#2f95dc', paddingHorizontal: 20, borderRadius: 10, justifyContent: 'center', opacity: joinCodeInput.length === 5 ? 1 : 0.5 }}
-                onPress={handleJoinHousehold}
-                disabled={joinCodeInput.length !== 5 || isHouseholdLoading}
+              {/* BOTÓN CREAR */}
+              <TouchableOpacity
+                style={{ backgroundColor: '#10b981', padding: 15, borderRadius: 12, width: '100%', alignItems: 'center', marginBottom: 20 }}
+                onPress={handleCreateHousehold}
+                disabled={isHouseholdLoading}
               >
-                <FontAwesome name="arrow-right" size={20} color="#fff" />
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>
+                  {isHouseholdLoading ? 'Cargando...' : '✨ Crear Nueva Familia'}
+                </Text>
               </TouchableOpacity>
+
+              <View style={{ width: '100%', height: 1, backgroundColor: '#eee', marginVertical: 10 }} />
+              <Text style={{ fontSize: 14, color: '#999', marginBottom: 15, fontWeight: 'bold' }}>O ÚNETE A UNA EXISTENTE</Text>
+
+              {/* INPUT UNIRSE */}
+              <View style={{ flexDirection: 'row', width: '100%', gap: 10 }}>
+                <TextInput
+                  style={{ flex: 1, backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 10, padding: 12, fontSize: 18, textAlign: 'center', textTransform: 'uppercase' }}
+                  placeholder="CÓDIGO"
+                  maxLength={5}
+                  value={joinCodeInput}
+                  onChangeText={setJoinCodeInput}
+                />
+                <TouchableOpacity
+                  style={{ backgroundColor: '#2f95dc', paddingHorizontal: 20, borderRadius: 10, justifyContent: 'center', opacity: joinCodeInput.length === 5 ? 1 : 0.5 }}
+                  onPress={handleJoinHousehold}
+                  disabled={joinCodeInput.length !== 5 || isHouseholdLoading}
+                >
+                  <FontAwesome name="arrow-right" size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+
             </View>
-            
-          </View>
-        </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -939,21 +998,23 @@ const handleConsumeRecipe = (recipeId, plannedDiners) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#e6f7ff' },
   scrollContent: { padding: 16, paddingBottom: 40 },
-  
+
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     marginTop: 10,
+    paddingHorizontal: 8, 
+    gap: 8,
   },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#000' },
+  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#000' },
   miniDashboardBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#e6f7ff',
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 4,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#2f95dc'
@@ -970,22 +1031,22 @@ const styles = StyleSheet.create({
   mealTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#555' },
   emptySlot: { backgroundColor: '#f0f8ff', borderWidth: 1, borderColor: '#2f95dc', borderStyle: 'dashed', borderRadius: 8, padding: 12, alignItems: 'center' },
   emptySlotText: { color: '#2f95dc', fontWeight: 'bold' },
-  filledSlot: { 
-      flexDirection: 'row', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      backgroundColor: '#e8f5e9', 
-      borderWidth: 1, 
-      borderColor: '#4caf50', 
-      borderRadius: 8, 
-      paddingLeft: 12,
-      paddingRight: 8,
-      paddingVertical: 8 
-    },
-    
-  filledSlotText: { 
-    color: '#2e7d32', 
-    fontWeight: 'bold', 
+  filledSlot: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#e8f5e9',
+    borderWidth: 1,
+    borderColor: '#4caf50',
+    borderRadius: 8,
+    paddingLeft: 12,
+    paddingRight: 8,
+    paddingVertical: 8
+  },
+
+  filledSlotText: {
+    color: '#2e7d32',
+    fontWeight: 'bold',
     fontSize: 16,
     paddingRight: 10
   },
@@ -999,7 +1060,7 @@ const styles = StyleSheet.create({
   nutritionProgressBar: { height: '100%', borderRadius: 3 },
 
   editDataBtn: {
-    backgroundColor: '#c8e6c9', 
+    backgroundColor: '#c8e6c9',
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 6,
@@ -1016,7 +1077,7 @@ const styles = StyleSheet.create({
   consumeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffe0b2', 
+    backgroundColor: '#ffe0b2',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
@@ -1031,7 +1092,7 @@ const styles = StyleSheet.create({
   },
 
   unassignBtn: {
-    backgroundColor: '#c8e6c9', 
+    backgroundColor: '#c8e6c9',
     borderRadius: 6,
     borderWidth: 1,
     paddingVertical: 6,
@@ -1048,7 +1109,7 @@ const styles = StyleSheet.create({
 
   addMealBtn: { marginTop: 10, paddingVertical: 12, backgroundColor: '#f0f8ff', borderRadius: 8, borderWidth: 1, borderColor: '#2f95dc', borderStyle: 'dashed', alignItems: 'center' },
   addMealBtnText: { color: '#2f95dc', fontWeight: 'bold' },
-  
+
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   modalContent: { backgroundColor: '#fff', padding: 25, borderRadius: 20, width: '100%', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 5, elevation: 5 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, textAlign: 'center', color: '#333' },
@@ -1134,22 +1195,22 @@ const styles = StyleSheet.create({
   },
   bulkText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
   bulkBtn: { padding: 5 },
-  bulkBtnAction: { 
-    width: 40, height: 40, borderRadius: 20, 
-    borderWidth: 1, borderColor: '#475569', 
-    justifyContent: 'center', alignItems: 'center' 
+  bulkBtnAction: {
+    width: 40, height: 40, borderRadius: 20,
+    borderWidth: 1, borderColor: '#475569',
+    justifyContent: 'center', alignItems: 'center'
   },
 
   dashboardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dashboardItem: { flex: 1, alignItems: 'center' },
   dashboardDivider: { width: 1, height: 40, backgroundColor: '#e2e8f0', marginHorizontal: 10 },
   dashboardLabel: { fontSize: 13, color: '#64748b', marginBottom: 8, fontWeight: '600' },
-  
+
   inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 8, paddingHorizontal: 10, borderWidth: 1, borderColor: '#cbd5e1' },
   dashboardInput: { fontSize: 16, fontWeight: 'bold', color: '#334155', textAlign: 'right', minWidth: 50, paddingVertical: 6 },
   currency: { fontSize: 14, color: '#64748b', marginLeft: 4, fontWeight: 'bold' },
   dashboardValue: { fontSize: 18, fontWeight: 'bold', color: '#f59e0b' },
-  
+
   dashboardTotal: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#f1f5f9' },
   dashboardTotalLabel: { fontSize: 16, fontWeight: 'bold', color: '#334155' },
   dashboardTotalValue: { fontSize: 20, fontWeight: '900', color: '#2f95dc' },

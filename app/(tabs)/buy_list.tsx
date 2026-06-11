@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Lo dejamos solo para el coste estimado
 
 // 1. IMPORTAMOS EL HOOK DEL CONTEXTO GLOBAl (Ajusta la ruta si es necesario)
@@ -69,12 +70,14 @@ export default function ShoppingScreen() {
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
     : [];
 
-  // 3. REACCIÓN AUTOMÁTICA: Cada vez que el contexto cambie algo (venga de Firebase o local), recalculamos la lista
-  useEffect(() => {
-    if (contextReady) {
-      calculateList();
-    }
-  }, [contextReady, extraItems, checkedItems, deletedItems, pantryItems, weeklyMenu]);
+  // 3. REACCIÓN AUTOMÁTICA AL ENTRAR EN LA PANTALLA
+  useFocusEffect(
+    useCallback(() => {
+      if (contextReady) {
+        calculateList();
+      }
+    }, [contextReady, extraItems, checkedItems, deletedItems, pantryItems, weeklyMenu])
+  );
 
   const calculateList = () => {
     const ingredientMap = {};
@@ -94,15 +97,34 @@ export default function ShoppingScreen() {
             recipe.ingredients.forEach(ing => {
               const canonicalName = getCanonicalName(ing.name);
               const cleanSafeId = canonicalName.toLowerCase().replace(/[^a-z0-9]/g, '');
-              const itemId = `menu-${cleanSafeId}`;
+
+              const itemId = `menu-${day.toLowerCase()}-${cleanSafeId}`;
 
               if (deletedItems.has(itemId)) return;
 
               let adjustedAmount = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
               let normalized = normalizeToBase(adjustedAmount, ing.unit);
 
+              // 🌟 REFUERZO DE UNIDADES: Buscamos si el ingrediente tiene equivalencia de peso en la DB
+              const dbItemKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName);
+              const dbItem = dbItemKey ? INGREDIENTS_DB[dbItemKey] : null;
+
+              // Si el ingrediente está en 'ud' pero en tu DB se gestiona principalmente por peso (ej: Tomate, Patata)
+              if (normalized.unit === 'ud' && dbItem && dbItem.weightPerUnit > 1) {
+                normalized.amount = normalized.amount * dbItem.weightPerUnit;
+                normalized.unit = 'g'; // 👈 Forzamos la unificación a gramos
+              }
+
               if (ingredientMap[canonicalName]) {
+                // 🚨 ¡ALERTA DE SEGURIDAD! Si por algún motivo las unidades no coinciden (ej. 'g' vs 'ml'), avisamos en consola
+                if (ingredientMap[canonicalName].unit !== normalized.unit) {
+                  console.warn(`[Conflicto Unidades] ${canonicalName} mezcla ${ingredientMap[canonicalName].unit} y ${normalized.unit}`);
+                  // Fallback: Si uno es gramos y la app ya tenía 'ud', cambiamos la unidad principal a gramos
+                  if (normalized.unit === 'g') ingredientMap[canonicalName].unit = 'g';
+                }
+
                 ingredientMap[canonicalName].amount += normalized.amount;
+                ingredientMap[canonicalName].days.add(day);
                 ingredientMap[canonicalName].days.add(day);
               } else {
                 ingredientMap[canonicalName] = {
@@ -130,11 +152,21 @@ export default function ShoppingScreen() {
 
     // 2. Restamos lo que ya tenemos en la despensa
     const menuList = Object.values(ingredientMap).map(ing => {
-      const pantryMatch = pantryDict[ing.name]; // Búsqueda instantánea
+      const pantryMatch = pantryDict[ing.name];
       let finalAmount = ing.amount;
 
       if (pantryMatch) {
-        const normalizedPantry = normalizeToBase(pantryMatch.amount, pantryMatch.unit);
+        let normalizedPantry = normalizeToBase(pantryMatch.amount, pantryMatch.unit);
+
+        // 🌟 REFUERZO: Si la despensa guardó 'ud' (ej: 2 tomates) pero la lista necesita 'g'
+        const dbItemKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === ing.name);
+        const dbItem = dbItemKey ? INGREDIENTS_DB[dbItemKey] : null;
+
+        if (normalizedPantry.unit === 'ud' && ing.unit === 'g' && dbItem) {
+          normalizedPantry.amount = normalizedPantry.amount * dbItem.weightPerUnit;
+          normalizedPantry.unit = 'g';
+        }
+
         if (normalizedPantry.unit === ing.unit) {
           finalAmount = Math.max(0, ing.amount - normalizedPantry.amount);
         }
@@ -231,17 +263,32 @@ export default function ShoppingScreen() {
           pUnit = match[3].toLowerCase();
 
           let itemAmt = item.amount;
+          let itemUnit = item.unit; // 👈 Creamos una copia local para proteger el estado original
           let pkgAmt = pAmount;
 
-          if ((item.unit === 'g' || item.unit === 'ud') && pUnit === 'kg') pkgAmt = pAmount * 1000;
-          if (item.unit === 'kg' && pUnit === 'g') itemAmt = item.amount * 1000;
-          if (item.unit === 'ml' && pUnit === 'l') pkgAmt = pAmount * 1000;
-          if (item.unit === 'l' && pUnit === 'ml') itemAmt = item.amount * 1000;
+          // 🌟 TU LÓGICA MEJORADA (Y BLINDADA)
+          if (itemUnit === 'cuch.') {
+            itemAmt = item.amount * 15;
+
+            if (pUnit === 'ml' || pUnit === 'l') {
+              itemUnit = 'ml'; // Aceite, leche, vino...
+            } else {
+              itemUnit = 'g';  // Sal, azúcar, especias... (y fallback para botes/paquetes)
+            }
+          }
+
+          // 2. CONVERSIONES DE MAGNITUDES (Ahora usan 'itemUnit')
+          if ((itemUnit === 'g' || itemUnit === 'ud') && pUnit === 'kg') pkgAmt = pAmount * 1000;
+          if (itemUnit === 'kg' && pUnit === 'g') itemAmt = itemAmt * 1000;
+          if (itemUnit === 'ml' && pUnit === 'l') pkgAmt = pAmount * 1000;
+          if (itemUnit === 'l' && pUnit === 'ml') itemAmt = itemAmt * 1000;
+
           if (pUnit === 'docena') pkgAmt = 12;
-          if (item.unit === "ud") itemAmt = itemAmt * dbItem.weightPerUnit;
+          if (itemUnit === "ud") itemAmt = itemAmt * dbItem.weightPerUnit;
           if (pUnit === "ud") pkgAmt = pAmount * dbItem.weightPerUnit;
 
           lots = Math.ceil(itemAmt / pkgAmt) || 1;
+          console.log(lots, item, pUnit)
         }
       }
 

@@ -7,7 +7,7 @@
     "ingredients": [
       { "name": "Espaguetis", "amount": 200.0, "unit": "g" },
       { "name": "Bacon", "amount": 150.0, "unit": "g" },
-      { "name": "Pimienta", "amount": 1.0, "unit": "cuch." },
+      { "name": "Pimienta", "amount": 1.0, "unit": "g" },
       { "name": "Queso rallado", "amount": 80.0, "unit": "g" },
       { "name": "Huevo de gallina", "amount": 2.0, "unit": "ud" }
     ],
@@ -32,8 +32,8 @@
       { "name": "Chorizo", "amount": 2.0, "unit": "ud" },
       { "name": "Ajo", "amount": 3.0, "unit": "ud" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
-      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 1.0, "unit": "cuch." },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 15, "unit": "ml" },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -51,15 +51,15 @@
     "baseDiners": 2,
     "ingredients": [
       { "name": "Pollo (Muslo / Pechuga)", "amount": 400.0, "unit": "g" },
-      { "name": "Salsa de soja", "amount": 3.0, "unit": "cuch." },
-      { "name": "Sake / Vino blanco", "amount": 2.0, "unit": "cuch." },
-      { "name": "Aceite de sésamo", "amount": 1.0, "unit": "cuch." },
+      { "name": "Salsa de soja", "amount": 45, "unit": "ml" },
+      { "name": "Sake / Vino blanco", "amount": 30, "unit": "ml" },
+      { "name": "Aceite de sésamo", "amount": 15, "unit": "ml" },
       { "name": "Ajo", "amount": 1.0, "unit": "ud" },
-      { "name": "Jengibre", "amount": 1.0, "unit": "ud" },
-      { "name": "Maizena / Almidón", "amount": 4.0, "unit": "cuch." },
+      { "name": "Jengibre", "amount": 1.0, "unit": "g" },
+      { "name": "Maizena / Almidón", "amount": 60, "unit": "g" },
       { "name": "Huevo de gallina", "amount": 1.0, "unit": "ud" },
       { "name": "Sal común", "amount": 1.0, "unit": "g" },
-      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "cuch." }
+      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
       "Cortar los contramuslos de pollo deshuesados en trozos medianos del tamaño de un bocado.",
@@ -86,10 +86,10 @@
       { "name": "Ajo", "amount": 3.0, "unit": "ud" },
       { "name": "Pan frito", "amount": 1.0, "unit": "ud" },
       { "name": "Almendras", "amount": 20.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "cuch." },
+      { "name": "Aceite de Oliva", "amount": 60, "unit": "ml" },
       { "name": "Sal común", "amount": 1.0, "unit": "g" },
-      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "cuch." },
-      { "name": "Perejil fresco", "amount": 1.0, "unit": "cuch." }
+      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "g" },
+      { "name": "Perejil fresco", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
       "Poner los garbanzos a remojo la víspera. Cocerlos en la olla rápida con agua hirviendo junto con la zanahoria entera pelada y la parte limpia del puerro durante 12 minutos tras subir la válvula.",
@@ -108,15 +108,15 @@
     "baseDiners": 4,
     "ingredients": [
       { "name": "Macarrones", "amount": 400.0, "unit": "g" },
-      { "name": "Chorizo", "amount": 250.0, "unit": "ud" },
+      { "name": "Chorizo", "amount": 250.0, "unit": "g" },
       { "name": "Paté de trufa", "amount": 75.0, "unit": "g" },
       { "name": "Leche entera", "amount": 600.0, "unit": "ml" },
       { "name": "Mantequilla", "amount": 55.0, "unit": "g" },
       { "name": "Harina de trigo", "amount": 55.0, "unit": "g" },
-      { "name": "Nuez moscada", "amount": 1.0, "unit": "ud" },
+      { "name": "Nuez moscada", "amount": 1.0, "unit": "g" },
       { "name": "Queso rallado / Grana Padano", "amount": 150.0, "unit": "g" },
-      { "name": "Sal común", "amount": 5.0, "unit": "g" },
-      { "name": "Perejil fresco", "amount": 2.0, "unit": "cuch." }
+      { "name": "Sal común", "amount": 4.0, "unit": "g" },
+      { "name": "Perejil fresco", "amount": 2.0, "unit": "g" }
     ],
     "instructions": [
       "Para la bechamel, derretir la mantequilla en una cazuela, incorporar la harina y cocinarla 2 minutos. Añadir la leche tibia poco a poco sin dejar de remover con varillas. Cocinar 10 minutos, añadir el paté de trufa, la nuez moscada y una pizca de sal, removiendo bien.",
@@ -133,16 +133,16 @@
     "baseDiners": 4,
     "ingredients": [
       { "name": "Salmón fresco", "amount": 600.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
+      { "name": "Aceite de Oliva", "amount": 45, "unit": "ml" },
       { "name": "Sal común", "amount": 4.0, "unit": "g" },
-      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "cuch." },
+      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "g" },
       { "name": "Yogur natural", "amount": 500.0, "unit": "g" },
-      { "name": "Cayena en polvo", "amount": 0.5, "unit": "cuch." },
+      { "name": "Cayena en polvo", "amount": 0.5, "unit": "g" },
       { "name": "Frutos secos variados", "amount": 50.0, "unit": "g" },
-      { "name": "Limón", "amount": 1.0, "unit": "l" },
-      { "name": "Hojas de menta", "amount": 10.0, "unit": "ud" },
-      { "name": "Hojas de albahaca", "amount": 12.0, "unit": "ud" },
-      { "name": "Perejil fresco", "amount": 1.0, "unit": "cuch." }
+      { "name": "Limón", "amount": 1.0, "unit": "ud" },
+      { "name": "Hojas de menta", "amount": 10.0, "unit": "g" },
+      { "name": "Hojas de albahaca", "amount": 12.0, "unit": "g" },
+      { "name": "Perejil fresco", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
       "Para el labneh, mezclar los yogures naturales con 3 gramos de sal. Colocar un paño fino o estameña sobre un colador e incorporar el yogur. Dejar drenar el suero en la nevera entre 12 y 24 horas.",
@@ -158,14 +158,14 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2026/05/poke-de-quinoa-y-arroz.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Quinoa", "amount": 150.0, "unit": "ud" },
+      { "name": "Quinoa", "amount": 150.0, "unit": "g" },
       { "name": "Arroz base", "amount": 150.0, "unit": "g" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
-      { "name": "Champiñones", "amount": 150.0, "unit": "ud" },
-      { "name": "Salsa de soja", "amount": 3.0, "unit": "cuch." },
-      { "name": "Aceite de sésamo", "amount": 1.0, "unit": "cuch." },
-      { "name": "Salsa Sriracha", "amount": 1.0, "unit": "ud" },
+      { "name": "Champiñones", "amount": 150.0, "unit": "g" },
+      { "name": "Salsa de soja", "amount": 45, "unit": "ml" },
+      { "name": "Aceite de sésamo", "amount": 15, "unit": "ml" },
+      { "name": "Salsa Sriracha", "amount": 15, "unit": "ml" },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -184,15 +184,15 @@
     "baseDiners": 4,
     "ingredients": [
       { "name": "Arroz base", "amount": 300.0, "unit": "g" },
-      { "name": "Vinagre de Mirin", "amount": 3.0, "unit": "ud" },
-      { "name": "Azúcar blanco", "amount": 1.0, "unit": "ud" },
+      { "name": "Vinagre de Mirin", "amount": 45, "unit": "ml" },
+      { "name": "Azúcar blanco", "amount": 5, "unit": "g" },
       { "name": "Salmón fresco", "amount": 400.0, "unit": "g" },
-      { "name": "Salsa Sriracha", "amount": 1.0, "unit": "ud" },
-      { "name": "Edamame", "amount": 150.0, "unit": "ud" },
+      { "name": "Salsa Sriracha", "amount": 15, "unit": "ml" },
+      { "name": "Edamame", "amount": 150.0, "unit": "g" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Pepino", "amount": 1.0, "unit": "ud" },
-      { "name": "Salsa de soja", "amount": 4.0, "unit": "cuch." },
-      { "name": "Aceite de sésamo", "amount": 1.0, "unit": "cuch." }
+      { "name": "Salsa de soja", "amount": 60, "unit": "ml" },
+      { "name": "Aceite de sésamo", "amount": 15, "unit": "ml" }
     ],
     "instructions": [
       "Lavar el arroz varias veces para quitar el almidón y cocerlo durante 15 minutos. Mezclar el vinagre de mirin con el azúcar blanco y una pizca de sal, añadirlo al arroz caliente, remover y dejar enfriar.",
@@ -210,15 +210,15 @@
     "baseDiners": 4,
     "ingredients": [
       { "name": "Arroz base", "amount": 400.0, "unit": "g" },
-      { "name": "Calamares", "amount": 300.0, "unit": "ud" },
+      { "name": "Calamares", "amount": 300.0, "unit": "g" },
       { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
-      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
-      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "g" },
+      { "name": "Azafrán", "amount": 0.05, "unit": "g" },
       { "name": "Chirlas / Almejas", "amount": 250.0, "unit": "g" },
       { "name": "Gambas", "amount": 8.0, "unit": "ud" },
-      { "name": "Mejillones", "amount": 500.0, "unit": "ud" },
-      { "name": "Fumet de pescado", "amount": 1.2, "unit": "l" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
+      { "name": "Mejillones", "amount": 500.0, "unit": "g" },
+      { "name": "Caldo de pescado", "amount": 1.2, "unit": "l" },
+      { "name": "Aceite de Oliva", "amount": 45, "unit": "ml" },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -243,9 +243,9 @@
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Ajo", "amount": 2.0, "unit": "ud" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
-      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "g" },
       { "name": "Caldo de verduras", "amount": 1.0, "unit": "l" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
+      { "name": "Aceite de Oliva", "amount": 45, "unit": "ml" },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -262,15 +262,15 @@
     "imageUrl": "https://recetasdecocina.elmundo.es/wp-content/uploads/2025/09/arroz-con-secreto-iberico.jpg",
     "baseDiners": 4,
     "ingredients": [
-      { "name": "Secreto ibérico", "amount": 400.0, "unit": "ud" },
+      { "name": "Secreto ibérico", "amount": 400.0, "unit": "g" },
       { "name": "Arroz base", "amount": 360.0, "unit": "g" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Puerro", "amount": 1.0, "unit": "ud" },
-      { "name": "Caldo base (Pollo/Verdura/Carne)", "amount": 1.0, "unit": "ud" },
-      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Caldo base (Pollo/Verdura/Carne)", "amount": 1.0, "unit": "l" },
+      { "name": "Azafrán", "amount": 0.05, "unit": "g" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Sal común", "amount": 1.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "cuch." }
+      { "name": "Aceite de Oliva", "amount": 30, "unit": "ml" }
     ],
     "instructions": [
       "Trocear el secreto ibérico en dados pequeños de bocado. Picar la cebolla, el puerro y rallar el tomate.",
@@ -294,16 +294,16 @@
       { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
       { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
       { "name": "Alcachofas", "amount": 3.0, "unit": "ud" },
-      { "name": "Champiñones", "amount": 150.0, "unit": "ud" },
+      { "name": "Champiñones", "amount": 150.0, "unit": "g" },
       { "name": "Ajo", "amount": 2.0, "unit": "ud" },
-      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "cuch." },
+      { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Sake / Vino blanco", "amount": 100.0, "unit": "ml" },
       { "name": "Caldo de pollo", "amount": 1200.0, "unit": "ml" },
-      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "cuch." },
+      { "name": "Aceite de Oliva", "amount": 60, "unit": "ml" },
       { "name": "Sal común", "amount": 5.0, "unit": "g" },
-      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "ud" },
-      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "cuch." },
-      { "name": "Perejil fresco", "amount": 1.0, "unit": "ud" }
+      { "name": "Pimienta negra / blanca", "amount": 1.0, "unit": "g" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "g" },
+      { "name": "Perejil fresco", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
       "Trocear el pollo y salpimentarlo. Picar la cebolleta, el puerro, el pimiento y el ajo. Cortar la zanahoria en rodajas, los champiñones en cuartos y las alcachofas limpias en gajos.",
@@ -322,11 +322,11 @@
     "ingredients": [
       { "name": "Arroz base", "amount": 300.0, "unit": "g" },
       { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
-      { "name": "Guisantes", "amount": 100.0, "unit": "ud" },
+      { "name": "Guisantes", "amount": 100.0, "unit": "g" },
       { "name": "Huevo de gallina", "amount": 2.0, "unit": "ud" },
-      { "name": "Jamón York", "amount": 120.0, "unit": "ud" },
-      { "name": "Sal común", "amount": 1.0, "unit": "cuch." },
-      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "cuch." }
+      { "name": "Jamón York", "amount": 120.0, "unit": "g" },
+      { "name": "Sal común", "amount": 5, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 30, "unit": "ml" }
     ],
     "instructions": [
       "Cocer el arroz base en agua hirviendo con una cucharada de sal durante 14 minutos. Escurrir bien, enfriar y guardar en la nevera unas horas para que el grano quede seco y suelto.",
@@ -344,17 +344,17 @@
     "baseDiners": 4,
     "ingredients": [
       { "name": "Arroz base", "amount": 320.0, "unit": "g" },
-      { "name": "Fumet de pescado", "amount": 1.1, "unit": "ud" },
+      { "name": "Caldo de pescado", "amount": 1.1, "unit": "l" },
       { "name": "Gambas", "amount": 12.0, "unit": "ud" },
-      { "name": "Calamares", "amount": 250.0, "unit": "ud" },
-      { "name": "Chirlas / Almejas", "amount": 200.0, "unit": "ud" },
+      { "name": "Calamares", "amount": 250.0, "unit": "g" },
+      { "name": "Chirlas / Almejas", "amount": 200.0, "unit": "g" },
       { "name": "Cebolleta", "amount": 1.0, "unit": "ud" },
       { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
-      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 0.05, "unit": "g" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
-      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "ud" },
-      { "name": "Sal común", "amount": 1.0, "unit": "cuch." }
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 45, "unit": "ml" },
+      { "name": "Sal común", "amount": 5, "unit": "g" }
     ],
     "instructions": [
       "Pelar las gambas, reservar los cuerpos en frío y cocer las cabezas y cáscaras machacadas dentro del fumet de pescado durante 10 minutos para intensificar el sabor. Colar.",
@@ -376,8 +376,8 @@
       { "name": "Puerro", "amount": 1.0, "unit": "ud" },
       { "name": "Zanahoria", "amount": 1.0, "unit": "ud" },
       { "name": "Sal común", "amount": 4.0, "unit": "g" },
-      { "name": "Caldo de pollo", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
+      { "name": "Caldo de pollo", "amount": 1.0, "unit": "l" },
+      { "name": "Aceite de Oliva", "amount": 45, "unit": "ml" },
       { "name": "Queso rallado / Grana Padano", "amount": 60.0, "unit": "g" },
       { "name": "Mantequilla", "amount": 30.0, "unit": "g" }
     ],
@@ -396,15 +396,15 @@
     "baseDiners": 4,
     "ingredients": [
       { "name": "Arroz base", "amount": 400.0, "unit": "g" },
-      { "name": "Sepia", "amount": 300.0, "unit": "ud" },
+      { "name": "Sepia", "amount": 300.0, "unit": "g" },
       { "name": "Gambas", "amount": 12.0, "unit": "ud" },
-      { "name": "Calamares", "amount": 200.0, "unit": "ud" },
+      { "name": "Calamares", "amount": 200.0, "unit": "g" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Ajo", "amount": 2.0, "unit": "ud" },
-      { "name": "Azafrán", "amount": 1.0, "unit": "cuch." },
-      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "cuch." },
+      { "name": "Azafrán", "amount": 0.05, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 60, "unit": "ml" },
       { "name": "Fumet de pescado", "amount": 1.2, "unit": "l" },
-      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "cuch." },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "g" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" }
     ],
     "instructions": [
@@ -429,11 +429,11 @@
       { "name": "Garrofón", "amount": 100.0, "unit": "g" },
       { "name": "Azafrán", "amount": 0.08, "unit": "g" },
       { "name": "Agua", "amount": 1.5, "unit": "l" },
-      { "name": "Sal común", "amount": 1.0, "unit": "cuch." },
-      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" },
-      { "name": "Romero", "amount": 1.0, "unit": "ud" },
+      { "name": "Sal común", "amount": 1.0, "unit": "g" },
+      { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "g" },
+      { "name": "Romero", "amount": 1.0, "unit": "g" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
-      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "cuch." }
+      { "name": "Aceite de Oliva", "amount": 60, "unit": "ml" }
     ],
     "instructions": [
       "Trocear el pollo y el conejo en piezas medianas uniformes. Añadir el aceite de oliva al centro de la paella, nivelarla y encender el fuego. Dorar la carne muy bien con sal por los laterales.",
@@ -458,7 +458,7 @@
       { "name": "Sake / Vino blanco", "amount": 50.0, "unit": "ml" },
       { "name": "Mantequilla", "amount": 20.0, "unit": "g" },
       { "name": "Queso rallado / Grana Padano", "amount": 40.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 2.0, "unit": "cuch." },
+      { "name": "Aceite de Oliva", "amount": 30, "unit": "ml" },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -485,8 +485,8 @@
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Patata", "amount": 1.0, "unit": "ud" },
       { "name": "Ajo", "amount": 1.0, "unit": "ud" },
-      { "name": "Azafrán", "amount": 1.0, "unit": "cuch." },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
+      { "name": "Azafrán", "amount": 0.05, "unit": "g" },
+      { "name": "Aceite de Oliva", "amount": 45, "unit": "ml" },
       { "name": "Sal común", "amount": 1.0, "unit": "g" }
     ],
     "instructions": [
@@ -505,7 +505,7 @@
     "baseDiners": 4,
     "ingredients": [
       { "name": "Arroz base", "amount": 380.0, "unit": "g" },
-      { "name": "Sepia", "amount": 300.0, "unit": "ud" },
+      { "name": "Sepia", "amount": 300.0, "unit": "g" },
       { "name": "Gambas", "amount": 400.0, "unit": "g" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Tomate / Concentrado", "amount": 2.0, "unit": "ud" },
@@ -513,10 +513,10 @@
       { "name": "Morralla / Raspas", "amount": 1.0, "unit": "kg" },
       { "name": "Puerro", "amount": 2.0, "unit": "ud" },
       { "name": "Apio", "amount": 1.0, "unit": "ud" },
-      { "name": "Azafrán", "amount": 1.0, "unit": "ud" },
+      { "name": "Azafrán", "amount": 0.05, "unit": "g" },
       { "name": "Laurel", "amount": 1.0, "unit": "ud" },
       { "name": "Sal común", "amount": 5.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 4.0, "unit": "cuch." }
+      { "name": "Aceite de Oliva", "amount": 60, "unit": "ml" }
     ],
     "instructions": [
       "Hacer el fumet: cocer la morralla y las raspas de rape o merluza junto con los puerros, el apio y la hoja de laurel en agua abundante durante 25 minutos. Colar y mantener caliente.",
@@ -538,9 +538,9 @@
       { "name": "Calamares", "amount": 400.0, "unit": "g" },
       { "name": "Cebolla", "amount": 1.0, "unit": "ud" },
       { "name": "Pimiento", "amount": 1.0, "unit": "ud" },
-      { "name": "Fumet de pescado", "amount": 1.1, "unit": "ud" },
+      { "name": "Caldo de pescado", "amount": 1.1, "unit": "l" },
       { "name": "Sal común", "amount": 2.0, "unit": "g" },
-      { "name": "Aceite de Oliva", "amount": 3.0, "unit": "cuch." },
+      { "name": "Aceite de Oliva", "amount": 45, "unit": "ml" },
       { "name": "Ajo", "amount": 2.0, "unit": "ud" },
       { "name": "Tomate / Concentrado", "amount": 1.0, "unit": "ud" },
       { "name": "Pimentón dulce/picante", "amount": 1.0, "unit": "ud" }
@@ -647,7 +647,7 @@
       { "name": "Tomate / Concentrado", "amount": 150.0, "unit": "g" },
       { "name": "Queso mozzarella rallado para pizzas", "amount": 150.0, "unit": "g" },
       { "name": "Alcachofas", "amount": 100.0, "unit": "g" },
-      { "name": "Tacos de jamón", "amount": 30, "unit": "g" }
+      { "name": "Jamón serrano", "amount": 30, "unit": "g" }
     ],
     "instructions": [
       "Precalentar el horno a 220°C.",
@@ -663,8 +663,8 @@
     "imageUrl": "https://imag.bonviveur.com/hamburguesa-clasica.jpg",
     "baseDiners": 2,
     "ingredients": [
-      { "name": "Carne picada", "amount": 300.0, "unit": "g" },
-      { "name": "Pan de hamburguesa", "amount": 2.0, "unit": "ud" },
+      { "name": "Carne picada de pollo", "amount": 300.0, "unit": "g" },
+      { "name": "Pan hamburguesa", "amount": 2.0, "unit": "ud" },
       { "name": "Tomate", "amount": 100.0, "unit": "g" },
       { "name": "Lechuga", "amount": 50.0, "unit": "g" },
       { "name": "Queso", "amount": 40.0, "unit": "g" }

@@ -152,6 +152,49 @@ export const HouseholdProvider = ({ children }) => {
     await syncModuleToFirebase({ weeklyMenu: newMenu }, 'menuUpdatedAt', localMenuTime);
   };
 
+  const startNewWeek = async () => {
+    const now = Date.now();
+
+  // 1. Generamos la estructura base limpia (Comida y Cena para cada día)
+    const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const freshMenuStructure = {};
+    
+    DAYS_OF_WEEK.forEach(day => {
+      freshMenuStructure[day] = [
+        { id: 'lunch', title: '☀️ Comida', recipeId: null, diners: null },
+        { id: 'dinner', title: '🌙 Cena', recipeId: null, diners: null }
+      ];
+    });
+
+    // 2. Actualizamos los estados de React con la estructura limpia
+    setWeeklyMenuState(freshMenuStructure);
+    setDeletedItems(new Set());
+    setCheckedItems(new Set());
+
+    try {
+      await AsyncStorage.setItem('@weekly_menu', JSON.stringify({}));
+      await AsyncStorage.setItem('@weekly_menu_time', now.toString());
+      await AsyncStorage.setItem('@shopping_deleted', JSON.stringify([]));
+      await AsyncStorage.setItem('@shopping_checked', JSON.stringify([]));
+      await AsyncStorage.setItem('@shopping_extras_time', now.toString());
+
+      localMenuTime.current = now;
+      localShoppingTime.current = now;
+
+      if (!householdId) return;
+      const docRef = doc(db, "households", householdId);
+      await updateDoc(docRef, {
+        weeklyMenu: freshMenuStructure,
+        menuUpdatedAt: now,
+        deleted: [],
+        checked: [],
+        shoppingUpdatedAt: now
+      });
+    } catch (e) {
+      console.log(`[Offline] Nueva semana guardada localmente.`);
+    }
+  };
+
   // 🍳 FUNCIÓN MAESTRA: CONSUMIR INGREDIENTES DE UNA RECETA
   const consumeRecipeIngredients = useCallback(async (recipe, plannedDiners) => {
     if (!recipe || !recipe.ingredients || pantryItems.length === 0) return false;
@@ -226,6 +269,7 @@ export const HouseholdProvider = ({ children }) => {
       extraItems, checkedItems, deletedItems, updateShopping,
       pantryItems, updatePantry,
       weeklyMenu, updateMenu,
+      startNewWeek,
       consumeRecipeIngredients, 
       customIngredients, setCustomIngredients,
       createHousehold,

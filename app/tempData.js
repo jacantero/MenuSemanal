@@ -266,20 +266,6 @@ export const normalizeToBase = (amount, unit) => {
   } else if (u === 'ml' || u === 'mililitro' || u === 'mililitros') {
     baseUnit = 'ml';
   } 
-  // --- CONVERSIONES CULINARIAS ESTÁNDAR ---
-  else if (u.includes('cucharadita') || u.includes('cuch. peq')) {
-    baseAmount *= 5; // 1 cucharadita = ~5g o 5ml
-    baseUnit = 'g';  // Lo asumimos como peso por defecto
-  } else if (u.includes('cuch')) {
-    baseAmount *= 15; // 1 cucharada = ~15g o 15ml
-    baseUnit = 'g';
-  } else if (u.includes('taza')) {
-    baseAmount *= 250; // 1 taza = ~250g o 250ml
-    baseUnit = 'g';
-  } else if (u.includes('docena')) {
-    baseAmount *= 12;
-    baseUnit = 'ud';
-  }
 
   return { amount: baseAmount, unit: baseUnit };
 };

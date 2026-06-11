@@ -580,5 +580,29 @@
     "macros": { "kcals": 177.0, "protein": 4.9, "carbs": { "total": 9.5, "sugars": 0.4 }, "fats": { "total": 12.2, "saturated": 1.7, "monounsaturated": 6.3, "polyunsaturated": 3.6 }, "fiber": 4.0, "salt": 1.1 },
     "micros": { "calcium_mg": 42.0, "iron_mg": 1.6, "magnesium_mg": 41.0, "potassium_mg": 228.0, "phosphorus_mg": 110.0, "zinc_mg": 1.1, "vitA_mcg": 1.0, "vitB1_mg": 0.12, "vitB2_mg": 0.06, "vitB3_mg": 0.6, "vitB6_mg": 0.15, "vitB9_mcg": 58.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 1.5, "vitK_mcg": 8.0 },
     "source": "BEDCA"
+  },
+  "laurel": {
+    "name": "Laurel", "unit": "g", "emoji": "🌿", "purchaseUnit": "Paquete 15g", "purchasePrice": 0.95, "weightPerUnit": 1,
+    "macros": { "kcals": 313.0, "protein": 7.6, "carbs": { "total": 48.6, "sugars": 0.0 }, "fats": { "total": 8.4, "saturated": 2.3, "monounsaturated": 1.6, "polyunsaturated": 2.3 }, "fiber": 26.3, "salt": 0.06 },
+    "micros": { "calcium_mg": 834.0, "iron_mg": 43.0, "magnesium_mg": 120.0, "potassium_mg": 529.0, "phosphorus_mg": 113.0, "zinc_mg": 3.7, "vitA_mcg": 309.0, "vitB1_mg": 0.01, "vitB2_mg": 0.42, "vitB3_mg": 2.0, "vitB6_mg": 1.7, "vitB9_mcg": 180.0, "vitB12_mcg": 0.0, "vitC_mg": 46.5, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "almejas": {
+    "name": "Almejas", "unit": "g", "emoji": "🦪", "purchaseUnit": "Malla 400g", "purchasePrice": 2.40, "weightPerUnit": 1,
+    "macros": { "kcals": 74.0, "protein": 12.8, "carbs": { "total": 2.0, "sugars": 0.0 }, "fats": { "total": 1.0, "saturated": 0.2, "monounsaturated": 0.1, "polyunsaturated": 0.4 }, "fiber": 0.0, "salt": 0.10 },
+    "micros": { "calcium_mg": 92.0, "iron_mg": 14.0, "magnesium_mg": 18.0, "potassium_mg": 314.0, "phosphorus_mg": 169.0, "zinc_mg": 1.4, "vitA_mcg": 90.0, "vitB1_mg": 0.05, "vitB2_mg": 0.20, "vitB3_mg": 1.4, "vitB6_mg": 0.10, "vitB9_mcg": 16.0, "vitB12_mcg": 49.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.3, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "costillas_de_cerdo": {
+    "name": "Costillas de cerdo", "unit": "g", "emoji": "🥩", "purchaseUnit": "Bandeja 500g", "purchasePrice": 3.95, "weightPerUnit": 1,
+    "macros": { "kcals": 280.0, "protein": 17.0, "carbs": { "total": 0.0, "sugars": 0.0 }, "fats": { "total": 23.0, "saturated": 8.5, "monounsaturated": 10.5, "polyunsaturated": 2.5 }, "fiber": 0.0, "salt": 0.15 },
+    "micros": { "calcium_mg": 15.0, "iron_mg": 1.2, "magnesium_mg": 16.0, "potassium_mg": 250.0, "phosphorus_mg": 160.0, "zinc_mg": 2.5, "vitA_mcg": 0.0, "vitB1_mg": 0.50, "vitB2_mg": 0.20, "vitB3_mg": 4.5, "vitB6_mg": 0.30, "vitB9_mcg": 4.0, "vitB12_mcg": 0.6, "vitC_mg": 0.0, "vitD_mcg": 0.5, "vitE_mg": 0.2, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
+  },
+  "morcilla": {
+    "name": "Morcilla", "unit": "g", "emoji": "🌭", "purchaseUnit": "Unidad 300g", "purchasePrice": 2.20, "weightPerUnit": 1,
+    "macros": { "kcals": 260.0, "protein": 8.5, "carbs": { "total": 18.0, "sugars": 1.5 }, "fats": { "total": 17.0, "saturated": 7.0, "monounsaturated": 7.5, "polyunsaturated": 1.5 }, "fiber": 1.8, "salt": 1.50 },
+    "micros": { "calcium_mg": 30.0, "iron_mg": 6.0, "magnesium_mg": 12.0, "potassium_mg": 150.0, "phosphorus_mg": 80.0, "zinc_mg": 1.2, "vitA_mcg": 10.0, "vitB1_mg": 0.06, "vitB2_mg": 0.08, "vitB3_mg": 1.2, "vitB6_mg": 0.05, "vitB9_mcg": 6.0, "vitB12_mcg": 1.5, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.1, "vitK_mcg": 0.0 },
+    "source": "BEDCA"
   }
 }
