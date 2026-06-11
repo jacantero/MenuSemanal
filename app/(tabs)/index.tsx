@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useHousehold } from '../HouseholdContext';
 
 // Importaciones actualizadas (hemos quitado assignRecipeToMenu y weeklyMenu de aquí, ahora viven en el Contexto)
-import { MOCK_RECIPES, getTotalEatOutCost, initAppData, consumeRecipeFromPantry, INGREDIENTS_DB, getCanonicalName, normalizeToBase } from '../tempData';
+import { MOCK_RECIPES, getTotalEatOutCost, initAppData, consumeRecipeFromPantry, INGREDIENTS_DB, getCanonicalName, normalizeToBase, weeklyMenu } from '../tempData';
 
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -95,7 +95,6 @@ export default function MenuScreen() {
 
   useEffect(() => {
     const loadData = async () => {
-      await initAppData();
       // Primera lectura rápida del presupuesto
       try {
         const savedCost = await AsyncStorage.getItem('@estimated_shopping_cost');
@@ -616,8 +615,8 @@ export default function MenuScreen() {
       </View>
     );
   };
-
-  if (!isReady || !dataLoaded) {
+  
+  if (!isReady || !dataLoaded || !menuData || Object.keys(menuData).length === 0) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e6f7ff' }}>
         <Text style={{ fontSize: 18, color: '#2f95dc', fontWeight: 'bold' }}>Cargando tu menú...</Text>

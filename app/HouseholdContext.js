@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { doc, onSnapshot, updateDoc, setDoc, getDoc } from 'firebase/firestore'; 
-import { db } from './firebaseConfig'; 
+import { doc, onSnapshot, updateDoc, setDoc, getDoc } from 'firebase/firestore';
+import { db } from './firebaseConfig';
 
 export const HouseholdContext = createContext();
 
@@ -32,8 +32,9 @@ export const HouseholdProvider = ({ children }) => {
   const localIngredientsTime = useRef(0);
 
   // 🚀 INICIALIZACIÓN Y ESCUCHA EN TIEMPO REAL (FIREBASE + ASYNCSTORAGE)
+  // 📦 1. EFECTO: CARGA INICIAL DE ASYNCSTORAGE (Solo al abrir la app)
   useEffect(() => {
-    const initApp = async () => {
+    const initLocalData = async () => {
       try {
         const tShop = await AsyncStorage.getItem('@shopping_extras_time');
         const tPantry = await AsyncStorage.getItem('@pantry_items_time');
@@ -55,58 +56,89 @@ export const HouseholdProvider = ({ children }) => {
         if (sChecked) setCheckedItems(new Set(JSON.parse(sChecked)));
         if (sDeleted) setDeletedItems(new Set(JSON.parse(sDeleted)));
         if (sPantry) setPantryItems(JSON.parse(sPantry));
-        if (sMenu) setWeeklyMenuState(JSON.parse(sMenu));
 
+        if (sMenu) {
+          setWeeklyMenuState(JSON.parse(sMenu));
+        } else {
+          // Estructura limpia por defecto si la app es totalmente nueva
+          const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+          const freshMenuStructure = {};
+          DAYS_OF_WEEK.forEach(day => {
+            freshMenuStructure[day] = [
+              { id: 'lunch', title: '☀️ Comida', recipeId: null, diners: null },
+              { id: 'dinner', title: '🌙 Cena', recipeId: null, diners: null }
+            ];
+          });
+          setWeeklyMenuState(freshMenuStructure);
+        }
+
+        // Leemos si ya existía una familia guardada
         const hId = await AsyncStorage.getItem('@household_id');
         setHouseholdId(hId);
 
+        // 🛡️ Si NO hay familia, la app local ya está lista para usarse de forma individual
         if (!hId) {
           setIsReady(true);
-          return;
         }
-
-        const docRef = doc(db, "households", hId);
-        const unsubscribe = onSnapshot(docRef, async (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-
-            // Sincronización Módulo Compra
-            if ((data.shoppingUpdatedAt || 0) >= localShoppingTime.current) {
-              localShoppingTime.current = data.shoppingUpdatedAt || 0;
-              if (data.extras) setExtraItems(data.extras);
-              if (data.checked) setCheckedItems(new Set(data.checked));
-              if (data.deleted) setDeletedItems(new Set(data.deleted));
-            }
-
-            // Sincronización Módulo Despensa
-            if ((data.pantryUpdatedAt || 0) >= localPantryTime.current) {
-              localPantryTime.current = data.pantryUpdatedAt || 0;
-              if (data.pantry) {
-                setPantryItems(data.pantry);
-                await AsyncStorage.setItem('@pantry_items', JSON.stringify(data.pantry));
-              }
-            }
-
-            // Sincronización Módulo Menú Semanal
-            if ((data.menuUpdatedAt || 0) >= localMenuTime.current) {
-              localMenuTime.current = data.menuUpdatedAt || 0;
-              if (data.weeklyMenu) {
-                setWeeklyMenuState(data.weeklyMenu);
-                await AsyncStorage.setItem('@weekly_menu', JSON.stringify(data.weeklyMenu));
-              }
-            }
-          }
-          setIsReady(true);
-        });
-
-        return () => unsubscribe();
       } catch (error) {
-        console.error("Error en Contexto:", error);
+        console.error("Error cargando local storage:", error);
         setIsReady(true);
       }
     };
-    initApp();
+    initLocalData();
   }, []);
+
+  // 🚀 2. EFECTO: ESCUCHA DE FIREBASE EN TIEMPO REAL (Reacciona cuando cambia householdId)
+  useEffect(() => {
+    // Si no hay id de familia, no hay nada que escuchar en Firebase
+    if (!householdId) return;
+
+    // ⚡ DOSIS DE MAGIA: Ponemos la app temporalmente en "Cargando..." mientras 
+    // se conecta a Firebase y descarga los datos reales de la nueva familia
+    setIsReady(false);
+
+    const docRef = doc(db, "households", householdId);
+    const unsubscribe = onSnapshot(docRef, async (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+
+        // Sincronización Módulo Compra
+        if ((data.shoppingUpdatedAt || 0) >= localShoppingTime.current) {
+          localShoppingTime.current = data.shoppingUpdatedAt || 0;
+          if (data.extras) setExtraItems(data.extras);
+          if (data.checked) setCheckedItems(new Set(data.checked));
+          if (data.deleted) setDeletedItems(new Set(data.deleted));
+        }
+
+        // Sincronización Módulo Despensa
+        if ((data.pantryUpdatedAt || 0) >= localPantryTime.current) {
+          localPantryTime.current = data.pantryUpdatedAt || 0;
+          if (data.pantry) {
+            setPantryItems(data.pantry);
+            await AsyncStorage.setItem('@pantry_items', JSON.stringify(data.pantry));
+          }
+        }
+
+        // Sincronización Módulo Menú Semanal
+        if ((data.menuUpdatedAt || 0) >= localMenuTime.current) {
+          localMenuTime.current = data.menuUpdatedAt || 0;
+          if (data.weeklyMenu) {
+            setWeeklyMenuState(data.weeklyMenu);
+            await AsyncStorage.setItem('@weekly_menu', JSON.stringify(data.weeklyMenu));
+          }
+        }
+      }
+      
+      // En cuanto los datos reales de la nube impactan en el contexto, liberamos la pantalla
+      setIsReady(true);
+    }, (error) => {
+      console.error("Error en Firebase onSnapshot:", error);
+      setIsReady(true);
+    });
+
+    // Limpiamos el escuchador antiguo si el householdId vuelve a cambiar
+    return () => unsubscribe();
+  }, [householdId]); // 👈 ¡ESTA ES LA CLAVE! Ejecuta este efecto cada vez que cambie el ID
 
   // Función genérica para empujar datos locales hacia Firebase protegiendo las versiones
   const syncModuleToFirebase = async (updates, moduleTimeKey, localTimeRef) => {
@@ -116,8 +148,8 @@ export const HouseholdProvider = ({ children }) => {
     try {
       const docRef = doc(db, "households", householdId);
       await updateDoc(docRef, { ...updates, [moduleTimeKey]: now });
-    } catch (e) { 
-      console.log(`[Offline] Datos guardados localmente.`); 
+    } catch (e) {
+      console.log(`[Offline] Datos guardados localmente.`);
     }
   };
 
@@ -131,10 +163,10 @@ export const HouseholdProvider = ({ children }) => {
     await AsyncStorage.setItem('@shopping_checked', JSON.stringify(Array.from(newChecked)));
     await AsyncStorage.setItem('@shopping_deleted', JSON.stringify(Array.from(newDeleted)));
     await AsyncStorage.setItem('@shopping_extras_time', Date.now().toString());
-    await syncModuleToFirebase({ 
-      extras: newExtras, 
-      checked: Array.from(newChecked), 
-      deleted: Array.from(newDeleted) 
+    await syncModuleToFirebase({
+      extras: newExtras,
+      checked: Array.from(newChecked),
+      deleted: Array.from(newDeleted)
     }, 'shoppingUpdatedAt', localShoppingTime);
   };
 
@@ -155,10 +187,10 @@ export const HouseholdProvider = ({ children }) => {
   const startNewWeek = async () => {
     const now = Date.now();
 
-  // 1. Generamos la estructura base limpia (Comida y Cena para cada día)
+    // 1. Generamos la estructura base limpia (Comida y Cena para cada día)
     const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
     const freshMenuStructure = {};
-    
+
     DAYS_OF_WEEK.forEach(day => {
       freshMenuStructure[day] = [
         { id: 'lunch', title: '☀️ Comida', recipeId: null, diners: null },
@@ -208,7 +240,7 @@ export const HouseholdProvider = ({ children }) => {
 
     recipe.ingredients.forEach(recipeIng => {
       // Buscamos coincidencia por ID o por nombre normalizado (ignorando mayúsculas y espacios)
-      const pantryIndex = newPantry.findIndex(pantryItem => 
+      const pantryIndex = newPantry.findIndex(pantryItem =>
         (pantryItem.id && recipeIng.id && pantryItem.id === recipeIng.id) ||
         (pantryItem.name.toLowerCase().trim() === recipeIng.name.toLowerCase().trim())
       );
@@ -217,7 +249,7 @@ export const HouseholdProvider = ({ children }) => {
         hasIngredients = true;
         // Escalado de porciones: (Cantidad base / Comensales base) * Comensales reales
         const amountNeeded = (recipeIng.amount / recipeBaseDiners) * diners;
-        
+
         // Restamos cantidad evitando números negativos
         newPantry[pantryIndex].amount = Math.max(0, newPantry[pantryIndex].amount - amountNeeded);
       }
@@ -270,7 +302,7 @@ export const HouseholdProvider = ({ children }) => {
       pantryItems, updatePantry,
       weeklyMenu, updateMenu,
       startNewWeek,
-      consumeRecipeIngredients, 
+      consumeRecipeIngredients,
       customIngredients, setCustomIngredients,
       createHousehold,
       joinHousehold
