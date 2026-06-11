@@ -2,11 +2,9 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, ScrollView, Platform, Alert } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Lo dejamos solo para el coste estimado
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// 1. IMPORTAMOS EL HOOK DEL CONTEXTO GLOBAl (Ajusta la ruta si es necesario)
 import { useHousehold } from '../HouseholdContext';
-
 import { MOCK_RECIPES, INGREDIENTS_DB, COMMON_INGREDIENTS, normalizeToBase, getCanonicalName, registerCustomIngredient, updateIngredientDatabase } from '../tempData';
 
 export const getEmojiForIngredient = (rawName) => {
@@ -26,7 +24,6 @@ const DAY_BADGES = {
 };
 
 export default function ShoppingScreen() {
-  // 2. DOSIS DE MAGIA: Traemos los estados y la función de guardado unificada del contexto
   const {
     isReady: contextReady,
     extraItems,
@@ -40,7 +37,7 @@ export default function ShoppingScreen() {
 
   const [shoppingItems, setShoppingItems] = useState([]);
 
-  // ESTADOS DEL MODAL AAÑADIR EXTRAS
+  // ESTADOS DEL MODAL AÑADIR EXTRAS
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemAmount, setNewItemAmount] = useState('1');
@@ -61,7 +58,7 @@ export default function ShoppingScreen() {
   const [formMacros, setFormMacros] = useState({ kcals: '0', protein: '0', carbsTotal: '0', carbsSugars: '0', fatsTotal: '0', fatsSat: '0', fatsMono: '0', fatsPoly: '0', fiber: '0', salt: '0' });
   const [formMicros, setFormMicros] = useState({ calcium: '0', iron: '0', magnesium: '0', potassium: '0', zinc: '0', vitE: '0', vitC: '0' });
 
-  // --- ESTADOS PARA EL MODAL DEL TICKET (PRESUPUESTO) Y SUS EDICIONES ---
+  // ESTADOS PARA EL MODAL DEL TICKET
   const [isBudgetModalVisible, setIsBudgetModalVisible] = useState(false);
   const [tempPrices, setTempPrices] = useState({});
   const [ticketOverrides, setTicketOverrides] = useState({});
@@ -70,7 +67,6 @@ export default function ShoppingScreen() {
     ? COMMON_INGREDIENTS.filter(ing => ing.name.toLowerCase().includes(newItemName.toLowerCase()))
     : [];
 
-  // 3. REACCIÓN AUTOMÁTICA AL ENTRAR EN LA PANTALLA
   useFocusEffect(
     useCallback(() => {
       if (contextReady) {
@@ -82,7 +78,7 @@ export default function ShoppingScreen() {
   const calculateList = () => {
     const ingredientMap = {};
 
-    // 1. Agrupamos los ingredientes del menú
+    // 1. AGRUPAMOS INGREDIENTES DEL MENÚ
     Object.keys(weeklyMenu).forEach(day => {
       const dayMealsList = weeklyMenu[day] || [];
       dayMealsList.forEach(assignment => {
@@ -97,102 +93,145 @@ export default function ShoppingScreen() {
             recipe.ingredients.forEach(ing => {
               const canonicalName = getCanonicalName(ing.name);
               const cleanSafeId = canonicalName.toLowerCase().replace(/[^a-z0-9]/g, '');
-
               const itemId = `menu-${day.toLowerCase()}-${cleanSafeId}`;
 
               if (deletedItems.has(itemId)) return;
 
               let adjustedAmount = (ing.amount / (recipe.baseDiners || 1)) * currentDiners;
-              let normalized = normalizeToBase(adjustedAmount, ing.unit);
 
-              // 🌟 REFUERZO DE UNIDADES: Buscamos si el ingrediente tiene equivalencia de peso en la DB
+              // BUSCAMOS EN LA DB
               const dbItemKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName);
               const dbItem = dbItemKey ? INGREDIENTS_DB[dbItemKey] : null;
 
-              // Si el ingrediente está en 'ud' pero en tu DB se gestiona principalmente por peso (ej: Tomate, Patata)
-              if (normalized.unit === 'ud' && dbItem && dbItem.weightPerUnit > 1) {
-                normalized.amount = normalized.amount * dbItem.weightPerUnit;
-                normalized.unit = 'g'; // 👈 Forzamos la unificación a gramos
-              }
+              // 🌟 NORMALIZACIÓN MAESTRA: Se acabaron los ifs larguísimos
+              let normalized = normalizeToBase(
+                adjustedAmount,
+                ing.unit,
+                dbItem?.unit,
+                dbItem?.weightPerUnit
+              );
 
+              // SUMAMOS SEGUROS (Peras con peras, gramos con gramos)
               if (ingredientMap[canonicalName]) {
-                // 🚨 ¡ALERTA DE SEGURIDAD! Si por algún motivo las unidades no coinciden (ej. 'g' vs 'ml'), avisamos en consola
-                if (ingredientMap[canonicalName].unit !== normalized.unit) {
-                  console.warn(`[Conflicto Unidades] ${canonicalName} mezcla ${ingredientMap[canonicalName].unit} y ${normalized.unit}`);
-                  // Fallback: Si uno es gramos y la app ya tenía 'ud', cambiamos la unidad principal a gramos
-                  if (normalized.unit === 'g') ingredientMap[canonicalName].unit = 'g';
-                }
-
                 ingredientMap[canonicalName].amount += normalized.amount;
-                ingredientMap[canonicalName].days.add(day);
                 ingredientMap[canonicalName].days.add(day);
               } else {
                 ingredientMap[canonicalName] = {
                   id: itemId,
                   name: canonicalName,
                   amount: normalized.amount,
-                  unit: normalized.unit,
+                  unit: normalized.unit, // Esta unidad ya es la definitiva y limpia
                   days: new Set([day]),
                   checked: checkedItems.has(itemId),
                   isExtra: false
                 };
               }
+
             });
           }
         }
       });
     });
 
-    // 🌟 DICCIONARIO: Prevenimos el colapso de la app
     const pantryDict = {};
     pantryItems.forEach(p => {
       const safeName = getCanonicalName(p.name);
       pantryDict[safeName] = p;
     });
 
-    // 2. Restamos lo que ya tenemos en la despensa
+    // 2. RESTAMOS LA DESPENSA
     const menuList = Object.values(ingredientMap).map(ing => {
       const pantryMatch = pantryDict[ing.name];
       let finalAmount = ing.amount;
 
+      const dbItemKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === ing.name);
+      const dbItem = dbItemKey ? INGREDIENTS_DB[dbItemKey] : null;
+
       if (pantryMatch) {
-        let normalizedPantry = normalizeToBase(pantryMatch.amount, pantryMatch.unit);
-
-        // 🌟 REFUERZO: Si la despensa guardó 'ud' (ej: 2 tomates) pero la lista necesita 'g'
-        const dbItemKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === ing.name);
-        const dbItem = dbItemKey ? INGREDIENTS_DB[dbItemKey] : null;
-
-        if (normalizedPantry.unit === 'ud' && ing.unit === 'g' && dbItem) {
-          normalizedPantry.amount = normalizedPantry.amount * dbItem.weightPerUnit;
-          normalizedPantry.unit = 'g';
-        }
+        // NORMALIZACIÓN DE DESPENSA
+        let normalizedPantry = normalizeToBase(
+          pantryMatch.amount, 
+          pantryMatch.unit, 
+          dbItem?.unit, 
+          dbItem?.weightPerUnit
+        );
 
         if (normalizedPantry.unit === ing.unit) {
           finalAmount = Math.max(0, ing.amount - normalizedPantry.amount);
         }
       }
 
+      const roundedAmount = Math.round(finalAmount * 100) / 100;
+      
+      // 🌟 CÁLCULO DE LA EQUIVALENCIA PARA EL FRONTEND
+      let equivalence = '';
+      
+      if (String(ing.unit) === 'ud' && dbItem && dbItem.weightPerUnit && dbItem.unit && roundedAmount > 0) {
+        const totalBase = roundedAmount * dbItem.weightPerUnit;
+
+        if (dbItem.unit === 'ml') {
+          equivalence = totalBase >= 1000 
+            ? `(${(((totalBase / 1000) * 100) / 100).toFixed(1)} L)`  
+            : `(${totalBase.toFixed(1)} ml)`;
+        } else {
+          equivalence = totalBase >= 1000 
+            ? `(${(((totalBase / 1000) * 100) / 100).toFixed(1)} kg)` 
+            : `(${totalBase.toFixed(1)} g)`;
+        }
+      }
+
       return {
         ...ing,
-        amount: Math.round(finalAmount * 100) / 100,
+        amount: roundedAmount,
+        equivalence, // 👈 Lo pasamos listo para pintar en el JSX
         days: Array.from(ing.days)
       };
     }).filter(ing => ing.amount > 0);
 
-    // 3. Añadimos los elementos extra (añadidos a mano)
+    // 3. AÑADIMOS LOS EXTRAS (Con su correspondiente normalización a la DB)
     const extrasList = extraItems.map(item => {
-      const normalizedExtra = normalizeToBase(item.amount, item.unit);
+      const canonicalName = getCanonicalName(item.name);
+      const dbItemKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName);
+      const dbItem = dbItemKey ? INGREDIENTS_DB[dbItemKey] : null;
+
+      const normalizedExtra = normalizeToBase(
+        item.amount, 
+        item.unit, 
+        dbItem?.unit, 
+        dbItem?.weightPerUnit
+      );
+
+      const roundedAmount = Math.round(normalizedExtra.amount * 100) / 100;
+
+      // 🌟 CÁLCULO DE LA EQUIVALENCIA PARA EL FRONTEND
+      let equivalence = '';
+      
+      if (String(item.unit) === 'ud' && dbItem && dbItem.weightPerUnit && dbItem.unit && roundedAmount > 0) {
+        const totalBase = roundedAmount * dbItem.weightPerUnit;
+
+        if (dbItem.unit === 'ml') {
+          equivalence = totalBase >= 1000 
+            ? `(${(((totalBase / 1000) * 100) / 100).toFixed(1)} L)`  
+            : `(${totalBase.toFixed(1)} ml)`;
+        } else {
+          equivalence = totalBase >= 1000 
+            ? `(${(((totalBase / 1000) * 100) / 100).toFixed(1)} kg)` 
+            : `(${totalBase.toFixed(1)} g)`;
+        }
+      }
+
       return {
         ...item,
-        amount: Math.round(normalizedExtra.amount * 100) / 100,
+        amount: roundedAmount,
         unit: normalizedExtra.unit,
+        equivalence, // 👈 Lo pasamos listo para pintar en el JSX
         checked: checkedItems.has(item.id),
         isExtra: true,
         days: []
       };
     }).filter(item => !deletedItems.has(item.id));
 
-    // 4. Ordenamos todo junto (comprados abajo)
+    // 4. ORDENAMOS
     const finalFlatList = [...menuList, ...extrasList].sort((a, b) => {
       if (a.checked === b.checked) return a.name.localeCompare(b.name);
       return a.checked ? 1 : -1;
@@ -201,43 +240,32 @@ export default function ShoppingScreen() {
     setShoppingItems(finalFlatList);
   };
 
-  const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');//Para robustecer el regex
+  const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   // --- LÓGICA DE PRESUPUESTO BLINDADA ---
   const budgetDetails = useMemo(() => {
     let total = 0;
-
-    // 🌟 OPTIMIZACIÓN Y ORDEN: 
-    // Extraemos las entradas una sola vez y las ordenamos de más largas a más cortas.
-    // Así "Pan de molde" se comprueba antes que "Pan".
     const dbEntries = Object.entries(INGREDIENTS_DB).sort((a, b) => b[0].length - a[0].length);
 
     const items = shoppingItems.map(item => {
       const canonicalName = getCanonicalName(item.name || '').toLowerCase().trim();
 
-      // 🌟 PASO 1: Búsqueda Exacta (La más segura)
       let dbEntryMatch = dbEntries.find(([k, dbItem]) => {
         const cleanKey = k.toLowerCase();
         if (cleanKey === canonicalName) return true;
-
         const dbName = dbItem?.name;
         if (!dbName) return false;
-
         const synonyms = dbName.toLowerCase().split('/').map(name => name.trim());
         return synonyms.includes(canonicalName);
       });
 
-      // 🌟 PASO 2: Búsqueda Parcial Inteligente (Solo si falla el Paso 1)
       if (!dbEntryMatch) {
         dbEntryMatch = dbEntries.find(([k, dbItem]) => {
           const cleanKey = k.toLowerCase();
-          // Usamos \b para asegurar que es una palabra independiente
-          // "agua" hará match en "agua mineral", pero NO en "aguacate"
           const regexKey = new RegExp(`\\b${escapeRegex(cleanKey)}\\b`, 'i');
           if (regexKey.test(canonicalName)) return true;
-
           const dbName = dbItem?.name;
           if (!dbName) return false;
-
           const synonyms = dbName.toLowerCase().split('/').map(name => name.trim());
           return synonyms.some(syn => new RegExp(`\\b${escapeRegex(syn)}\\b`, 'i').test(canonicalName));
         });
@@ -262,33 +290,12 @@ export default function ShoppingScreen() {
           pAmount = parseFloat(match[2]) || 1;
           pUnit = match[3].toLowerCase();
 
-          let itemAmt = item.amount;
-          let itemUnit = item.unit; // 👈 Creamos una copia local para proteger el estado original
-          let pkgAmt = pAmount;
+          // 🌟 MAGIA: Le pedimos a normalizeToBase que traduzca el empaquetado a la unidad base de nuestro item
+          let normalizedPkg = normalizeToBase(pAmount, pUnit, item.unit, dbItem.weightPerUnit);
+          let pkgAmt = normalizedPkg.amount;
 
-          // 🌟 TU LÓGICA MEJORADA (Y BLINDADA)
-          if (itemUnit === 'cuch.') {
-            itemAmt = item.amount * 15;
-
-            if (pUnit === 'ml' || pUnit === 'l') {
-              itemUnit = 'ml'; // Aceite, leche, vino...
-            } else {
-              itemUnit = 'g';  // Sal, azúcar, especias... (y fallback para botes/paquetes)
-            }
-          }
-
-          // 2. CONVERSIONES DE MAGNITUDES (Ahora usan 'itemUnit')
-          if ((itemUnit === 'g' || itemUnit === 'ud') && pUnit === 'kg') pkgAmt = pAmount * 1000;
-          if (itemUnit === 'kg' && pUnit === 'g') itemAmt = itemAmt * 1000;
-          if (itemUnit === 'ml' && pUnit === 'l') pkgAmt = pAmount * 1000;
-          if (itemUnit === 'l' && pUnit === 'ml') itemAmt = itemAmt * 1000;
-
-          if (pUnit === 'docena') pkgAmt = 12;
-          if (itemUnit === "ud") itemAmt = itemAmt * dbItem.weightPerUnit;
-          if (pUnit === "ud") pkgAmt = pAmount * dbItem.weightPerUnit;
-
-          lots = Math.ceil(itemAmt / pkgAmt) || 1;
-          console.log(lots, item, pUnit)
+          lots = Math.ceil(item.amount / pkgAmt) || 1;
+          console.log(lots, item.name, item.amount)
         }
       }
 
@@ -335,9 +342,8 @@ export default function ShoppingScreen() {
     }
   };
 
-  // 🛒 FUNCIÓN MAESTRA: Transferir del Carrito a la Despensa usando los lotes de buy_list
+  // 🛒 TRANSFERIR DEL CARRITO A LA DESPENSA
   const handleTransferToPantry = async () => {
-    // 1. Filtramos solo los productos que el usuario ha tachado (comprado)
     const checkedItemsToTransfer = budgetDetails.items.filter(item => item.checked);
 
     if (checkedItemsToTransfer.length === 0) {
@@ -345,27 +351,31 @@ export default function ShoppingScreen() {
       return;
     }
 
-    // 2. Clonamos la despensa actual de forma segura
     const currentPantry = JSON.parse(JSON.stringify(pantryItems));
 
     checkedItemsToTransfer.forEach(item => {
-      let finalAmountToAdd = item.amount; // Caída de seguridad
-      let finalUnit = item.unit;          // Unidad base calculada (g, ml, ud)
+      let finalAmountToAdd = item.amount;
+      let finalUnit = item.unit;
 
-      // Si el ingrediente tiene formato en la base de datos (Ej: "Botella 250ml")
       if (item.purchaseFormat) {
-        // Usamos exactamente tu mismo Regex de budgetDetails para abrir el paquete
         const match = item.purchaseFormat.match(/^(?:([a-zñáéíóú]+)(?:\s+de)?\s+)?([\d.]+)\s*(g|kg|ml|l|ud|docena|pack|bote|lata|paquete|manojo|sarta|cajita|pastilla|barra|bolsa|bandeja|tarro|brik)/i);
 
         if (match) {
           const pAmount = parseFloat(match[2]) || 1;
           const pUnit = match[3].toLowerCase();
 
-          // Multiplicamos: Cantidad del paquete * Número de lotes que calculó buy_list
           const totalPurchasedInPackageUnit = item.lots * pAmount;
 
-          // Lo normalizamos a la unidad base antes de guardarlo (Ej: 1 kg -> 1000g / 0.25 L -> 250ml)
-          const normalized = normalizeToBase(totalPurchasedInPackageUnit, pUnit);
+          const dbKey = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === getCanonicalName(item.name));
+          const dbItem = dbKey ? INGREDIENTS_DB[dbKey] : null;
+
+          // 🌟 NORMALIZACIÓN DE PAQUETE: Aseguramos que entra a la despensa con la unidad correcta de DB
+          const normalized = normalizeToBase(
+            totalPurchasedInPackageUnit,
+            pUnit,
+            dbItem?.unit,
+            dbItem?.weightPerUnit
+          );
 
           finalAmountToAdd = normalized.amount;
           finalUnit = normalized.unit;
@@ -374,20 +384,18 @@ export default function ShoppingScreen() {
 
       const cleanAmountToAdd = Math.round(finalAmountToAdd * 100) / 100;
 
-      // 3. Buscamos si ya existe en la despensa
       let existing = currentPantry.find(p => getCanonicalName(p.name) === getCanonicalName(item.name));
 
       if (existing) {
         existing.amount += cleanAmountToAdd;
         if (existing.amount > existing.maxAmount) {
-          existing.maxAmount = existing.amount; // Actualizamos el tope de la barra de progreso
+          existing.maxAmount = existing.amount;
         }
       } else {
-        // Si es nuevo, lo creamos con el formato limpio de la base de datos
         currentPantry.push({
           id: `pantry-${Date.now()}-${Math.random()}`,
           name: item.name,
-          unit: finalUnit, // 'ml', 'g', etc.
+          unit: finalUnit,
           amount: cleanAmountToAdd,
           maxAmount: cleanAmountToAdd,
           purchaseUnit: item.purchaseFormat
@@ -396,19 +404,14 @@ export default function ShoppingScreen() {
     });
 
     try {
-      // 4. Guardamos la nueva despensa unificada en el contexto (sube a Firebase/AsyncStorage solo)
       await updatePantry(currentPantry);
-
-      // 5. Limpiamos los elementos comprados de la lista de la compra de golpe
       await performClear();
-
       Alert.alert("¡Despensa Actualizada! 🥳", "Los productos se han sumado a tu inventario y el carrito se ha limpiado.");
     } catch (error) {
       Alert.alert("Error", "No se pudo guardar la compra en la despensa.");
     }
   };
 
-  // 4. ACCIÓN MANUAL: Añadir manda la orden directa al contexto
   const handleAddManual = async () => {
     if (!newItemName.trim() || !newItemAmount.trim()) return;
 
@@ -425,7 +428,6 @@ export default function ShoppingScreen() {
       const newItem = { id: itemId, name: finalName, amount: finalAmount, unit: newItemUnit };
       const updatedExtras = [...extraItems, newItem];
 
-      // Enviamos el cambio al contexto
       await updateShopping(updatedExtras, checkedItems, deletedItems);
 
       setNewItemName(''); setNewItemAmount('1'); setNewItemUnit('ud');
@@ -497,22 +499,16 @@ export default function ShoppingScreen() {
     Alert.alert("¡Ficha actualizada!", `Los datos de "${editingIngName}" se han guardado correctamente.`);
   };
 
-  // 5. MARCAR ÍTEMS: Actualizamos el contexto y mantenemos tu genial efecto visual de retardo
   const toggleCheck = useCallback(async (itemId) => {
-
-    // 1. TACHADO INMEDIATO (La magia visual va primero)
     setShoppingItems(prevItems =>
       prevItems.map(item => item.id === itemId ? { ...item, checked: !item.checked } : item)
     );
 
-    // 2. Preparamos los datos para el Contexto
     const newChecked = new Set(checkedItems);
     if (newChecked.has(itemId)) newChecked.delete(itemId); else newChecked.add(itemId);
 
-    // 3. Enviamos a la base de datos (Como ya hemos tachado la UI, no nos importa si esto tarda un poco)
     await updateShopping(extraItems, newChecked, deletedItems);
 
-    // 4. Tu truco de reordenar la lista un segundo después en la pantalla
     setTimeout(() => {
       setShoppingItems(currentItems => [...currentItems].sort((a, b) => {
         if (a.checked === b.checked) return a.name.localeCompare(b.name);
@@ -522,7 +518,6 @@ export default function ShoppingScreen() {
 
   }, [extraItems, checkedItems, deletedItems, updateShopping]);
 
-  // 6. BORRAR ÍTEM: Limpio, asíncrono y centralizado
   const handleDeleteItem = async (itemToDelete) => {
     const newDeleted = new Set(deletedItems);
     newDeleted.add(itemToDelete.id);
@@ -540,25 +535,13 @@ export default function ShoppingScreen() {
       "🛒 Procesar Compra",
       "¿Qué quieres hacer con los ingredientes comprados (tachados)?",
       [
-        {
-          text: "Sumar a la Despensa y Limpiar",
-          style: "default",
-          onPress: handleTransferToPantry // 👈 Tu nueva función unificada
-        },
-        {
-          text: "Borrarlos de la lista",
-          style: "destructive",
-          onPress: performClear
-        },
-        {
-          text: "Cancelar",
-          style: "cancel"
-        }
+        { text: "Sumar a la Despensa y Limpiar", style: "default", onPress: handleTransferToPantry },
+        { text: "Borrarlos de la lista", style: "destructive", onPress: performClear },
+        { text: "Cancelar", style: "cancel" }
       ]
     );
   };
 
-  /* 7. LIMPIAR COMPLETADOS: Un solo tiro al contexto */
   const performClear = async () => {
     const newDeleted = new Set(deletedItems);
     const extrasToRemove = new Set();
@@ -694,7 +677,7 @@ export default function ShoppingScreen() {
                   <Text style={[styles.cardName, ing.checked && styles.textStrikethrough]} numberOfLines={2}>{ing.name}</Text>
 
                   <View style={styles.cardAmountBadge}>
-                    <Text style={styles.cardAmountText}>{ing.amount} {ing.unit}</Text>
+                    <Text style={styles.cardAmountText}>{ing.amount} {ing.unit} {ing.equivalence}</Text>
                   </View>
 
                   <TouchableOpacity
@@ -753,7 +736,7 @@ export default function ShoppingScreen() {
                       {getEmojiForIngredient(item.name)} {item.name}
                     </Text>
                     <Text style={styles.ticketItemDesc}>
-                      Req: {item.amount}{item.unit}
+                      Req: {item.amount} {item.unit} {item.equivalence}
                     </Text>
                   </View>
 
@@ -886,6 +869,7 @@ const styles = StyleSheet.create({
   budgetTextContainer: { flexDirection: 'column' },
   budgetLabel: { fontSize: 13, fontWeight: '700', color: '#0369a1', textTransform: 'uppercase', letterSpacing: 0.5 },
   budgetValue: { fontSize: 26, fontWeight: '900', color: '#0284c7', marginTop: 2 },
+  equivalenceText: {fontSize: 13, color: '#6b7280', fontWeight: 'normal', fontStyle: 'italic'},
 
   gridWrapper: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: '3%', marginLeft: 5 },
   gridCard: { width: '31%', aspectRatio: 1, borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0', backgroundColor: '#ffffff', padding: 8, marginBottom: 10, alignItems: 'center', justifyContent: 'center', position: 'relative', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, elevation: 2 },

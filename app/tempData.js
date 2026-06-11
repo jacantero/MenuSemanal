@@ -23,7 +23,7 @@ export const deleteRecipe = (id) => {
 export const updateRecipe = (id, updatedData) => {
   const index = MOCK_RECIPES.findIndex(r => String(r.id) === String(id));
   if (index !== -1) {
-    MOCK_RECIPES[index] = { ...updatedData, id }; 
+    MOCK_RECIPES[index] = { ...updatedData, id };
     saveRecipesToStorage(MOCK_RECIPES); // Autoguardado
   }
 };
@@ -125,10 +125,10 @@ export const initAppData = async () => {
     const savedCustomIngs = await AsyncStorage.getItem('@custom_ingredients');
     if (savedCustomIngs) {
       USER_CUSTOM_INGREDIENTS = JSON.parse(savedCustomIngs);
-      
+
       // Fusionamos los del usuario con los de serie en la memoria RAM
       Object.assign(INGREDIENTS_DB, USER_CUSTOM_INGREDIENTS);
-      
+
       // También los metemos en la lista común para que el buscador predictivo los sugiera
       Object.values(USER_CUSTOM_INGREDIENTS).forEach(ing => {
         // Evitamos duplicados en las sugerencias
@@ -143,7 +143,7 @@ export const initAppData = async () => {
   // -------------------------------------------------------------
 
   const data = await loadAppData();
-  
+
   // 3. Menú (Se queda igual que antes)
   if (data.menu) {
     Object.keys(weeklyMenu).forEach(key => delete weeklyMenu[key]);
@@ -157,7 +157,7 @@ export const initAppData = async () => {
     const localRecipes = [...data.recipes];
 
     // Buscamos las recetas del JSON que NO están guardadas en el móvil
-    const newRecipesFromUpdate = recipesData.filter(jsonRec => 
+    const newRecipesFromUpdate = recipesData.filter(jsonRec =>
       !localRecipes.some(localRec => String(localRec.id) === String(jsonRec.id))
     );
 
@@ -200,7 +200,7 @@ export const consumeRecipeFromPantry = (pantryItems, recipe, plannedDiners) => {
   recipe.ingredients.forEach(ing => {
     const canonicalName = getCanonicalName(ing.name);
     const rawAmountToConsume = (ing.amount / baseDiners) * currentDiners;
-    
+
     // 3. Pasamos lo que pide la receta a su unidad base (g, ml, ud...)
     const normalizedNeeded = normalizeToBase(rawAmountToConsume, ing.unit);
 
@@ -242,12 +242,14 @@ export const consumeRecipeFromPantry = (pantryItems, recipe, plannedDiners) => {
  * Convierte cualquier cantidad y unidad a la métrica base de la app (gramos, mililitros o unidades).
  * Ideal para calcular macros y sumar en la lista de la compra.
  */
-export const normalizeToBase = (amount, unit) => {
-  if (!unit) return { amount, unit: 'ud' };
-  
+export const normalizeToBase = (amount, unit, dbunit, weightPerUnit = 1) => {
+  if (!unit) return { amount, unit: dbunit || 'ud' };
+
   const u = unit.toLowerCase().trim();
   let baseAmount = parseFloat(amount) || 0;
-  let baseUnit = 'ud';
+  let baseUnit = u;
+
+  // --- 1. PRIMERA ETAPA: CONVERSIONES DE TEXTO Y UNIDADES TRADICIONALES ---
 
   // --- CONVERSIONES DE PESO (-> gramos) ---
   if (u === 'kg' || u === 'kilo' || u === 'kilos') {
@@ -255,19 +257,101 @@ export const normalizeToBase = (amount, unit) => {
     baseUnit = 'g';
   } else if (u === 'g' || u === 'gr' || u === 'gramo' || u === 'gramos') {
     baseUnit = 'g';
-  } 
+  }
+
   // --- CONVERSIONES DE VOLUMEN (-> mililitros) ---
   else if (u === 'l' || u === 'litro' || u === 'litros') {
     baseAmount *= 1000;
-    baseUnit = 'ml';
+    baseUnit = 'ml'; // Temporalmente a ml para unificar fluidos
   } else if (u === 'cl' || u === 'centilitro' || u === 'centilitros') {
     baseAmount *= 10;
     baseUnit = 'ml';
   } else if (u === 'ml' || u === 'mililitro' || u === 'mililitros') {
     baseUnit = 'ml';
-  } 
+  }
 
-  return { amount: baseAmount, unit: baseUnit };
+  // --- CONVERSIONES CULINARIAS ESTÁNDAR ---
+  else if (u.includes('cucharadita') || u.includes('cuch. peq')) {
+    baseAmount *= 5; 
+    // Mantenemos baseUnit igual. El paso 2 decidirá si estos 5 representan gramos o mililitros según dbunit
+    baseUnit = dbunit === 'ml' || dbunit === 'L' ? 'ml' : 'g'; 
+  } else if (u.includes('cuch')) {
+    baseAmount *= 15; 
+    baseUnit = dbunit === 'ml' || dbunit === 'L' ? 'ml' : 'g';
+  } else if (u.includes('taza')) {
+    baseAmount *= 250; 
+    baseUnit = dbunit === 'ml' || dbunit === 'L' ? 'ml' : 'g';
+  } else if (u.includes('docena')) {
+    baseAmount *= 12;
+    baseUnit = 'ud';
+  } else if (u.includes('pizca')) {
+    baseAmount *= 1;
+    baseUnit = 'g';
+  } else if (['ud', 'uds', 'unidad', 'unidades', 'bote', 'lata', 'paquete', 'bandeja'].includes(u)) {
+    baseUnit = 'ud'; // Todo lo que actúe como un contenedor físico unitario lo tratamos temporalmente como 'ud'
+  }
+
+  // --- 2. SEGUNDA ETAPA: ALINEACIÓN FORZOSA CON LA UNIDAD DE LA BASE DE DATOS (dbunit) ---
+  if (dbunit) {
+    const target = dbunit.trim(); // Puede ser 'g', 'ml', 'L', 'ud'
+    const factorPeso = parseFloat(weightPerUnit) || 1;
+
+    if (baseUnit !== target) {
+      
+      // CASO A: La app tiene gramos (g) pero la DB quiere otra cosa
+      if (baseUnit === 'g') {
+        if (target === 'ml') {
+          // Asunción culinaria estándar 1g = 1ml (agua, leche...)
+          baseUnit = 'ml';
+        } else if (target === 'L') {
+          baseAmount /= 1000; // Gramos a Litros
+          baseUnit = 'L';
+        } else if (target === 'ud') {
+          // De gramos a unidades físicas (Ej: receta pide 400g de alcachofas, la DB se mide en botes de 400g)
+          baseAmount = factorPeso > 0 ? baseAmount / factorPeso : baseAmount;
+          baseUnit = 'ud';
+        }
+      }
+      
+      // CASO B: La app tiene mililitros (ml) pero la DB quiere otra cosa
+      else if (baseUnit === 'ml') {
+        if (target === 'g') {
+          baseUnit = 'g'; // Asunción 1ml = 1g
+        } else if (target === 'L') {
+          baseAmount /= 1000;
+          baseUnit = 'L';
+        } else if (target === 'ud') {
+          baseAmount = factorPeso > 0 ? baseAmount / factorPeso : baseAmount;
+          baseUnit = 'ud';
+        }
+      }
+
+      // CASO C: La app tiene unidades físicas (ud) pero la DB se gestiona en peso o volumen
+      else if (baseUnit === 'ud') {
+        if (target === 'g' || target === 'ml') {
+          // Receta pide 2 tomates (ud) -> Pasamos a gramos usando weightPerUnit (ej: 2 * 150g)
+          baseAmount = baseAmount * factorPeso;
+          baseUnit = target;
+        } else if (target === 'L') {
+          // Receta pide 2 brik (ud) -> Pasamos a Litros usando weightPerUnit (ej: si cada brik son 1L -> 2 * 1L)
+          // Nota: Si tu weightPerUnit en la base de datos para líquidos está guardado en ml (ej: 1000ml),
+          // tendrías que dividir luego entre 1000. Asumiendo que weightPerUnit coincide con la magnitud:
+          baseAmount = baseAmount * factorPeso;
+          baseUnit = 'L';
+        }
+      }
+      
+      // CASO D: Cualquier remanente o inconsistencia imprevista, forzamos la unidad objetivo
+      else {
+        baseUnit = target;
+      }
+    }
+  }
+
+  return { 
+    amount: Math.round(baseAmount * 100) / 100, // Redondeo a 2 decimales para evitar problemas de coma flotante
+    unit: baseUnit 
+  };
 };
 
 /**
@@ -276,9 +360,9 @@ export const normalizeToBase = (amount, unit) => {
  */
 export const getPackageSize = (purchaseUnitText) => {
   if (!purchaseUnitText) return { amount: 1, unit: 'ud' };
-  
+
   const text = purchaseUnitText.toLowerCase();
-  
+
   // Extraemos el primer número que encontremos
   const match = text.match(/[\d.,]+/);
   let amount = match ? parseFloat(match[0].replace(',', '.')) : 1;
@@ -354,20 +438,20 @@ export const getCanonicalName = (rawName) => {
 export const registerCustomIngredient = async (rawName, unit = 'g', fetchedMacros = null) => {
   const cleanName = rawName.toLowerCase().trim();
   const canonical = getCanonicalName(cleanName);
-  
+
   const isFallbackName = canonical === rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
   const alreadyExistsInDB = Object.keys(INGREDIENTS_DB).some(k => INGREDIENTS_DB[k].name === canonical);
 
   if (isFallbackName && !alreadyExistsInDB) {
     const newKey = cleanName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
-    
+
     // Si la pantalla nos pasa macros, los usamos. Si no, a 0.
     const finalMacros = fetchedMacros || { kcals: 0, protein: 0, carbs: { total: 0, sugars: 0 }, fats: { total: 0, saturated: 0, monounsaturated: 0, polyunsaturated: 0 }, fiber: 0, salt: 0 };
 
     const newIngredient = {
       name: canonical,
       unit: unit,
-      emoji: "🛒", 
+      emoji: "🛒",
       purchaseUnit: `1 ${unit}`,
       macros: finalMacros,
       micros: { calcium_mg: 0, iron_mg: 0, magnesium_mg: 0, potassium_mg: 0, zinc_mg: 0, vitE_mg: 0, vitC_mg: 0 },
@@ -385,7 +469,7 @@ export const registerCustomIngredient = async (rawName, unit = 'g', fetchedMacro
     }
   }
 
-  return canonical; 
+  return canonical;
 };
 
 
@@ -395,15 +479,15 @@ export const registerCustomIngredient = async (rawName, unit = 'g', fetchedMacro
  */
 export const updateIngredientDatabase = async (canonicalName, updatedData) => {
   // Buscamos su clave original, o le creamos una si hiciera falta
-  const key = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName) 
-          || canonicalName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
-  
+  const key = Object.keys(INGREDIENTS_DB).find(k => INGREDIENTS_DB[k].name === canonicalName)
+    || canonicalName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+
   // 1. Lo actualizamos en la memoria RAM
   INGREDIENTS_DB[key] = updatedData;
-  
+
   // 2. Lo metemos en la mochila de personalizaciones del usuario
-  USER_CUSTOM_INGREDIENTS[key] = updatedData; 
-  
+  USER_CUSTOM_INGREDIENTS[key] = updatedData;
+
   try {
     // 3. Guardamos la mochila en el disco duro
     await AsyncStorage.setItem('@custom_ingredients', JSON.stringify(USER_CUSTOM_INGREDIENTS));
@@ -445,7 +529,7 @@ export const archiveCurrentWeek = async (currentMenu, totalCost) => { // 👈 A�
 
     // 4. Limpiamos el menú (asumiendo que tu objeto se llama MOCK_RECIPES o similar, 
     // pero para Firebase lo importante es que el paso 2 ya se ha guardado en la nube).
-    
+
     return true;
   } catch (error) {
     console.error("🚨 Error real al archivar en Firebase:", error); // Esto nos chivará el error en la terminal

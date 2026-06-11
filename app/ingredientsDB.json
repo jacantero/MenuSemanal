@@ -1,6 +1,6 @@
 {
   "arroz": {
-    "name": "Arroz base", "unit": "kg", "emoji": "🍚", "purchaseUnit": "1kg", "purchasePrice": 1.30, "weightPerUnit": 1000,
+    "name": "Arroz base", "unit": "g", "emoji": "🍚", "purchaseUnit": "1kg", "purchasePrice": 1.30, "weightPerUnit": 1000,
     "macros": { "kcals": 349.0, "protein": 6.8, "carbs": { "total": 77.0, "sugars": 0.1 }, "fats": { "total": 0.6, "saturated": 0.1, "monounsaturated": 0.2, "polyunsaturated": 0.2 }, "fiber": 1.3, "salt": 0.01 },
     "micros": { "calcium_mg": 10.0, "iron_mg": 0.2, "magnesium_mg": 25.0, "potassium_mg": 115.0, "phosphorus_mg": 115.0, "zinc_mg": 1.1, "vitA_mcg": 0.0, "vitB1_mg": 0.07, "vitB2_mg": 0.05, "vitB3_mg": 1.6, "vitB6_mg": 0.16, "vitB9_mcg": 8.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.1 },
     "source": "BEDCA"
@@ -36,7 +36,7 @@
     "source": "BEDCA"
   },
   "pimienta": {
-    "name": "Pimienta negra / blanca", "unit": "cuch.", "emoji": "🧂", "purchaseUnit": "Bote 50g", "purchasePrice": 1.20, "weightPerUnit": 10,
+    "name": "Pimienta negra / blanca", "unit": "g", "emoji": "🧂", "purchaseUnit": "Bote 50g", "purchasePrice": 1.20, "weightPerUnit": 10,
     "macros": { "kcals": 251.0, "protein": 10.4, "carbs": { "total": 38.3, "sugars": 0.6 }, "fats": { "total": 3.3, "saturated": 1.4, "monounsaturated": 0.7, "polyunsaturated": 1.0 }, "fiber": 25.3, "salt": 0.05 },
     "micros": { "calcium_mg": 443.0, "iron_mg": 9.7, "magnesium_mg": 171.0, "potassium_mg": 1329.0, "phosphorus_mg": 158.0, "zinc_mg": 1.2, "vitA_mcg": 27.0, "vitB1_mg": 0.11, "vitB2_mg": 0.18, "vitB3_mg": 1.1, "vitB6_mg": 0.29, "vitB9_mcg": 17.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 1.0, "vitK_mcg": 163.7 },
     "source": "BEDCA"
@@ -84,19 +84,19 @@
     "source": "BEDCA"
   },
   "soja": {
-    "name": "Salsa de soja", "unit": "cuch.", "emoji": "🍶", "purchaseUnit": "Bote 250ml", "purchasePrice": 2.10, "weightPerUnit": 15,
+    "name": "Salsa de soja", "unit": "ml", "emoji": "🍶", "purchaseUnit": "Bote 250ml", "purchasePrice": 2.10, "weightPerUnit": 15,
     "macros": { "kcals": 61.0, "protein": 5.7, "carbs": { "total": 5.5, "sugars": 4.0 }, "fats": { "total": 0.1, "saturated": 0.0, "monounsaturated": 0.0, "polyunsaturated": 0.0 }, "fiber": 0.8, "salt": 14.5 },
     "micros": { "calcium_mg": 20.0, "iron_mg": 2.4, "magnesium_mg": 40.0, "potassium_mg": 212.0, "phosphorus_mg": 130.0, "zinc_mg": 0.4, "vitA_mcg": 0.0, "vitB1_mg": 0.06, "vitB2_mg": 0.15, "vitB3_mg": 3.9, "vitB6_mg": 0.2, "vitB9_mcg": 18.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.0 },
     "source": "BEDCA"
   },
   "sake": {
-    "name": "Sake / Vino blanco", "unit": "cuch.", "emoji": "🍾", "purchaseUnit": "Botella 750l", "purchasePrice": 3.50, "weightPerUnit": 15,
+    "name": "Sake / Vino blanco", "unit": "ml", "emoji": "🍾", "purchaseUnit": "Botella 750l", "purchasePrice": 3.50, "weightPerUnit": 15,
     "macros": { "kcals": 73.0, "protein": 0.1, "carbs": { "total": 2.6, "sugars": 0.2 }, "fats": { "total": 0.0, "saturated": 0.0, "monounsaturated": 0.0, "polyunsaturated": 0.0 }, "fiber": 0.0, "salt": 0.01 },
     "micros": { "calcium_mg": 9.0, "iron_mg": 0.3, "magnesium_mg": 10.0, "potassium_mg": 71.0, "phosphorus_mg": 18.0, "zinc_mg": 0.1, "vitA_mcg": 0.0, "vitB1_mg": 0.01, "vitB2_mg": 0.01, "vitB3_mg": 0.1, "vitB6_mg": 0.04, "vitB9_mcg": 1.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.0 },
     "source": "BEDCA"
   },
   "sesamo": {
-    "name": "Aceite de sésamo", "unit": "cuch.", "emoji": "🫒", "purchaseUnit": "Botella 250ml", "purchasePrice": 3.90, "weightPerUnit": 15,
+    "name": "Aceite de sésamo", "unit": "ml", "emoji": "🫒", "purchaseUnit": "Botella 250ml", "purchasePrice": 3.90, "weightPerUnit": 15,
     "macros": { "kcals": 899.0, "protein": 0.0, "carbs": { "total": 0.0, "sugars": 0.0 }, "fats": { "total": 99.9, "saturated": 14.2, "monounsaturated": 39.7, "polyunsaturated": 41.7 }, "fiber": 0.0, "salt": 0.0 },
     "micros": { "calcium_mg": 0.0, "iron_mg": 0.0, "magnesium_mg": 0.0, "potassium_mg": 0.0, "phosphorus_mg": 0.0, "zinc_mg": 0.0, "vitA_mcg": 0.0, "vitB1_mg": 0.0, "vitB2_mg": 0.0, "vitB3_mg": 0.0, "vitB6_mg": 0.0, "vitB9_mcg": 0.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 1.4, "vitK_mcg": 13.6 },
     "source": "BEDCA"
@@ -114,7 +114,7 @@
     "source": "BEDCA"
   },
   "maizena": {
-    "name": "Maizena / Almidón", "unit": "cuch.", "emoji": "🌾", "purchaseUnit": "Caja 400g", "purchasePrice": 1.80, "weightPerUnit": 15,
+    "name": "Maizena / Almidón", "unit": "ml", "emoji": "🌾", "purchaseUnit": "Caja 400g", "purchasePrice": 1.80, "weightPerUnit": 15,
     "macros": { "kcals": 341.0, "protein": 0.3, "carbs": { "total": 85.0, "sugars": 0.0 }, "fats": { "total": 0.1, "saturated": 0.0, "monounsaturated": 0.0, "polyunsaturated": 0.0 }, "fiber": 0.9, "salt": 0.01 },
     "micros": { "calcium_mg": 2.0, "iron_mg": 0.5, "magnesium_mg": 3.0, "potassium_mg": 3.0, "phosphorus_mg": 13.0, "zinc_mg": 0.1, "vitA_mcg": 0.0, "vitB1_mg": 0.0, "vitB2_mg": 0.0, "vitB3_mg": 0.0, "vitB6_mg": 0.0, "vitB9_mcg": 0.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.0 },
     "source": "BEDCA"
@@ -216,7 +216,7 @@
     "source": "BEDCA"
   },
   "cayena": {
-    "name": "Cayena en polvo", "unit": "cuch.", "emoji": "🌶️", "purchaseUnit": "Bote 40g", "purchasePrice": 1.30, "weightPerUnit": 8,
+    "name": "Cayena en polvo", "unit": "g", "emoji": "🌶️", "purchaseUnit": "Bote 40g", "purchasePrice": 1.30, "weightPerUnit": 8,
     "macros": { "kcals": 318.0, "protein": 12.0, "carbs": { "total": 32.0, "sugars": 10.3 }, "fats": { "total": 17.0, "saturated": 3.3, "monounsaturated": 2.4, "polyunsaturated": 8.4 }, "fiber": 27.2, "salt": 0.08 },
     "micros": { "calcium_mg": 148.0, "iron_mg": 7.8, "magnesium_mg": 152.0, "potassium_mg": 2014.0, "phosphorus_mg": 293.0, "zinc_mg": 2.5, "vitA_mcg": 2081.0, "vitB1_mg": 0.33, "vitB2_mg": 0.92, "vitB3_mg": 8.7, "vitB6_mg": 2.45, "vitB9_mcg": 106.0, "vitB12_mcg": 0.0, "vitC_mg": 76.4, "vitD_mcg": 0.0, "vitE_mg": 29.8, "vitK_mcg": 80.3 },
     "source": "BEDCA"
@@ -354,7 +354,7 @@
     "source": "BEDCA"
   },
   "cacao": {
-    "name": "Cacao puro en polvo", "unit": "cuch.", "emoji": "🍫", "purchaseUnit": "Bote 250g", "purchasePrice": 2.70, "weightPerUnit": 10,
+    "name": "Cacao puro en polvo", "unit": "g", "emoji": "🍫", "purchaseUnit": "Bote 250g", "purchasePrice": 2.70, "weightPerUnit": 10,
     "macros": { "kcals": 305.0, "protein": 23.0, "carbs": { "total": 16.0, "sugars": 1.5 }, "fats": { "total": 21.0, "saturated": 13.0, "monounsaturated": 6.8, "polyunsaturated": 0.7 }, "fiber": 33.0, "salt": 0.05 },
     "micros": { "calcium_mg": 128.0, "iron_mg": 13.9, "magnesium_mg": 499.0, "potassium_mg": 1524.0, "phosphorus_mg": 734.0, "zinc_mg": 6.8, "vitA_mcg": 2.0, "vitB1_mg": 0.08, "vitB2_mg": 0.24, "vitB3_mg": 2.2, "vitB6_mg": 0.12, "vitB9_mcg": 32.0, "vitB12_mcg": 0.0, "vitC_mg": 0.0, "vitD_mcg": 0.0, "vitE_mg": 0.1, "vitK_mcg": 2.5 },
     "source": "BEDCA"
@@ -438,13 +438,13 @@
     "source": "BEDCA"
   },
   "romero": {
-    "name": "Romero fresco", "unit": "ud", "emoji": "🌿", "purchaseUnit": "Manojo", "purchasePrice": 0.90, "weightPerUnit": 10,
+    "name": "Romero fresco", "unit": "g", "emoji": "🌿", "purchaseUnit": "Manojo", "purchasePrice": 0.90, "weightPerUnit": 10,
     "macros": { "kcals": 131.0, "protein": 3.3, "carbs": { "total": 20.7, "sugars": 0.0 }, "fats": { "total": 5.9, "saturated": 2.8, "monounsaturated": 1.0, "polyunsaturated": 1.5 }, "fiber": 14.1, "salt": 0.1 },
     "micros": { "calcium_mg": 317.0, "iron_mg": 6.7, "magnesium_mg": 91.0, "potassium_mg": 955.0, "phosphorus_mg": 70.0, "zinc_mg": 0.9, "vitA_mcg": 150.0, "vitB1_mg": 0.1, "vitB2_mg": 0.4, "vitB3_mg": 1.0, "vitB6_mg": 0.3, "vitB9_mcg": 100.0, "vitB12_mcg": 0.0, "vitC_mg": 21.0, "vitD_mcg": 0.0, "vitE_mg": 0.0, "vitK_mcg": 0.0 },
     "source": "BEDCA"
   },
   "alcachofas": {
-    "name": "Alcachofas", "unit": "ud", "emoji": "🌿", "purchaseUnit": "Bote 400g", "purchasePrice": 1.50, "weightPerUnit": 150,
+    "name": "Alcachofas", "unit": "g", "emoji": "🌿", "purchaseUnit": "Bote 400g", "purchasePrice": 1.50, "weightPerUnit": 150,
     "macros": { "kcals": 47.0, "protein": 3.3, "carbs": { "total": 10.5, "sugars": 0.9 }, "fats": { "total": 0.4, "saturated": 0.1, "monounsaturated": 0.0, "polyunsaturated": 0.1 }, "fiber": 5.4, "salt": 0.01 },
     "micros": { "calcium_mg": 44.0, "iron_mg": 1.3, "magnesium_mg": 60.0, "potassium_mg": 370.0, "phosphorus_mg": 90.0, "zinc_mg": 0.5, "vitA_mcg": 0.0, "vitB1_mg": 0.07, "vitB2_mg": 0.06, "vitB3_mg": 1.1, "vitB6_mg": 0.1, "vitB9_mcg": 68.0, "vitB12_mcg": 0.0, "vitC_mg": 11.7, "vitD_mcg": 0.0, "vitE_mg": 0.2, "vitK_mcg": 14.8 },
     "source": "BEDCA"
@@ -456,7 +456,7 @@
     "source": "BEDCA"
   },
   "oregano": {
-    "name": "Orégano", "unit": "ud", "emoji": "🌿", "purchaseUnit": "Bote 20g", "purchasePrice": 1.10, "weightPerUnit": 20,
+    "name": "Orégano", "unit": "g", "emoji": "🌿", "purchaseUnit": "Bote 20g", "purchasePrice": 1.10, "weightPerUnit": 20,
     "macros": { "kcals": 265.0, "protein": 9.0, "carbs": { "total": 68.9, "sugars": 4.0 }, "fats": { "total": 4.3, "saturated": 1.5, "monounsaturated": 0.5, "polyunsaturated": 1.0 }, "fiber": 42.5, "salt": 0.05 },
     "micros": { "calcium_mg": 1597.0, "iron_mg": 44.0, "magnesium_mg": 270.0, "potassium_mg": 1260.0, "phosphorus_mg": 148.0, "zinc_mg": 2.7, "vitA_mcg": 345.0, "vitB1_mg": 0.2, "vitB2_mg": 0.3, "vitB3_mg": 6.2, "vitB6_mg": 1.0, "vitB9_mcg": 236.0, "vitB12_mcg": 0.0, "vitC_mg": 2.0, "vitD_mcg": 0.0, "vitE_mg": 18.0, "vitK_mcg": 621.7 },
     "source": "BEDCA"

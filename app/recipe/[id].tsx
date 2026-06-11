@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { router, useLocalSearchParams, Stack } from 'expo-router';
-import { deleteRecipe, assignRecipeToMenu, MOCK_RECIPES, INGREDIENTS_DB, getCanonicalName, normalizeToBase } from '../tempData';
+import { deleteRecipe, MOCK_RECIPES, INGREDIENTS_DB, getCanonicalName } from '../tempData';
+import { useHousehold } from '../HouseholdContext'; 
 import { FontAwesome } from '@expo/vector-icons';
 
 export const getEmojiForIngredient = (rawName) => {
@@ -13,13 +14,23 @@ export const getEmojiForIngredient = (rawName) => {
 
 export default function RecipeDetailScreen() {
   const { id, day, meal, plannedDiners } = useLocalSearchParams();
-  
   const recipe = MOCK_RECIPES.find((r) => String(r.id) === String(id));
 
-  const [diners, setDiners] = useState(plannedDiners ? parseInt(plannedDiners, 10) : (recipe?.baseDiners || 1));
-  
-  // --- NUEVO ESTADO PARA EL MODAL DE DETALLE ---
+  // 1. Extraemos el menú real de la app
+  const { weeklyMenu, updateMenu } = useHousehold();
+
+  // 2. Buscamos si ya hay comensales guardados en la nube/local para este día y momento
+  const savedMeal = day && meal ? weeklyMenu[day]?.find(m => m.id === meal) : null;
+  const savedDiners = savedMeal?.diners;
+
+  // 3. Inicializamos priorizando: Lo guardado > Lo planificado > La base de la receta > 1
+  const [diners, setDiners] = useState(
+    savedDiners || (plannedDiners ? parseInt(plannedDiners, 10) : (recipe?.baseDiners || 1))
+  );
+
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
+  
+  // ... (tu useMemo de recipeStats se queda igual) ...
 
   const recipeStats = useMemo(() => {
     if (!recipe) return { cost: 0, kcals: 0, protein: 0, carbs: 0, fats: 0, details: [] };
@@ -161,18 +172,40 @@ export default function RecipeDetailScreen() {
     });
   };
 
-  const handleDinersChange = (newAmount) => {
+  const handleDinersChange = async (newAmount) => {
     const validAmount = Math.max(1, newAmount);
-    setDiners(validAmount);
+    setDiners(validAmount); // Actualiza la UI rápido
     
     if (day && meal && recipe) {
-      assignRecipeToMenu(day, meal, recipe.id, validAmount);
+      // 1. Clonamos el menú global
+      const newMenu = JSON.parse(JSON.stringify(weeklyMenu));
+      
+      // 2. Encontramos el momento del día y lo modificamos
+      const targetMeal = newMenu[day]?.find(m => m.id === meal);
+      if (targetMeal) {
+        targetMeal.recipeId = recipe.id;
+        targetMeal.diners = validAmount; // 👈 Guardamos el nuevo valor
+        
+        // 3. Sincronizamos con Firebase y Local
+        await updateMenu(newMenu);
+      }
     }
   };
 
-  const handleUnassign = () => {
+  const handleUnassign = async () => {
     if (day && meal) {
-      assignRecipeToMenu(day, meal, null);
+      const newMenu = JSON.parse(JSON.stringify(weeklyMenu));
+      const targetMeal = newMenu[day]?.find(m => m.id === meal);
+      
+      if (targetMeal) {
+        // Limpiamos todo el slot
+        targetMeal.recipeId = null;
+        targetMeal.diners = null;
+        targetMeal.eatOutPlace = null;
+        targetMeal.eatOutCost = null;
+        
+        await updateMenu(newMenu);
+      }
       router.back();
     }
   };
@@ -236,9 +269,9 @@ export default function RecipeDetailScreen() {
 
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>Macros / ración</Text>
-              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#3b82f6'}}>P:</Text> {recipeStats.protein/diners}g</Text>
-              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#eab308'}}>C:</Text> {recipeStats.carbs/diners}g</Text>
-              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#ef4444'}}>G:</Text> {recipeStats.fats/diners}g</Text>
+              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#3b82f6'}}>P:</Text> {(recipeStats.protein/diners).toFixed(1)}g</Text>
+              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#eab308'}}>C:</Text> {(recipeStats.carbs/diners).toFixed(1)}g</Text>
+              <Text style={styles.macroText}><Text style={{fontWeight: 'bold', color: '#ef4444'}}>G:</Text> {(recipeStats.fats/diners).toFixed(1)}g</Text>
             </View>
 
             {/* Iconito indicador de que se puede pulsar */}
