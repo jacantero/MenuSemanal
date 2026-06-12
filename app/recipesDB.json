@@ -645,16 +645,53 @@
     "ingredients": [
       { "name": "Masa de pizza", "amount": 260.0, "unit": "g" },
       { "name": "Tomate / Concentrado", "amount": 150.0, "unit": "g" },
-      { "name": "Queso mozzarella rallado para pizzas", "amount": 150.0, "unit": "g" },
+      { "name": "Queso mozzarella rallado", "amount": 150.0, "unit": "g" },
       { "name": "Alcachofas", "amount": 100.0, "unit": "g" },
       { "name": "Jamón serrano", "amount": 30, "unit": "g" }
     ],
     "instructions": [
       "Precalentar el horno a 220°C.",
       "Extender la masa de pizza sobre papel de horno. Extender el tomate triturado por encima.",
-      "Esparcir la mozzarella rallada y colocar las alcachofas (previamente escurridas) sobre el queso.",
-      "Hornear durante unos 10-12 minutos hasta que la masa esté dorada y el queso burbujee.",
-      "Al sacar la pizza del horno, colocar las lonchas de jamón serrano por encima justo antes de servir."
+      "Esparcir la mozzarella rallada y colocar las alcachofas y el jamón sobre el queso.",
+      "Hornear durante unos 10-12 minutos hasta que la masa esté dorada y el queso burbujee."
+    ]
+  },
+  {
+    "id": "c009",
+    "name": "Pizza cabramelizada",
+    "imageUrl": "https://content-cocina.lecturas.com/medio/2018/11/23/paso_a_paso_para_realizar_pizza_de_queso_de_cabra_y_beicon_con_un_toque_de_miel_resultado_final_6e955824_800x800.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      { "name": "Masa de pizza", "amount": 260.0, "unit": "g" },
+      { "name": "Tomate / Concentrado", "amount": 150.0, "unit": "g" },
+      { "name": "Queso mozzarella rallado", "amount": 150.0, "unit": "g" },
+      { "name": "Queso de cabra", "amount": 120.0, "unit": "g" },
+      { "name": "Miel", "amount": 5, "unit": "g" }
+    ],
+    "instructions": [
+      "Precalentar el horno a 220°C.",
+      "Extender la masa de pizza sobre papel de horno. Extender el tomate triturado por encima.",
+      "Esparcir la mozzarella rallada y colocar las rodajas de queso de cabra. Echar la miel por encima",
+      "Hornear durante unos 10-12 minutos hasta que la masa esté dorada y el queso burbujee."
+    ]
+  },
+  {
+    "id": "c010",
+    "name": "Pizza de verduras",
+    "imageUrl": "https://global.filippoberio.com/wp-content/uploads/2014/05/pepper-pizza.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      { "name": "Masa de pizza", "amount": 260.0, "unit": "g" },
+      { "name": "Tomate / Concentrado", "amount": 150.0, "unit": "g" },
+      { "name": "Queso mozzarella rallado", "amount": 150.0, "unit": "g" },
+      { "name": "Pimiento", "amount": 100.0, "unit": "g" },
+      { "name": "Cebolla", "amount": 80, "unit": "g" }
+    ],
+    "instructions": [
+      "Precalentar el horno a 220°C.",
+      "Extender la masa de pizza sobre papel de horno. Extender el tomate triturado por encima.",
+      "Esparcir la mozzarella rallada y colocar las verduras por encima.",
+      "Hornear durante unos 10-12 minutos hasta que la masa esté dorada y el queso burbujee."
     ]
   },
   {
@@ -732,6 +769,43 @@
       "Añadir el caldo de pescado caliente y cocinar a fuego medio durante unos 10-12 minutos hasta que el caldo se evapore y el fideo esté en su punto.",
       "Colocar las gambas por encima los últimos minutos de cocción y dejar reposar 5 minutos antes de servir."
     ]
+  },
+  {
+    "id": "c011",
+    "name": "No pizza",
+    "imageUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEheHyAtMIav8UBauLXSnHRXaocC7jt89xLVp-9RxWF2u5enxJ-cVpcue6e6ZH-pTTpTizBV7PJ3eDd4cpPSDB77cUkezKKHLBOF3X005FvMjNiYHDdINnVwOXWojyYtxIQXmunk3oMqudZ0/s1600/hojaldre+de+calabacin+y+queso+%252822%2529.JPG",
+    "baseDiners": 2,
+    "ingredients": [
+      { "name": "Hojaldre", "amount": 230.0, "unit": "g" },
+      { "name": "Tomate", "amount": 80.0, "unit": "g" },
+      { "name": "Queso mozzarella rallado", "amount": 120.0, "unit": "g" },
+      { "name": "Calabacín", "amount": 80.0, "unit": "g" },
+      { "name": "Cebolla", "amount": 80, "unit": "g" },
+      { "name": "Queso semicurado", "amount": 120, "unit": "g" }
+    ],
+    "instructions": [
+      "Precalentar el horno a 220°C.",
+      "Extender la masa de hojaldre sobre papel de horno, y cortar en 4 cuadrados.",
+      "Cortar el tomate, el calabacín y la cebolla en láminas; y el queso en tacos de unos 3 dedos de longitud",
+      "Colocar los tacos de queso en los bordes de cada cuadrado y doblar, formando los bordes rellenos",
+      "Colocar en el centro el calabacín, la cebolla y el tomate. Esparcir el queso rallado por encima.",
+      "Hornear durante unos 10-12 minutos hasta que la masa esté dorada y el queso burbujee."
+    ]
+  },
+  {
+    "id": "c012",
+    "name": "Revuelto de espárragos, gambas y champiñones",
+    "imageUrl": "https://imag.bonviveur.com/revuelto-de-gambas.jpg",
+    "baseDiners": 2,
+    "ingredients": [
+      { "name": "Huevos", "amount": 2, "unit": "ud" },
+      { "name": "Gambas", "amount": 150.0, "unit": "g" },
+      { "name": "Espárragos", "amount": 150.0, "unit": "g" },
+      { "name": "Champiñones", "amount": 80.0, "unit": "g" }
+    ],
+    "instructions": [
+      "Sofreír las gambas con las verduras",
+      "Echar los huevos y remover sin parar hasta que queden bien cuajados"
+    ]
   }
-  
 ]
